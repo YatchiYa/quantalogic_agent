@@ -8,6 +8,8 @@ class QuantaLogicUI {
         this.processedEventIds = new Set();
         this.activeValidationDialog = null;
         this.connectionState = 'disconnected';
+        this.agents = new Map(); // Store created agents
+        this.selectedAgentId = null;
         this.initializeElements();
         this.attachEventListeners();
         this.connectSSE();
@@ -25,7 +27,19 @@ class QuantaLogicUI {
             maxIterations: document.getElementById('maxIterations'),
             autoScroll: document.getElementById('autoScroll'),
             finalAnswer: document.getElementById('finalAnswer'),
-            copyAnswer: document.getElementById('copyAnswer')
+            copyAnswer: document.getElementById('copyAnswer'),
+            // Agent-related elements
+            createAgent: document.getElementById('createAgent'),
+            agentModal: document.getElementById('agentModal'),
+            agentForm: document.getElementById('agentForm'),
+            cancelAgent: document.getElementById('cancelAgent'),
+            agentsList: document.getElementById('agentsList'),
+            // Agent form fields
+            agentModel: document.getElementById('agentModel'),
+            agentVisionModel: document.getElementById('agentVisionModel'),
+            agentExpertise: document.getElementById('agentExpertise'),
+            agentSystemPrompt: document.getElementById('agentSystemPrompt'),
+            agentNoStream: document.getElementById('agentNoStream')
         };
 
         // Verify elements exist and throw error if critical elements are missing
@@ -48,6 +62,11 @@ class QuantaLogicUI {
 
         // Copy answer handler
         this.elements.copyAnswer?.addEventListener('click', () => this.handleCopyAnswer());
+
+        // Agent-related event listeners
+        this.elements.createAgent.addEventListener('click', () => this.showAgentModal());
+        this.elements.cancelAgent.addEventListener('click', () => this.hideAgentModal());
+        this.elements.agentForm.addEventListener('submit', (e) => this.handleAgentCreate(e));
     }
 
     connectSSE() {
@@ -125,7 +144,7 @@ class QuantaLogicUI {
 
         try {
             // Submit task using new endpoint
-            const submitResponse = await fetch('/tasks', {
+            const submitResponse = await fetch('/tasks' + (this.selectedAgentId ? `?agent_id=${this.selectedAgentId}` : ''), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -559,9 +578,110 @@ class QuantaLogicUI {
         }
     }
 
+    showAgentModal() {
+        this.elements.agentModal.classList.remove('hidden');
+    }
+
+    hideAgentModal() {
+        this.elements.agentModal.classList.add('hidden');
+    }
+
+    async handleAgentCreate(e) {
+        e.preventDefault();
+        
+        const agentData = {
+            model_name: this.elements.agentModel.value,
+            vision_model_name: this.elements.agentVisionModel.value || null,
+            specific_expertise: this.elements.agentExpertise.value || null,
+            system_prompt: this.elements.agentSystemPrompt.value || null,
+            no_stream: this.elements.agentNoStream.checked
+        };
+
+        try {
+            const response = await fetch('/create-agent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(agentData)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create agent');
+            }
+
+            const { agent_id } = await response.json();
+            this.agents.set(agent_id, {
+                id: agent_id,
+                ...agentData
+            });
+
+            this.hideAgentModal();
+            this.updateAgentsList();
+            this.showNotification('Agent created successfully', 'success');
+        } catch (error) {
+            console.error('Error creating agent:', error);
+            this.showNotification('Failed to create agent: ' + error.message, 'error');
+        }
+    }
+
+    updateAgentsList() {
+        const agentsList = this.elements.agentsList;
+        agentsList.innerHTML = '';
+
+        if (this.agents.size === 0) {
+            agentsList.innerHTML = '<p class="text-gray-500 text-sm">No agents created yet</p>';
+            return;
+        }
+
+        this.agents.forEach((agent, id) => {
+            const agentElement = document.createElement('div');
+            agentElement.className = 'p-3 border rounded-md ' + 
+                (this.selectedAgentId === id ? 'border-primary-500 bg-primary-50' : 'border-gray-200');
+            
+            agentElement.innerHTML = `
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="font-medium text-gray-900">${agent.model_name}</h4>
+                        ${agent.specific_expertise ? 
+                            `<p class="text-sm text-gray-500">Expertise: ${agent.specific_expertise}</p>` : ''}
+                    </div>
+                    <button class="select-agent-btn px-3 py-1 text-sm font-medium rounded-md ${
+                        this.selectedAgentId === id ? 
+                        'text-primary-700 bg-primary-100' : 
+                        'text-gray-700 bg-gray-100 hover:bg-gray-200'
+                    }" data-agent-id="${id}">
+                        ${this.selectedAgentId === id ? 'Selected' : 'Select'}
+                    </button>
+                </div>
+            `;
+
+            const selectBtn = agentElement.querySelector('.select-agent-btn');
+            selectBtn.addEventListener('click', () => this.selectAgent(id));
+
+            agentsList.appendChild(agentElement);
+        });
+    }
+
+    selectAgent(agentId) {
+        this.selectedAgentId = this.selectedAgentId === agentId ? null : agentId;
+        this.updateAgentsList();
+    }
+
     showNotification(message, type = 'info') {
-        // Implementation can be added for showing notifications
-        console.log(`${type}: ${message}`);
+        const notification = document.createElement('div');
+        notification.className = `fixed bottom-4 right-4 p-4 rounded-md shadow-lg ${
+            type === 'success' ? 'bg-green-500' :
+            type === 'error' ? 'bg-red-500' :
+            type === 'warning' ? 'bg-yellow-500' :
+            'bg-blue-500'
+        } text-white`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
     }
 }
 

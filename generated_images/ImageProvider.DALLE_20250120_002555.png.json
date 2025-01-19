@@ -1,0 +1,18 @@
+{
+  "filename": "ImageProvider.DALLE_20250120_002555.png",
+  "prompt": "A minimal cylindrical cake with a base, one layer, designed for 4 persons, showcasing realistic textures.",
+  "revised_prompt": "Imagine a cylindrical cake, minimalistic in its design, built to serve four people. The cake has a firm base and includes just one layer. Captured in this image, the focus should be on realistic textures that offer a visual delight, making the cake appear as tempting and delectable as it probably tastes. Subtlety in the embellishments could be shown, highlighting the beauty of simplicity.",
+  "provider": "ImageProvider.DALLE",
+  "model": "dall-e-3",
+  "created": "2025-01-20T00:25:55",
+  "parameters": {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "standard",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "A minimal cylindrical cake with a base, one layer, designed for 4 persons, showcasing realistic textures."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-JQG4dqDZbtFvdmZrgF0XWjLd/img-WUxj9sFFjv8iFtJghNbXCOV6.png?st=2025-01-19T22%3A25%3A55Z&se=2025-01-20T00%3A25%3A55Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=d505667d-d6c1-4a0a-bac7-5c84a87759f8&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-01-19T00%3A21%3A16Z&ske=2025-01-20T00%3A21%3A16Z&sks=b&skv=2024-08-04&sig=xHDltfCCcxaPrcdiPXThJ68Ko6VD7Zu0W5kbHPURr7w%3D",
+  "local_path": "generated_images/ImageProvider.DALLE_20250120_002555.png"
+}

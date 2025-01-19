@@ -3,6 +3,7 @@
 # Standard library imports
 
 # Local application imports
+from typing import Optional
 from quantalogic.agent import Agent
 from quantalogic.coding_agent import create_coding_agent
 from quantalogic.console_print_token import console_print_token
@@ -230,4 +231,43 @@ def create_basic_agent(
         tools=tools,
         compact_every_n_iterations=compact_every_n_iteration,
         max_tokens_working_memory=max_tokens_working_memory,
+        specific_expertise=specific_expertise,
+        system_prompt=system_prompt
+    )
+
+
+def create_agent_dynamic(
+    model_name: str, 
+    vision_model_name: str | None = None, 
+    no_stream: Optional[bool] = None,
+    compact_every_n_iteration: Optional[int] | None = None,
+    max_tokens_working_memory: Optional[int] | None = None,
+    tools: Optional[list[AgentTool]] | None = None,
+    specific_expertise: Optional[str] | None = None,
+    system_prompt: Optional[str] | None = None
+) -> Agent:
+    """Create an agent with the specified model and tools.
+
+    Args:
+        model_name (str): Name of the model to use
+        vision_model_name (str | None): Name of the vision model to use
+        no_stream (bool, optional): If True, the agent will not stream results.
+        compact_every_n_iteration (int | None, optional): Frequency of memory compaction.
+        max_tokens_working_memory (int | None, optional): Maximum tokens for working memory.
+        tools (list[AgentTool] | None, optional): List of tools to use.
+        specific_expertise (str | None, optional): Specific expertise of the agent.
+        system_prompt (str | None, optional): System prompt for the agent.
+
+    Returns:
+        Agent: An agent with the specified model and tools
+    """
+
+    return Agent(
+        model_name=model_name,
+        tools=tools,
+        compact_every_n_iterations=compact_every_n_iteration,
+        max_tokens_working_memory=max_tokens_working_memory,
+        specific_expertise=specific_expertise,
+        system_prompt=system_prompt,
+        vision_model_name=vision_model_name,
     )

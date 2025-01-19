@@ -12,7 +12,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from queue import Empty, Queue
 from threading import Lock
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -21,16 +21,38 @@ from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from rich.console import Console
 
+from quantalogic.agent import Agent
 from quantalogic.agent_config import (
     MODEL_NAME,
     create_agent,
+    create_agent_dynamic,
     create_coding_agent,  # noqa: F401
     create_basic_agent,  # noqa: F401
 )
 from quantalogic.console_print_events import console_print_events
+from quantalogic.console_print_token import console_print_token
+from quantalogic.tools import (
+    AgentTool,
+    DownloadHttpFileTool,
+    EditWholeContentTool,
+    ExecuteBashCommandTool,
+    InputQuestionTool,
+    ListDirectoryTool,
+    LLMTool,
+    LLMVisionTool,
+    MarkitdownTool,
+    ReadFileBlockTool,
+    ReadFileTool,
+    ReplaceInFileTool,
+    RipgrepTool,
+    SearchDefinitionNames,
+    TaskCompleteTool,
+)
+from quantalogic.tools.dalle_e import LLMImageGenerationTool
+from quantalogic.tools.write_file_tool import WriteFileTool
 
 # Configure logger
 logger.remove()
@@ -150,6 +172,17 @@ class TaskStatus(BaseModel):
     model_name: Optional[str] = None
 
 
+class AgentCreationRequest(BaseModel):
+    """Request model for agent creation."""
+    model_name: str = Field(default=MODEL_NAME, description="Name of the model to use")
+    vision_model_name: Optional[str] = Field(default=None, description="Name of the vision model to use")
+    specific_expertise: Optional[str] = Field(default=None, description="Specific expertise of the agent")
+    system_prompt: Optional[str] = Field(default=None, description="System prompt for the agent")
+    no_stream: bool = Field(default=False, description="If True, the agent will not stream results")
+
+    model_config = {"extra": "forbid"}
+
+
 class AgentState:
     """Manages agent state and event queues."""
 
@@ -160,6 +193,7 @@ class AgentState:
         self.event_queues: Dict[str, Dict[str, Queue]] = {}
         # Track active agents per client-task combination
         self.active_agents: Dict[str, Dict[str, Any]] = {}
+        self.created_agents: Dict[str, Any] = {}  # Store created agents by ID
         self.queue_lock = Lock()
         self.client_counter = 0
         self.console = Console()
@@ -246,7 +280,7 @@ class AgentState:
     def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME):
         """Initialize agent with SSE-based user validation."""
         try:
-            self.agent = create_agent(model_name, None)
+            self.agent = create_agent_dynamic(model_name, None)
 
             # Comprehensive list of agent events to track
             agent_events = [
@@ -359,63 +393,147 @@ class AgentState:
             if server_state.force_exit:
                 sys.exit(1)
 
-    async def submit_task(self, task_request: TaskSubmission) -> str:
-        """Submit a new task and return its ID."""
-        task_id = str(uuid.uuid4())
-        self.tasks[task_id] = {
-            "status": "pending",
-            "created_at": datetime.now().isoformat(),
-            "request": task_request.dict(),
-        }
-        self.task_queues[task_id] = asyncio.Queue()
-        return task_id
-
-    async def execute_task(self, task_id: str):
-        """Execute a task asynchronously."""
+    def create_new_agent(self, request: AgentCreationRequest) -> str:
+        """Create a new agent with the specified configuration.
+        
+        Args:
+            request: The agent creation request containing configuration
+            
+        Returns:
+            str: The ID of the created agent
+        """
+        agent_id = str(uuid.uuid4())
         try:
-            task = self.tasks[task_id]
-            task["status"] = "running"
-            task["started_at"] = datetime.now().isoformat()
+            # Create default tools list
+            tools = [
+                TaskCompleteTool(),
+                LLMTool(model_name=request.model_name, on_token=None if request.no_stream else console_print_token),
+                DownloadHttpFileTool(),
+                LLMImageGenerationTool(
+                        provider="dall-e",
+                        model_name="openai/dall-e-3",
+                        on_token=console_print_token if not request.no_stream else None
+                    )
+            ]
 
-            # Initialize agent if needed
-            if not self.agent:
-                self.initialize_agent_with_sse_validation(task["request"]["model_name"])
+            # Create the agent with dynamic configuration
+            agent = Agent(
+                model_name=request.model_name,
+                tools=tools,
+                specific_expertise=request.specific_expertise,
+                #system_prompt=request.system_prompt
+            )
 
-            # Execute task
+            # Set up event handlers for comprehensive agent monitoring
+            agent_events = [
+                "session_start", "session_end", "session_add_message",
+                "task_solve_start", "task_solve_end", "task_think_start",
+                "task_think_end", "task_complete", "tool_execution_start",
+                "tool_execution_end", "tool_execute_validation_start",
+                "tool_execute_validation_end", "memory_full",
+                "memory_compacted", "memory_summary",
+                "error_max_iterations_reached", "error_tool_execution",
+                "error_model_response"
+            ]
+
+            # Setup event handlers for the agent
+            for event in agent_events:
+                agent.event_emitter.on(event, lambda e, d, event=event: self._handle_event(event, d))
+
+            # Override validation method with SSE-based validation
+            agent.ask_for_user_validation = self.sse_ask_for_user_validation
+
+            self.created_agents[agent_id] = agent
+            logger.info(f"Created new agent with ID: {agent_id} using model: {request.model_name}")
+            return agent_id
+
+        except Exception as e:
+            logger.error(f"Failed to create agent: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Failed to create agent: {str(e)}")
+
+    async def execute_task(self, task_id: str, agent_id: Optional[str] = None):
+        """Execute a task asynchronously using specified or default agent."""
+        if task_id not in self.tasks:
+            raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+
+        task = self.tasks[task_id]
+        task["status"] = "running"
+        task["started_at"] = datetime.now().isoformat()
+
+        try:
+            # Use specified agent if provided and exists
+            agent = None
+            if agent_id and agent_id in self.created_agents:
+                agent = self.created_agents[agent_id]
+                logger.info(f"Using existing agent {agent_id} for task {task_id}")
+            else:
+                # Create default agent using create_new_agent
+                default_request = AgentCreationRequest(
+                    model_name=task["model_name"],
+                    no_stream=False,
+                    specific_expertise="Task-specific AI assistant"
+                )
+                new_agent_id = self.create_new_agent(default_request)
+                agent = self.created_agents[new_agent_id]
+                logger.info(f"Created default agent {new_agent_id} for task {task_id}")
+
+            # Execute task with proper async handling
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 None,
                 functools.partial(
-                    self.agent.solve_task, task["request"]["task"], max_iterations=task["request"]["max_iterations"]
-                ),
+                    agent.solve_task,
+                    task["task"],
+                    max_iterations=task.get("max_iterations", 30)
+                )
             )
-
-            # Update task status
+            
+            # Update task status with comprehensive information
             task["status"] = "completed"
             task["completed_at"] = datetime.now().isoformat()
             task["result"] = result
-            task["total_tokens"] = self.agent.total_tokens
-            task["model_name"] = self.get_current_model_name()
-
-            # Broadcast completion event to task-specific queue
-            self.broadcast_event(
-                "task_complete",
-                {
-                    "task_id": task_id,
-                    "result": result,
-                    "total_tokens": self.agent.total_tokens,
-                    "model_name": self.get_current_model_name(),
-                },
-            )
-
+            task["total_tokens"] = getattr(agent, 'total_tokens', None)
+            task["model_name"] = task["model_name"]
+            
+            # Broadcast completion event with detailed information
+            self.broadcast_event("task_completed", {
+                "task_id": task_id,
+                "result": result,
+                "total_tokens": getattr(agent, 'total_tokens', None),
+                "model_name": task["model_name"]
+            }, task_id=task_id)
+            
         except Exception as e:
-            logger.error(f"Task execution failed: {e}", exc_info=True)
+            logger.error(f"Task {task_id} failed: {str(e)}", exc_info=True)
             task["status"] = "failed"
             task["completed_at"] = datetime.now().isoformat()
             task["error"] = str(e)
+            
+            # Broadcast error event with detailed information
+            self.broadcast_event("task_error", {
+                "task_id": task_id,
+                "error": str(e),
+                "error_type": type(e).__name__
+            }, task_id=task_id)
 
-            # Broadcast error event to task-specific queue
-            self.broadcast_event("task_error", {"task_id": task_id, "error": str(e)})
+    async def submit_task(self, task_request: TaskSubmission) -> str:
+        """Submit a new task and return its ID."""
+        task_id = str(uuid.uuid4())
+        self.tasks[task_id] = {
+            "task": task_request.task,
+            "status": "pending",
+            "created_at": datetime.now().isoformat(),
+            "model_name": task_request.model_name,
+            "max_iterations": task_request.max_iterations
+        }
+        
+        # Create task queue
+        self.task_queues[task_id] = asyncio.Queue()
+        
+        # Execute task asynchronously with optional agent_id
+        asyncio.create_task(self.execute_task(task_id))
+        
+        return task_id
 
     async def get_task_event_queue(self, task_id: str) -> Queue:
         """Get or create a task-specific event queue."""
@@ -580,12 +698,40 @@ async def get_index(request: Request) -> HTMLResponse:
     return response
 
 
+@app.post("/create-agent")
+async def create_agent(request: AgentCreationRequest) -> Dict[str, str]:
+    """Create a new agent with specified configuration.
+    
+    Returns:
+        Dict containing the ID of the created agent
+    """
+    agent_id = agent_state.create_new_agent(request)
+    return {"agent_id": agent_id}
+
+
 @app.post("/tasks")
-async def submit_task(request: TaskSubmission) -> Dict[str, str]:
-    """Submit a new task and return its ID."""
-    task_id = await agent_state.submit_task(request)
-    # Start task execution in background
-    asyncio.create_task(agent_state.execute_task(task_id))
+async def submit_task(request: TaskSubmission, agent_id: Optional[str] = None):
+    """Submit a new task and return its ID.
+    
+    Args:
+        request: The task submission request
+        agent_id: Optional ID of a previously created agent to use
+    """
+    task_id = str(uuid.uuid4())
+    agent_state.tasks[task_id] = {
+        "task": request.task,
+        "status": "pending",
+        "created_at": datetime.now().isoformat(),
+        "model_name": request.model_name,
+        "max_iterations": request.max_iterations
+    }
+    
+    # Create task queue
+    agent_state.task_queues[task_id] = asyncio.Queue()
+    
+    # Execute task asynchronously with optional agent_id
+    asyncio.create_task(agent_state.execute_task(task_id, agent_id))
+    
     return {"task_id": task_id}
 
 
@@ -609,9 +755,6 @@ async def list_tasks(status: Optional[str] = None, limit: int = 10, offset: int 
 
     return tasks[offset : offset + limit]
 
-
-# Update the Agent initialization to use SSE validation by default
-AgentState.initialize_agent = AgentState.initialize_agent_with_sse_validation
 
 if __name__ == "__main__":
     config = uvicorn.Config(

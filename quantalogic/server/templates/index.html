@@ -45,6 +45,9 @@
                         <option value="ollama/qwen2.5-coder:14b">Qwen Coder</option>
                         <option value="gpt-4o-mini">gpt-4o-mini</option>
                     </select>
+                    <button id="createAgent" class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700">
+                        Create Agent
+                    </button>
                     <div id="connectionStatus" class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full"></div>
                 </div>
             </div>
@@ -53,8 +56,19 @@
 
     <!-- Main Content -->
     <main class="flex-1 flex min-h-0">
-        <!-- Left Panel - Task Input -->
-        <div class="w-1/2 p-4 flex flex-col min-h-0">
+        <!-- Left Panel - Task Input and Agent Management -->
+        <div class="w-1/2 p-4 flex flex-col min-h-0 space-y-4">
+            <!-- Agent Management Section -->
+            <div class="bg-white rounded-lg shadow-sm p-4">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Agent Management</h2>
+                <div class="space-y-4">
+                    <div id="agentsList" class="space-y-2">
+                        <!-- Agents will be listed here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Input Section -->
             <div class="bg-white rounded-lg shadow-sm p-4 flex flex-col flex-1">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold text-gray-900">Task Input</h2>
@@ -129,6 +143,47 @@
             </div>
         </div>
     </main>
+
+    <!-- Agent Creation Modal -->
+    <div id="agentModal" class="fixed inset-0 bg-gray-500 bg-opacity-75 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Create New Agent</h3>
+            <form id="agentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Model Name</label>
+                    <select id="agentModel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                        <option value="openrouter/deepseek/deepseek-chat">DeepSeek Chat</option>
+                        <option value="ollama/qwen2.5-coder:14b">Qwen Coder</option>
+                        <option value="gpt-4o-mini">gpt-4o-mini</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Vision Model (Optional)</label>
+                    <input type="text" id="agentVisionModel" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Expertise</label>
+                    <input type="text" id="agentExpertise" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" placeholder="e.g., Python Development, Data Analysis">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">System Prompt</label>
+                    <textarea id="agentSystemPrompt" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500" placeholder="Custom system prompt for the agent..."></textarea>
+                </div>
+                <div class="flex items-center">
+                    <input type="checkbox" id="agentNoStream" class="rounded text-primary-600 focus:ring-primary-500">
+                    <label class="ml-2 text-sm text-gray-700">Disable streaming</label>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" id="cancelAgent" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700">
+                        Create Agent
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
 </body>
 </html>

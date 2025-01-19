@@ -82,7 +82,7 @@ class Agent(BaseModel):
         tools: list[Tool] = [TaskCompleteTool()],
         ask_for_user_validation: Callable[[str], bool] = console_ask_for_user_validation,
         task_to_solve: str = "",
-        specific_expertise: str = "General AI assistant with coding and problem-solving capabilities",
+        specific_expertise: str = "", # "General AI assistant with coding and problem-solving capabilities",
         get_environment: Callable[[], str] = get_environment,
         compact_every_n_iterations: int | None = None,  # if set the memory will be compacted every n iterations
         max_tokens_working_memory: int | None = None,  # if set the memory will be compacted each time the max_tokens_working_memory is reached
