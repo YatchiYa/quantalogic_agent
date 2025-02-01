@@ -34,8 +34,8 @@ from quantalogic.tools import (
 
 load_dotenv()
 
-#MODEL_NAME = "deepseek/deepseek-chat"
-MODEL_NAME = "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
+MODEL_NAME = "deepseek/deepseek-chat"
+# MODEL_NAME = "bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0"
 
 _current_model_name: str = ""
 
