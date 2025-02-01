@@ -247,94 +247,11 @@ class AgentState:
             data: Event data
         """
         try:
-            event_str = f"[bold]{event_type}[/bold]"
-            if isinstance(data, dict):
-                if "message" in data:
-                    event_str += f": {data['message']}"
-                elif "error" in data:
-                    event_str += f": [red]{data['error']}[/red]"
-                
-            self.console.print(event_str)
+            # Use console_print_events for consistent event formatting
+            console_print_events(event_type, data)
             self.broadcast_event(event_type, data)
-            
         except Exception as e:
             logger.error(f"Error handling event {event_type}: {e}")
-
-    async def execute_task(self, task_id: str) -> None:
-        """Execute a task asynchronously.
-        
-        Args:
-            task_id: ID of the task to execute
-            
-        Raises:
-            ValueError: If task is not found
-        """
-        if task_id not in self.tasks:
-            raise ValueError(f"Task {task_id} not found")
-
-        task_info = self.tasks[task_id]
-        task_info["started_at"] = datetime.now().isoformat()
-        task_info["status"] = "running"
-
-        try:
-            agent = await self.initialize_agent_with_sse_validation(
-                task_info.get("request", {}).get("model_name", MODEL_NAME)
-            )
-            
-            task_queue = self.get_task_event_queue(task_id)
-            
-            # Set up event handling for this task
-            async def handle_task_event(event_type: str, data: Dict[str, Any]):
-                if task_queue:
-                    await task_queue.put({"type": event_type, "data": data})
-            
-            for event in self.agent_events:
-                agent.event_emitter.on(event, handle_task_event)
-            
-            # Run solve_task in a thread to not block the event loop
-            loop = asyncio.get_running_loop()
-            result = await loop.run_in_executor(
-                None,  # Use default executor
-                lambda: agent.solve_task(
-                    task=task_info["request"]["task"],
-                    max_iterations=task_info["request"].get("max_iterations", 30),
-                    streaming=False,
-                    clear_memory=True
-                )
-            )
-
-            self._update_task_success(task_info, result, agent)
-            
-        except Exception as e:
-            self._update_task_failure(task_info, e)
-            logger.exception(f"Error executing task {task_id}")
-        finally:
-            self.remove_task_event_queue(task_id)
-
-    def _update_task_success(self, task_info: Dict[str, Any], result: str, agent: Agent) -> None:
-        """Update task info after successful execution.
-        
-        Args:
-            task_info: Task information dictionary
-            result: Task execution result
-            agent: Agent that executed the task
-        """
-        task_info["completed_at"] = datetime.now().isoformat()
-        task_info["status"] = "completed"
-        task_info["result"] = result
-        task_info["total_tokens"] = agent.total_tokens if hasattr(agent, "total_tokens") else None
-        task_info["model_name"] = self.get_current_model_name()
-        
-    def _update_task_failure(self, task_info: Dict[str, Any], error: Exception) -> None:
-        """Update task info after failed execution.
-        
-        Args:
-            task_info: Task information dictionary
-            error: Exception that caused the failure
-        """
-        task_info["completed_at"] = datetime.now().isoformat()
-        task_info["status"] = "failed"
-        task_info["error"] = str(error)
 
     def add_client(self, task_id: Optional[str] = None) -> str:
         """Add a new client and return its ID.
@@ -444,6 +361,82 @@ class AgentState:
             self.agent = None
             if server_state.force_exit:
                 sys.exit(1)
+
+    async def execute_task(self, task_id: str) -> None:
+        """Execute a task asynchronously.
+        
+        Args:
+            task_id: ID of the task to execute
+            
+        Raises:
+            ValueError: If task is not found
+        """
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            agent = await self.initialize_agent_with_sse_validation(
+                task_info.get("request", {}).get("model_name", MODEL_NAME)
+            )
+            
+            task_queue = self.get_task_event_queue(task_id)
+            
+            # Set up event handling for this task
+            async def handle_task_event(event_type: str, data: Dict[str, Any]):
+                if task_queue:
+                    await task_queue.put({"type": event_type, "data": data})
+            
+            for event in self.agent_events:
+                agent.event_emitter.on(event, handle_task_event)
+            
+            # Run solve_task in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(
+                None,  # Use default executor
+                lambda: agent.solve_task(
+                    task=task_info["request"]["task"],
+                    max_iterations=task_info["request"].get("max_iterations", 30),
+                    streaming=False,
+                    clear_memory=True
+                )
+            )
+
+            self._update_task_success(task_info, result, agent)
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            logger.exception(f"Error executing task {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    def _update_task_success(self, task_info: Dict[str, Any], result: str, agent: Agent) -> None:
+        """Update task info after successful execution.
+        
+        Args:
+            task_info: Task information dictionary
+            result: Task execution result
+            agent: Agent that executed the task
+        """
+        task_info["completed_at"] = datetime.now().isoformat()
+        task_info["status"] = "completed"
+        task_info["result"] = result
+        task_info["total_tokens"] = agent.total_tokens if hasattr(agent, "total_tokens") else None
+        task_info["model_name"] = self.get_current_model_name()
+        
+    def _update_task_failure(self, task_info: Dict[str, Any], error: Exception) -> None:
+        """Update task info after failed execution.
+        
+        Args:
+            task_info: Task information dictionary
+            error: Exception that caused the failure
+        """
+        task_info["completed_at"] = datetime.now().isoformat()
+        task_info["status"] = "failed"
+        task_info["error"] = str(error)
 
     async def submit_task(self, task_request: TaskSubmission) -> str:
         """Submit a new task and return its ID."""
