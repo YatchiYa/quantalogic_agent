@@ -24,13 +24,13 @@ from loguru import logger
 from pydantic import BaseModel
 from rich.console import Console
 
+from quantalogic.agent import Agent
 from quantalogic.agent_config import (
     MODEL_NAME,
-    create_agent,
-    create_coding_agent,  # noqa: F401
-    create_basic_agent,  # noqa: F401
 )
+from quantalogic.agent_factory import AgentRegistry, create_agent_for_mode
 from quantalogic.console_print_events import console_print_events
+from quantalogic.task_runner import configure_logger
 
 # Configure logger
 logger.remove()
@@ -156,9 +156,8 @@ class AgentState:
     def __init__(self):
         """Initialize the agent state."""
         self.agent = None
-        # Use a nested dictionary to track event queues per client and task
+        self.agent_registry = AgentRegistry()
         self.event_queues: Dict[str, Dict[str, Queue]] = {}
-        # Track active agents per client-task combination
         self.active_agents: Dict[str, Dict[str, Any]] = {}
         self.queue_lock = Lock()
         self.client_counter = 0
@@ -167,6 +166,175 @@ class AgentState:
         self.validation_responses: Dict[str, asyncio.Queue] = {}
         self.tasks: Dict[str, Dict[str, Any]] = {}
         self.task_queues: Dict[str, asyncio.Queue] = {}
+        self.agent_events = [
+            "session_start",
+            "session_end",
+            "session_add_message",
+            "task_solve_start",
+            "task_solve_end",
+            "task_think_start",
+            "task_think_end",
+            "task_complete",
+            "tool_execution_start",
+            "tool_execution_end",
+            "tool_execute_validation_start",
+            "tool_execute_validation_end",
+            "memory_full",
+            "memory_compacted",
+            "memory_summary",
+            "error_max_iterations_reached",
+            "error_tool_execution",
+            "error_model_response",
+        ]
+
+    async def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME) -> Agent:
+        """Initialize agent with SSE-based user validation.
+        
+        Args:
+            model_name: Name of the model to use
+            
+        Returns:
+            The initialized agent instance
+            
+        Raises:
+            Exception: If agent initialization fails
+        """
+        try:
+            logger.info(f"Initializing agent with model: {model_name}")
+            
+            if "default" not in self.agent_registry._agents:
+                self.agent = self._create_minimal_agent(model_name)
+                self._setup_agent_events(self.agent)
+                self.agent_registry.register_agent("default", self.agent)
+                logger.info("Agent initialized successfully with minimal mode")
+
+            return self.agent_registry.get_agent("default")
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize agent: {e}", exc_info=True)
+            raise
+
+    def _create_minimal_agent(self, model_name: str) -> Agent:
+        """Create a minimal agent with the specified model.
+        
+        Args:
+            model_name: Name of the model to use
+            
+        Returns:
+            The created agent instance
+        """
+        return create_agent_for_mode(
+            mode="minimal",
+            model_name=model_name,
+            vision_model_name=None,
+            no_stream=False
+        )
+
+    def _setup_agent_events(self, agent: Agent) -> None:
+        """Set up event handlers for the agent.
+        
+        Args:
+            agent: The agent instance to set up events for
+        """
+        for event in self.agent_events:
+            agent.event_emitter.on(event, lambda e, d, event=event: self._handle_event(event, d))
+            
+    def _handle_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Handle agent events with rich console output.
+        
+        Args:
+            event_type: Type of the event
+            data: Event data
+        """
+        try:
+            event_str = f"[bold]{event_type}[/bold]"
+            if isinstance(data, dict):
+                if "message" in data:
+                    event_str += f": {data['message']}"
+                elif "error" in data:
+                    event_str += f": [red]{data['error']}[/red]"
+                
+            self.console.print(event_str)
+            self.broadcast_event(event_type, data)
+            
+        except Exception as e:
+            logger.error(f"Error handling event {event_type}: {e}")
+
+    async def execute_task(self, task_id: str) -> None:
+        """Execute a task asynchronously.
+        
+        Args:
+            task_id: ID of the task to execute
+            
+        Raises:
+            ValueError: If task is not found
+        """
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            agent = await self.initialize_agent_with_sse_validation(
+                task_info.get("request", {}).get("model_name", MODEL_NAME)
+            )
+            
+            task_queue = self.get_task_event_queue(task_id)
+            
+            # Set up event handling for this task
+            async def handle_task_event(event_type: str, data: Dict[str, Any]):
+                if task_queue:
+                    await task_queue.put({"type": event_type, "data": data})
+            
+            for event in self.agent_events:
+                agent.event_emitter.on(event, handle_task_event)
+            
+            # Run solve_task in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(
+                None,  # Use default executor
+                lambda: agent.solve_task(
+                    task=task_info["request"]["task"],
+                    max_iterations=task_info["request"].get("max_iterations", 30),
+                    streaming=False,
+                    clear_memory=True
+                )
+            )
+
+            self._update_task_success(task_info, result, agent)
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            logger.exception(f"Error executing task {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    def _update_task_success(self, task_info: Dict[str, Any], result: str, agent: Agent) -> None:
+        """Update task info after successful execution.
+        
+        Args:
+            task_info: Task information dictionary
+            result: Task execution result
+            agent: Agent that executed the task
+        """
+        task_info["completed_at"] = datetime.now().isoformat()
+        task_info["status"] = "completed"
+        task_info["result"] = result
+        task_info["total_tokens"] = agent.total_tokens if hasattr(agent, "total_tokens") else None
+        task_info["model_name"] = self.get_current_model_name()
+        
+    def _update_task_failure(self, task_info: Dict[str, Any], error: Exception) -> None:
+        """Update task info after failed execution.
+        
+        Args:
+            task_info: Task information dictionary
+            error: Exception that caused the failure
+        """
+        task_info["completed_at"] = datetime.now().isoformat()
+        task_info["status"] = "failed"
+        task_info["error"] = str(error)
 
     def add_client(self, task_id: Optional[str] = None) -> str:
         """Add a new client and return its ID.
@@ -243,88 +411,6 @@ class AgentState:
                     # Send to global queue if no task specified
                     client_queues["global"].put(event)
 
-    def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME):
-        """Initialize agent with SSE-based user validation."""
-        try:
-            self.agent = create_agent(model_name, None)
-
-            # Comprehensive list of agent events to track
-            agent_events = [
-                "session_start",
-                "session_end",
-                "session_add_message",
-                "task_solve_start",
-                "task_solve_end",
-                "task_think_start",
-                "task_think_end",
-                "task_complete",
-                "tool_execution_start",
-                "tool_execution_end",
-                "tool_execute_validation_start",
-                "tool_execute_validation_end",
-                "memory_full",
-                "memory_compacted",
-                "memory_summary",
-                "error_max_iterations_reached",
-                "error_tool_execution",
-                "error_model_response",
-            ]
-
-            # Setup event handlers
-            for event in agent_events:
-                self.agent.event_emitter.on(event, lambda e, d, event=event: self._handle_event(event, d))
-
-            # Override ask_for_user_validation with SSE-based method
-            self.agent.ask_for_user_validation = self.sse_ask_for_user_validation
-
-            logger.debug(f"Agent initialized with model: {model_name}")
-        except Exception as e:
-            logger.error(f"Failed to initialize agent: {e}", exc_info=True)
-            raise
-
-    async def sse_ask_for_user_validation(self, question: str = "Do you want to continue?") -> bool:
-        """SSE-based user validation method."""
-        validation_id = str(uuid.uuid4())
-        response_queue = asyncio.Queue()
-
-        # Store validation request and response queue
-        self.validation_requests[validation_id] = {"question": question, "timestamp": datetime.now().isoformat()}
-        self.validation_responses[validation_id] = response_queue
-
-        # Broadcast validation request
-        self.broadcast_event("user_validation_request", {"validation_id": validation_id, "question": question})
-
-        try:
-            # Wait for response with timeout
-            async with asyncio.timeout(VALIDATION_TIMEOUT):
-                response = await response_queue.get()
-                return response
-        except TimeoutError:
-            logger.warning(f"Validation request timed out: {validation_id}")
-            return False
-        finally:
-            # Cleanup
-            if validation_id in self.validation_requests:
-                del self.validation_requests[validation_id]
-            if validation_id in self.validation_responses:
-                del self.validation_responses[validation_id]
-
-    def _handle_event(self, event_type: str, data: Dict[str, Any]):
-        """Enhanced event handling with rich console output."""
-        try:
-            # Print events to server console
-            console_print_events(event_type, data)
-
-            # Log event details
-            logger.debug(f"Agent Event: {event_type}")
-            logger.debug(f"Event Data: {data}")
-
-            # Broadcast to clients
-            self.broadcast_event(event_type, data)
-
-        except Exception as e:
-            logger.error(f"Error in event handling: {e}", exc_info=True)
-
     def get_current_model_name(self) -> str:
         """Get the current model name safely."""
         if self.agent and self.agent.model:
@@ -369,53 +455,6 @@ class AgentState:
         }
         self.task_queues[task_id] = asyncio.Queue()
         return task_id
-
-    async def execute_task(self, task_id: str):
-        """Execute a task asynchronously."""
-        try:
-            task = self.tasks[task_id]
-            task["status"] = "running"
-            task["started_at"] = datetime.now().isoformat()
-
-            # Initialize agent if needed
-            if not self.agent:
-                self.initialize_agent_with_sse_validation(task["request"]["model_name"])
-
-            # Execute task
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None,
-                functools.partial(
-                    self.agent.solve_task, task["request"]["task"], max_iterations=task["request"]["max_iterations"]
-                ),
-            )
-
-            # Update task status
-            task["status"] = "completed"
-            task["completed_at"] = datetime.now().isoformat()
-            task["result"] = result
-            task["total_tokens"] = self.agent.total_tokens
-            task["model_name"] = self.get_current_model_name()
-
-            # Broadcast completion event to task-specific queue
-            self.broadcast_event(
-                "task_complete",
-                {
-                    "task_id": task_id,
-                    "result": result,
-                    "total_tokens": self.agent.total_tokens,
-                    "model_name": self.get_current_model_name(),
-                },
-            )
-
-        except Exception as e:
-            logger.error(f"Task execution failed: {e}", exc_info=True)
-            task["status"] = "failed"
-            task["completed_at"] = datetime.now().isoformat()
-            task["error"] = str(e)
-
-            # Broadcast error event to task-specific queue
-            self.broadcast_event("task_error", {"task_id": task_id, "error": str(e)})
 
     async def get_task_event_queue(self, task_id: str) -> Queue:
         """Get or create a task-specific event queue."""
@@ -609,9 +648,6 @@ async def list_tasks(status: Optional[str] = None, limit: int = 10, offset: int 
 
     return tasks[offset : offset + limit]
 
-
-# Update the Agent initialization to use SSE validation by default
-AgentState.initialize_agent = AgentState.initialize_agent_with_sse_validation
 
 if __name__ == "__main__":
     config = uvicorn.Config(
