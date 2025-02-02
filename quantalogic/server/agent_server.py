@@ -93,10 +93,11 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # Mount static files
@@ -151,23 +152,29 @@ async def event_stream(request: Request, task_id: Optional[str] = None) -> Strea
         try:
             while not server_state.is_shutting_down:
                 if await request.is_disconnected():
+                    logger.debug(f"Client {client_id} disconnected")
                     break
 
                 try:
                     # Prioritize task-specific queue if task_id is provided
-                    if task_id:
+                    if task_id and task_id in agent_state.event_queues[client_id]:
                         event = agent_state.event_queues[client_id][task_id].get_nowait()
+                        logger.debug(f"Sending task event to client {client_id}: {event}")
                     else:
                         # Fall back to global queue if no task_id
                         event = agent_state.event_queues[client_id]["global"].get_nowait()
+                        logger.debug(f"Sending global event to client {client_id}: {event}")
 
-                    # Yield the event
-                    yield f"event: {event.event}\ndata: {json.dumps(event.dict())}\n\n"
+                    # Format and yield the event
+                    event_data = event.dict()
+                    event_str = f"event: {event.event}\ndata: {json.dumps(event_data)}\n\n"
+                    logger.debug(f"Sending SSE data: {event_str}")
+                    yield event_str
 
                 except Empty:
                     # Send keepalive to maintain connection
                     yield ": keepalive\n\n"
-                    await asyncio.sleep(0.1)
+                    await asyncio.sleep(1)  # Increased sleep time to reduce load
 
                 if server_state.is_shutting_down:
                     yield 'event: shutdown\ndata: {"message": "Server shutting down"}\n\n'
@@ -185,6 +192,8 @@ async def event_stream(request: Request, task_id: Optional[str] = None) -> Strea
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "Transfer-Encoding": "chunked",
+            "Access-Control-Allow-Origin": "*",
+            "X-Accel-Buffering": "no",  # Disable proxy buffering
         },
     )
 
