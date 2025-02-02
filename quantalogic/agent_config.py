@@ -30,6 +30,7 @@ from quantalogic.tools import (
     TaskCompleteTool,
     WikipediaSearchTool,
     WriteFileTool,
+    GoogleNewsTool
 )
 
 load_dotenv()
@@ -273,14 +274,19 @@ def create_minimal_agent(
 
 
     tools = [
+        GoogleNewsTool(),
+        LLMTool(model_name=model_name, on_token=console_print_token if not no_stream else None),
+        DownloadHttpFileTool(),
+        WikipediaSearchTool(),
+        DuckDuckGoSearchTool(),
+        ReadHTMLTool(),
         TaskCompleteTool(), 
         SearchDefinitionNames(),  
-        LLMTool(model_name=model_name, on_token=console_print_token if not no_stream else None),
-        ReadHTMLTool(),
+        LLMVisionTool(model_name="gpt-4o-mini", on_token=console_print_token if not no_stream else None),
     ]
 
-    if vision_model_name:
-        tools.append(LLMVisionTool(model_name=vision_model_name, on_token=console_print_token if not no_stream else None))
+    #if vision_model_name:
+    #    tools.append(LLMVisionTool(model_name=vision_model_name, on_token=console_print_token if not no_stream else None))
 
     return Agent(
         model_name=model_name,

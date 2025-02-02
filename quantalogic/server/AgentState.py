@@ -36,8 +36,6 @@ from .ServerState import ServerState
 from .models import EventMessage, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
 
 
-
-
 class AgentState:
     """Manages agent state and event queues."""
 
@@ -67,13 +65,13 @@ class AgentState:
             "error_model_response"
         ]
 
-    async def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME) -> Agent:
+    async def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME, mode: str = "minimal") -> Agent:
         """Initialize agent with SSE-based user validation."""
         try:
             logger.info(f"Initializing agent with model: {model_name}")
             
             if "default" not in self.agent_registry._agents:
-                self.agent = self._create_minimal_agent(model_name)
+                self.agent = self._create_minimal_agent(model_name, mode)
                 # Set up event handlers before registering the agent
                 self._setup_agent_events(self.agent)
                 self.agent_registry.register_agent("default", self.agent)
@@ -88,17 +86,18 @@ class AgentState:
             logger.error(f"Failed to initialize agent: {e}", exc_info=True)
             raise
 
-    def _create_minimal_agent(self, model_name: str) -> Agent:
+    def _create_minimal_agent(self, model_name: str, mode: str) -> Agent:
         """Create a minimal agent with the specified model.
         
         Args:
             model_name: Name of the model to use
+            mode: Mode for agent creation
             
         Returns:
             The created agent instance
         """
         return create_agent_for_mode(
-            mode="minimal",
+            mode=mode,
             model_name=model_name,
             vision_model_name=None,
             no_stream=False
@@ -189,7 +188,8 @@ class AgentState:
         try:
             logger.info(f"Starting task execution: {task_id}")
             agent = await self.initialize_agent_with_sse_validation(
-                task_info.get("request", {}).get("model_name", MODEL_NAME)
+                task_info.get("request", {}).get("model_name", MODEL_NAME),
+                task_info.get("request", {}).get("mode", "minimal")
             )
             
             # Create event for task start

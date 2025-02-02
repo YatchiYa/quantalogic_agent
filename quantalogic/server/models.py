@@ -101,6 +101,7 @@ class TaskSubmission(BaseModel):
     task: str
     model_name: Optional[str] = MODEL_NAME
     max_iterations: Optional[int] = 30
+    mode: Optional[str] = "minimal"
 
     model_config = {"extra": "forbid"}
 
