@@ -4,6 +4,8 @@
 import asyncio
 import functools
 import json
+import os
+import shutil
 import signal
 import sys
 import time
@@ -15,7 +17,7 @@ from threading import Lock
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -43,10 +45,35 @@ logger.add(
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>",
     level="INFO",
 )
+class ToolParameters(BaseModel):
+    """Parameters for a tool configuration."""
+    connection_string: Optional[str] = None
+    model_name: Optional[str] = None
+
+
+class ToolConfig(BaseModel):
+    """Configuration for a single tool."""
+    type: str
+    parameters: ToolParameters
+
+
+class AgentConfig(BaseModel):
+    """Configuration for creating a new agent."""
+    id: str
+    name: str
+    description: str
+    expertise: str
+    mode: str = "custom"
+    model_name: str
+    tools: List[ToolConfig]
 
 # Constants
-SHUTDOWN_TIMEOUT = 5.0  # seconds
+SHUTDOWN_TIMEOUT = 10.0  # seconds
 VALIDATION_TIMEOUT = 30.0  # seconds
+UPLOAD_DIR = "/tmp/data"  # Directory for file uploads
+
+# Create upload directory if it doesn't exist
+os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
@@ -101,10 +128,10 @@ app.add_middleware(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")
+# app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")
 
 # Configure Jinja2 templates
-templates = Jinja2Templates(directory="quantalogic/server/templates")
+# templates = Jinja2Templates(directory="quantalogic/server/templates")
 
 
 # Middleware to log requests
@@ -125,18 +152,24 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-@app.post("/validate_response/{validation_id}")
+@app.post("/validation/{validation_id}")
 async def submit_validation_response(validation_id: str, response: UserValidationResponse):
     """Submit a validation response."""
+    logger.info(f"Received validation response for ID: {validation_id}")
+    logger.info(f"Current validation responses: {list(agent_state.validation_responses.keys())}")
+    
     if validation_id not in agent_state.validation_responses:
+        logger.error(f"Validation request {validation_id} not found")
+        logger.error(f"Available validation IDs: {list(agent_state.validation_responses.keys())}")
         raise HTTPException(status_code=404, detail="Validation request not found")
 
     try:
         response_queue = agent_state.validation_responses[validation_id]
-        await response_queue.put(response.response)
+        logger.info(f"Validation response received: {response.approved}")
+        await response_queue.put(response.approved)
         return JSONResponse(content={"status": "success"})
     except Exception as e:
-        logger.error(f"Error processing validation response: {e}")
+        logger.error(f"Error processing validation response: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to process validation response")
 
 
@@ -201,11 +234,35 @@ async def event_stream(request: Request, task_id: Optional[str] = None) -> Strea
 @app.get("/")
 async def get_index(request: Request) -> HTMLResponse:
     """Serve the main application page."""
-    response = templates.TemplateResponse("index.html", {"request": request})
-    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
-    return response
+    # response = templates.TemplateResponse("index.html", {"request": request})
+    # response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    # response.headers["Pragma"] = "no-cache"
+    # response.headers["Expires"] = "0"
+    # return response
+    return HTMLResponse(content="")
+
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)) -> Dict[str, str]:
+    """Handle file uploads."""
+    try:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        random_suffix = str(uuid.uuid4())[:8]
+        file_extension = os.path.splitext(file.filename)[1]
+        new_filename = f"{timestamp}_{random_suffix}{file_extension}"
+        file_path = os.path.join(UPLOAD_DIR, new_filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        return {
+            "status": "success",
+            "filename": new_filename,
+            "path": file_path
+        }
+    except Exception as e:
+        logger.error(f"Error uploading file: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.post("/tasks")
@@ -238,6 +295,27 @@ async def list_tasks(status: Optional[str] = None, limit: int = 10, offset: int 
     return tasks[offset : offset + limit]
 
 
+# Agent management endpoints
+@app.post("/agents")
+async def create_agent(config: AgentConfig) -> Dict[str, bool]:
+    """Create a new agent with the given configuration."""
+    success = await agent_state.create_agent(config)
+    return {"success": success}
+
+@app.get("/agents")
+async def list_agents() -> List[AgentConfig]:
+    """List all available agents."""
+    return agent_state.list_agents()
+
+@app.get("/agents/{agent_id}")
+async def get_agent(agent_id: str) -> AgentConfig:
+    """Get agent configuration by ID."""
+    config = agent_state.get_agent_config(agent_id)
+    if not config:
+        raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
+    return config
+
+
 if __name__ == "__main__":
     config = uvicorn.Config(
         "quantalogic.agent_server:app",
@@ -247,7 +325,7 @@ if __name__ == "__main__":
         log_level="info",
         timeout_keep_alive=5,
         access_log=True,
-        timeout_graceful_shutdown=5,  # Reduced from 10 to 5 seconds
+        timeout_graceful_shutdown=10,  # Increased from 5 to 10 seconds
     )
     server = uvicorn.Server(config)
     server_state.server = server

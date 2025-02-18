@@ -27,11 +27,15 @@ from .search_definition_names import SearchDefinitionNames
 from .sequence_tool import SequenceTool
 from .serpapi_search_tool import SerpApiSearchTool
 from .sql_query_tool import SQLQueryTool
+from .sql_query_tool_advanced import SQLQueryToolAdvanced
 from .task_complete_tool import TaskCompleteTool
 from .tool import Tool, ToolArgument
 from .unified_diff_tool import UnifiedDiffTool
 from .wikipedia_search_tool import WikipediaSearchTool
 from .write_file_tool import WriteFileTool
+from .google_news_tool import GoogleNewsTool
+from .presentation_llm_tool import PresentationLLMTool 
+from .composio import ComposioTool 
 
 __all__ = [
     "WikipediaSearchTool",
@@ -65,7 +69,11 @@ __all__ = [
     "GrepAppTool",
     "GenerateDatabaseReportTool",
     'SQLQueryTool',
-    'SafePythonInterpreterTool'
+    'SQLQueryToolAdvanced',
+    'SafePythonInterpreterTool',
     'LLMGenerationTool',
-    'SequenceTool'
+    'GoogleNewsTool',
+    "PresentationLLMTool", 
+    'SequenceTool',
+    'ComposioTool'
 ]

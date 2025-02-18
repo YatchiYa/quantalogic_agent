@@ -24,23 +24,32 @@ from loguru import logger
 from pydantic import BaseModel
 from rich.console import Console
 
+from quantalogic import console_print_token
 from quantalogic.agent import Agent
 from quantalogic.agent_config import (
     MODEL_NAME,
 )
 from quantalogic.agent_factory import AgentRegistry, create_agent_for_mode
 from quantalogic.console_print_events import console_print_events
+from quantalogic.memory import AgentMemory
 from quantalogic.task_runner import configure_logger
 from .utils import handle_sigterm, get_version
 from .ServerState import ServerState
-from .models import EventMessage, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
+from .models import EventMessage, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus, AgentConfig
+
+memory = AgentMemory()
+SHUTDOWN_TIMEOUT = 10.0  # seconds
 
 
 class AgentState:
     """Manages agent state and event queues."""
 
-    def __init__(self):
-        """Initialize the AgentState."""
+    def __init__(self, use_default_agent: bool = True):
+        """Initialize the AgentState.
+        
+        Args:
+            use_default_agent: If True, will use default agent when specified agent is not found
+        """
         self.tasks: Dict[str, Dict[str, Any]] = {}
         self.task_queues: Dict[str, Queue] = {}
         self.event_queues: Dict[str, Dict[str, Queue]] = {}
@@ -49,7 +58,11 @@ class AgentState:
         self.client_counter = 0
         self.agent = None
         self.agent_registry = AgentRegistry()
-        
+        self.agent_configs: Dict[str, AgentConfig] = {}  # Store agent configurations
+        # Add validation-related attributes
+        self.validation_requests: Dict[str, UserValidationRequest] = {}
+        self.validation_responses: Dict[str, asyncio.Queue] = {}
+        self.use_default_agent = use_default_agent  # Flag to control default agent usage
         # List of events to listen for
         self.agent_events = [
             "session_start",
@@ -58,24 +71,176 @@ class AgentState:
             "task_think_end",
             "tool_execution_start",
             "tool_execution_end",
+            "tool_execute_validation_start",
+            "tool_execute_validation_end",
             "task_complete",
             "task_solve_end",
             "error_tool_execution",
             "error_max_iterations_reached",
-            "error_model_response"
+            "error_model_response",
+            # "stream_event",
+            # "stream_chunk",
+            # "final_result",
+            # "error",
+            # "stream_start",
+            # "stream_end",
+            # "memory_full",
+            # "memory_compacted",
+            # "memory_summary",
+            # "error_agent_not_found",
         ]
 
-    async def initialize_agent_with_sse_validation(self, model_name: str = MODEL_NAME, mode: str = "minimal") -> Agent:
-        """Initialize agent with SSE-based user validation."""
+    async def create_agent(self, config: AgentConfig) -> bool:
+        """Create a new agent with the given configuration.
+        
+        Args:
+            config: Agent configuration
+            
+        Returns:
+            bool: True if agent was created successfully
+        """
+        try:
+            if config.id in self.agent_configs:
+                raise ValueError(f"Agent with ID {config.id} already exists")
+            
+            # Store the configuration
+            self.agent_configs[config.id] = config
+            
+            # Convert tools to dict format expected by create_agent_for_mode
+            tools_dict = []
+            for tool in config.tools:
+                tool_dict = {
+                    "type": tool.type,
+                    "parameters": {}
+                }
+                if tool.parameters:
+                    # Convert Pydantic model to dict and remove None values
+                    params = tool.parameters.dict(exclude_none=True)
+                    tool_dict["parameters"] = params
+                tools_dict.append(tool_dict)
+            
+            logger.debug(f"Converted tools configuration: {tools_dict}")
+            
+            # Create the agent
+            agent = create_agent_for_mode(
+                mode=config.mode,
+                model_name=config.model_name,
+                vision_model_name=None,
+                no_stream=False,
+                tools=tools_dict,
+                specific_expertise=config.expertise,
+                memory=AgentMemory()
+            )
+             
+            # Override ask_for_user_validation with SSE-based method
+            # agent.ask_for_user_validation = self.sse_ask_for_user_validation
+
+            # Set up event handlers
+            self._setup_agent_events(agent)
+            
+            # Register the agent
+            self.agent_registry.register_agent(config.id, agent)
+            
+            logger.info(f"Created agent {config.id} with name: {config.name}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to create agent: {e}", exc_info=True)
+            raise
+
+    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
+        """Get the configuration for an agent.
+        
+        Args:
+            agent_id: ID of the agent
+            
+        Returns:
+            Optional[AgentConfig]: Agent configuration if found
+        """
+        return self.agent_configs.get(agent_id)
+
+    def list_agents(self) -> List[AgentConfig]:
+        """List all available agents.
+        
+        Returns:
+            List[AgentConfig]: List of agent configurations
+        """
+        return list(self.agent_configs.values())
+
+    async def get_agent(self, agent_id: str) -> Agent:
+        """Get an agent instance by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Agent: The agent instance
+            
+        Raises:
+            ValueError: If agent not found and use_default_agent is False
+        """
+        try:
+            # If agent_id is 'default' or (agent doesn't exist and use_default_agent is True)
+            if agent_id == "default" or (agent_id not in self.agent_configs and self.use_default_agent):
+                if "default" not in self.agent_registry._agents:
+                    # Initialize default agent if it doesn't exist
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
+                
+            # Normal case - get specified agent
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent {agent_id} not found")
+                
+            if agent_id not in self.agent_registry._agents:
+                # Recreate the agent if it doesn't exist
+                config = self.agent_configs[agent_id]
+                await self.create_agent(config)
+                
+            return self.agent_registry.get_agent(agent_id)
+            
+        except Exception as e:
+            if self.use_default_agent:
+                logger.warning(f"Failed to get agent {agent_id}, falling back to default agent: {str(e)}")
+                if "default" not in self.agent_registry._agents:
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
+            raise
+
+    async def initialize_agent_with_sse_validation(
+        self, 
+        model_name: str = MODEL_NAME, 
+        mode: str = "minimal",
+        tools: Optional[List[Dict[str, Any]]] = None,
+        expertise: str = ""
+    ) -> Agent:
+        """Initialize agent with SSE-based user validation.
+        
+        Args:
+            model_name: Name of the model to use
+            mode: Mode for agent creation (minimal, custom, etc.)
+            tools: Optional list of tools for custom agents
+            expertise: Optional expertise for custom agents
+        """
         try:
             logger.info(f"Initializing agent with model: {model_name}")
             
             if "default" not in self.agent_registry._agents:
-                self.agent = self._create_minimal_agent(model_name, mode)
+                self.agent = create_agent_for_mode(
+                    mode=mode,
+                    model_name=model_name,
+                    vision_model_name=None,
+                    no_stream=False,
+                    tools=tools,
+                    specific_expertise=expertise,
+                    # memory=memory
+                )
                 # Set up event handlers before registering the agent
                 self._setup_agent_events(self.agent)
                 self.agent_registry.register_agent("default", self.agent)
-                logger.info("Agent initialized successfully with minimal mode")
+                logger.info(f"Agent initialized successfully with {mode} mode")
+
+                # Add validation-related attributes
+                # self.agent.ask_for_user_validation = self.sse_ask_for_user_validation
 
             agent = self.agent_registry.get_agent("default")
             # Ensure events are set up even for existing agent
@@ -86,12 +251,14 @@ class AgentState:
             logger.error(f"Failed to initialize agent: {e}", exc_info=True)
             raise
 
-    def _create_minimal_agent(self, model_name: str, mode: str) -> Agent:
+    def _create_minimal_agent(self, model_name: str, mode: str, tools: List[str] = None, expertise: str = "") -> Agent:
         """Create a minimal agent with the specified model.
         
         Args:
             model_name: Name of the model to use
             mode: Mode for agent creation
+            tools: List of tools to use for custom mode
+            expertise: Expertise to use for custom mode
             
         Returns:
             The created agent instance
@@ -100,7 +267,9 @@ class AgentState:
             mode=mode,
             model_name=model_name,
             vision_model_name=None,
-            no_stream=False
+            no_stream=False,
+            tools=tools,
+            specific_expertise=expertise
         )
 
     def _setup_agent_events(self, agent: Agent) -> None:
@@ -118,8 +287,10 @@ class AgentState:
         self._event_handlers = {}
         
         def create_event_handler(event_type: str):
-            def handler(event: str, data: Dict[str, Any]):
-                logger.debug(f"Received agent event: {event_type} with data: {data}")
+            def handler(event: str, *args: Any, **kwargs: Any):
+                logger.debug(f"Received agent event: {event_type} with args: {args} kwargs: {kwargs}")
+                # Get data from args or kwargs
+                data = args[0] if args else kwargs
                 # Add task_id to the event data if it's not there
                 if isinstance(data, dict) and "task_id" not in data:
                     current_task_id = next(
@@ -138,11 +309,36 @@ class AgentState:
             self._event_handlers[event] = handler
             agent.event_emitter.on(event, handler)
 
+        # agent.event_emitter.on(event=["stream_chunk"], listener=console_print_token)
+
     def _handle_event(self, event_type: str, data: Dict[str, Any]) -> None:
         """Handle agent events with rich console output."""
         try:
             # Use console_print_events for consistent event formatting
             console_print_events(event_type, data)
+            
+            # Handle validation events
+            if event_type == "tool_execute_validation_start":
+                validation_id = data.get("validation_id")
+                if validation_id:
+                    logger.info(f"Creating validation response queue for validation_id: {validation_id}")
+                    logger.info(f"Current validation queues before creation: {list(self.validation_responses.keys())}")
+                    self.validation_responses[validation_id] = asyncio.Queue()
+                    self.validation_requests[validation_id] = UserValidationRequest(
+                        validation_id=validation_id,
+                        tool_name=data.get("tool_name", ""),
+                        arguments=data.get("arguments", {})
+                    )
+                    logger.info(f"Validation queue created. Current queues: {list(self.validation_responses.keys())}")
+            elif event_type == "tool_execute_validation_end":
+                validation_id = data.get("validation_id")
+                if validation_id and validation_id in self.validation_responses:
+                    logger.info(f"Cleaning up validation response queue for validation_id: {validation_id}")
+                    logger.info(f"Current validation queues before cleanup: {list(self.validation_responses.keys())}")
+                    del self.validation_responses[validation_id]
+                    if validation_id in self.validation_requests:
+                        del self.validation_requests[validation_id]
+                    logger.info(f"Validation queue cleaned up. Current queues: {list(self.validation_responses.keys())}")
             
             # Create event message
             event = EventMessage(
@@ -151,6 +347,11 @@ class AgentState:
                 data=data,
                 timestamp=datetime.utcnow().isoformat()
             )
+            
+            # Add validation_id to event data if it's a validation event
+            if event_type in ["tool_execute_validation_start", "tool_execute_validation_end"]:
+                if "validation_id" in data:
+                    event.data["validation_id"] = data["validation_id"]
             
             logger.debug(f"Broadcasting event: {event_type} - {data}")
             
@@ -187,14 +388,23 @@ class AgentState:
 
         try:
             logger.info(f"Starting task execution: {task_id}")
-            agent = await self.initialize_agent_with_sse_validation(
-                task_info.get("request", {}).get("model_name", MODEL_NAME),
-                task_info.get("request", {}).get("mode", "minimal")
-            )
+            request = task_info.get("request", {})
+            agent_id = request.get("agent_id")
+            
+            try:
+                # Get the agent for this task
+                agent = await self.get_agent(agent_id)
+            except ValueError as e:
+                if self.use_default_agent:
+                    logger.warning(f"Using default agent due to: {str(e)}")
+                    agent = await self.get_agent("default")
+                else:
+                    raise
             
             # Create event for task start
             self._handle_event("task_solve_start", {
                 "task_id": task_id,
+                "agent_id": agent_id,
                 "message": "Task execution started"
             })
             
@@ -206,7 +416,7 @@ class AgentState:
                     task=task_info["request"]["task"],
                     max_iterations=task_info["request"].get("max_iterations", 30),
                     streaming=True,  # Enable streaming for more events
-                    clear_memory=True
+                    clear_memory=False  # Keep memory between tasks
                 )
             )
 
@@ -215,6 +425,7 @@ class AgentState:
             # Create event for task completion
             self._handle_event("task_solve_end", {
                 "task_id": task_id,
+                "agent_id": agent_id,
                 "message": "Task execution completed",
                 "result": result
             })
