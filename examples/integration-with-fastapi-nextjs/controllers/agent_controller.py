@@ -4,44 +4,43 @@ from sqlalchemy.orm import Session
 from loguru import logger
 from pydantic import BaseModel
 
-from ..models import AgentConfig, ToolConfig
+from ..models import AgentConfig, ToolConfig, AgentUpdateConfig
 from ..app_state import agent_state, server_state
 from ..middlewares.authenticate import require_auth
 from ..database import get_db, Agent
 
 router = APIRouter(prefix="/api/agent", tags=["agents"])
 
-class AgentUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    model_name: str | None = None
-    expertise: str | None = None
-    project: str | None = None
-    agent_mode: str | None = None
-    tags: List[str] | None = None
-    tools: List[ToolConfig] | None = None
-    user_id: str | None = None
-    organization_id: str | None = None
 
-def convert_tools_to_json(tools: List[ToolConfig]) -> List[Dict[str, Any]]:
-    """Convert list of ToolConfig objects to JSON-serializable format."""
+def convert_tools_to_json(tools: List[Any]) -> List[Dict[str, Any]]:
+    """Convert list of ToolConfig objects or dicts to JSON-serializable format."""
     if not tools:
         return None
-    return [
-        {
-            "type": tool.type,
-            "parameters": {
-                "model_name": tool.parameters.model_name,
-                "vision_model_name": tool.parameters.vision_model_name,
-                "provider": tool.parameters.provider,
-                "additional_info": tool.parameters.additional_info,
-                "connection_string": tool.parameters.connection_string,
-                "access_token": tool.parameters.access_token,
-                "auth_token": tool.parameters.auth_token
-            } if tool.parameters else None
-        }
-        for tool in tools
-    ]
+    
+    result = []
+    for tool in tools:
+        # If tool is already a dict, use it directly
+        if isinstance(tool, dict):
+            tool_dict = {
+                "type": tool["type"],
+                "parameters": tool["parameters"] if "parameters" in tool else None
+            }
+        # If tool is a ToolConfig object, convert it
+        else:
+            tool_dict = {
+                "type": tool.type,
+                "parameters": {
+                    "model_name": tool.parameters.model_name,
+                    "vision_model_name": tool.parameters.vision_model_name,
+                    "provider": tool.parameters.provider,
+                    "additional_info": tool.parameters.additional_info,
+                    "connection_string": tool.parameters.connection_string,
+                    "access_token": tool.parameters.access_token,
+                    "auth_token": tool.parameters.auth_token
+                } if tool.parameters else None
+            }
+        result.append(tool_dict)
+    return result
 
 @router.post("/agents")
 async def create_agent(
@@ -160,7 +159,7 @@ async def get_agent(
 
 @router.patch("/agents/{agent_id}")
 async def update_agent(
-    update_data: AgentUpdate,
+    update_data: AgentUpdateConfig,
     agent_id: str = Path(..., title="The ID of the agent to update"),
     user: Dict[str, Any] = require_auth,
     db: Session = Depends(get_db)
@@ -192,21 +191,8 @@ async def update_agent(
         if agent_state.get_agent_config(agent_id):
             await agent_state.update_agent_config(agent_id, update_dict)
         
-        return {
-            "id": str(agent.pid),
-            "name": agent.name,
-            "description": agent.description,
-            "model_name": agent.model_name,
-            "expertise": agent.expertise,
-            "project": agent.project,
-            "agent_mode": agent.agent_mode,
-            "tags": agent.tags,
-            "tools": agent.tools,
-            "created_at": agent.created_at,
-            "updated_at": agent.updated_at,
-            "user_id": agent.user_id,
-            "organization_id": agent.organization_id
-        }
+        return {"success": True}
+        
     except HTTPException:
         raise
     except Exception as e:

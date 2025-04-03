@@ -192,6 +192,21 @@ class AgentConfig(BaseModel):
     organization_id: Optional[str] = None
 
 
+class AgentUpdateConfig(BaseModel):
+    """Configuration for updating an existing agent."""
+    name: Optional[str] = None
+    description: Optional[str] = None
+    expertise: Optional[str] = None
+    mode: Optional[str] = None
+    model_name: Optional[str] = None
+    agent_mode: Optional[str] = None
+    tools: Optional[List[ToolConfig]] = None
+    tags: Optional[List[str]] = None
+    project: Optional[str] = None
+    user_id: Optional[str] = None
+    organization_id: Optional[str] = None
+
+
 class TaskSubmission(BaseModel):
     """Request model for task submission."""
 
@@ -218,8 +233,3 @@ class TaskStatus(BaseModel):
     error: Optional[str] = None
     total_tokens: Optional[int] = None
     model_name: Optional[str] = None
-
-
-
-
-
