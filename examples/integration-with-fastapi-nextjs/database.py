@@ -3,8 +3,9 @@ import os
 from datetime import datetime
 import uuid
 from typing import Optional, List, Dict, Any
+import enum
 
-from sqlalchemy import create_engine, Column, String, JSON, ARRAY, DateTime, ForeignKey, Boolean
+from sqlalchemy import create_engine, Column, String, JSON, ARRAY, DateTime, ForeignKey, Boolean, Integer, Text, Enum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
@@ -19,6 +20,12 @@ engine = create_engine(DATABASE_URL, echo=True)  # Added echo=True for debugging
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
+
+class MessageRole(enum.Enum):
+    SYSTEM = "System"
+    USER = "User"
+    ASSISTANT = "Assistant"
+    FUNCTION = "Function"
 
 class Agent(Base):
     __tablename__ = "qagents"
@@ -58,6 +65,26 @@ class QConversation(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # think about adding partion by organization_id, user_id
+
+class QMessage(Base):
+    __tablename__ = "qmessages"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
+    pid = Column(UUID(as_uuid=True))
+    content = Column(Text, nullable=False)
+    role = Column(Enum(MessageRole), nullable=False)
+    user_id = Column(UUID(as_uuid=True), nullable=False)
+    conversation_id = Column(UUID(as_uuid=True), nullable=False)
+    prompt_id = Column(UUID(as_uuid=True), nullable=True)
+    events = Column(JSONB, nullable=True)
+    message_metadata = Column(JSONB, nullable=True)
+    tokens = Column(Integer, nullable=True)
+    loading_state = Column(String, nullable=True)
+    feedback = Column(JSONB, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    # think about adding partion by organization_id, user_id, conversation_id
 
 # Create database tables
 def init_db():

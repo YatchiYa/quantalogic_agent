@@ -5,6 +5,7 @@ from .health_controller import router as health_router
 from .validation_controller import router as validation_router
 from .generation_controller import router as generation_router
 from .conversation_controller import router as conversation_router
+from .message_controller import router as message_router
 
 __all__ = [
     'agent_router',
@@ -13,5 +14,6 @@ __all__ = [
     'health_router',
     'validation_router',
     'generation_router',
-    'conversation_router'
+    'conversation_router',
+    'message_router'
 ]

@@ -1,6 +1,6 @@
 """Pydantic models for the QuantaLogic API."""
 
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Union
 
 from pydantic import BaseModel
 
@@ -261,3 +261,28 @@ class ConversationUpdateConfig(BaseModel):
     is_public: Optional[bool] = None
     is_archived: Optional[bool] = None
     is_favorite: Optional[bool] = None
+
+
+## messages
+
+class MessageConfig(BaseModel):
+    id: str
+    content: str
+    role: str
+    conversation_id: str
+    prompt_id: Optional[str] = None
+    events: Optional[Union[Dict[str, Any], List[Any]]] = None
+    message_metadata: Optional[Dict[str, Any]] = None
+    tokens: Optional[int] = None
+    loading_state: Optional[str] = None
+    feedback: Optional[Dict[str, Any]] = None
+    user_id: Optional[str] = None
+
+class MessageUpdateConfig(BaseModel):
+    content: Optional[str] = None
+    role: Optional[str] = None
+    events: Optional[Dict[str, Any]] = None
+    message_metadata: Optional[Dict[str, Any]] = None
+    tokens: Optional[int] = None
+    loading_state: Optional[str] = None
+    feedback: Optional[Dict[str, Any]] = None
