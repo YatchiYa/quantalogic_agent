@@ -233,3 +233,31 @@ class TaskStatus(BaseModel):
     error: Optional[str] = None
     total_tokens: Optional[int] = None
     model_name: Optional[str] = None
+
+
+
+
+## conversations 
+
+class ConversationConfig(BaseModel):
+    id: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    model_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    project: Optional[str] = None
+    user_id: Optional[str] = None
+    organization_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    is_public: bool = False
+    is_archived: bool = False
+    is_favorite: bool = False
+
+class ConversationUpdateConfig(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    model_id: Optional[str] = None
+    project: Optional[str] = None
+    is_public: Optional[bool] = None
+    is_archived: Optional[bool] = None
+    is_favorite: Optional[bool] = None

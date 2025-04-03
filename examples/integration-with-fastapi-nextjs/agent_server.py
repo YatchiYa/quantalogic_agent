@@ -46,7 +46,7 @@ from .init_agents import init_agents
 from .middlewares.logger_middleware import log_middleware
 from .middlewares.error_middleware import  register_exception_handlers
 from .middlewares.authenticate import require_auth
-from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router
+from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router, conversation_router
 from .database import init_db
 # Configure logger
 logger.remove()
@@ -154,6 +154,7 @@ app.include_router(task_router)
 app.include_router(health_router)
 app.include_router(validation_router)
 app.include_router(generation_router)
+app.include_router(conversation_router)
 
 # Mount static files
 # app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")

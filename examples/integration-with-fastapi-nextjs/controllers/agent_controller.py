@@ -102,8 +102,7 @@ async def list_agents(
         ).all()
         return [
             {
-                "id": str(agent.id),
-                "pid": str(agent.pid),
+                "id": str(agent.pid),
                 "name": agent.name,
                 "description": agent.description,
                 "model_name": agent.model_name,
@@ -138,8 +137,7 @@ async def get_agent(
             raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
             
         return {
-            "id": str(agent.id),
-            "pid": str(agent.pid),
+            "id": str(agent.pid),
             "name": agent.name,
             "description": agent.description,
             "model_name": agent.model_name,
