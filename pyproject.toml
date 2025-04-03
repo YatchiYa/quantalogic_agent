@@ -63,6 +63,8 @@ geocoder = "^1.38.1"
 hkdf = "^0.0.3"
 python-jose = {extras = ["cryptography"], version = "^3.4.0"}
 linkup-sdk = "^0.2.4"
+alembic = "^1.15.2"
+psycopg2-binary = "^2.9.10"
 
 [tool.poetry.group.file-tools]
 optional = false

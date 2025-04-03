@@ -7,6 +7,46 @@ from pydantic import BaseModel
 from quantalogic.agent_config import MODEL_NAME
 from datetime import datetime
 
+# Constants
+SHUTDOWN_TIMEOUT = 10.0  # seconds
+VALIDATION_TIMEOUT = 30.0  # seconds
+UPLOAD_DIR = "/tmp/data"  # Directory for file uploads
+
+class HtmlContent(BaseModel):
+    content: str
+
+class ToolParameters(BaseModel):
+    """Parameters for tool configurations.
+    
+    This class defines all possible parameters that can be passed to different tools.
+    Each tool will only use the parameters it needs.
+    """
+    # LLM and Model related parameters
+    model_name: Optional[str] = None
+    vision_model_name: Optional[str] = None
+    provider: Optional[str] = None
+    additional_info: Optional[str] = None
+
+    # Database related parameters
+    connection_string: Optional[str] = None
+
+    # Git related parameters
+    access_token: Optional[str] = None  # For Bitbucket
+    auth_token: Optional[str] = None    # For GitHub and other git operations
+
+    class Config:
+        """Pydantic config for ToolParameters."""
+        extra = "allow"  # Allow extra fields for future extensibility
+
+ 
+class FileUploadResponse(BaseModel):
+    status: str
+    filename: str
+    path: str
+    project_path: str
+    size: str
+    content_type: str
+
 class TutorialRequest(BaseModel):
     """Request model for tutorial generation."""
     markdown_content: str
@@ -130,12 +170,6 @@ class UserValidationResponse(BaseModel):
     model_config = {"extra": "forbid"}
 
 
-class ToolParameters(BaseModel):
-    """Parameters for a tool configuration."""
-    connection_string: Optional[str] = None
-    model_name: Optional[str] = None
-
-
 class ToolConfig(BaseModel):
     """Configuration for a single tool."""
     type: str
@@ -152,6 +186,10 @@ class AgentConfig(BaseModel):
     model_name: str
     agent_mode: str
     tools: List[ToolConfig]
+    tags: Optional[List[str]] = None
+    project: Optional[str] = None
+    user_id: Optional[str] = None
+    organization_id: Optional[str] = None
 
 
 class TaskSubmission(BaseModel):
@@ -180,3 +218,8 @@ class TaskStatus(BaseModel):
     error: Optional[str] = None
     total_tokens: Optional[int] = None
     model_name: Optional[str] = None
+
+
+
+
+

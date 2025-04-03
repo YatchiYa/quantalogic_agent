@@ -343,24 +343,106 @@ class AgentState:
             self._validation_requests.pop(validation_id, None)
             self._validation_responses.pop(validation_id, None)
 
-    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
-        """Get the configuration for an agent.
+    async def update_agent_config(self, agent_id: str, update_data: dict) -> bool:
+        """Update an existing agent's configuration.
         
         Args:
-            agent_id: ID of the agent
+            agent_id: ID of the agent to update
+            update_data: Dictionary containing the fields to update
             
         Returns:
-            Optional[AgentConfig]: Agent configuration if found
+            bool: True if agent was updated successfully
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            config = self.agent_configs[agent_id]
+            
+            # Update configuration fields
+            for key, value in update_data.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
+            
+            # If tools were updated, recreate the agent with new tools
+            if "tools" in update_data:
+                # Convert tools to dict format
+                tools_dict = []
+                for tool in config.tools:
+                    tool_dict = {
+                        "type": tool.type,
+                        "parameters": {}
+                    }
+                    if tool.parameters:
+                        params = tool.parameters.dict(exclude_none=True)
+                        tool_dict["parameters"] = params
+                    tools_dict.append(tool_dict)
+                
+                logger.debug(f"Updating agent {agent_id} with new tools: {tools_dict}")
+                
+                # Create new agent instance
+                agent = create_custom_agent(
+                    model_name=config.model_name,
+                    vision_model_name=None,
+                    no_stream=False,
+                    tools=tools_dict,
+                    specific_expertise=config.expertise,
+                    memory=AgentMemory(),
+                    agent_mode=config.agent_mode
+                )
+                
+                # Override ask_for_user_validation with SSE-based method
+                agent.ask_for_user_validation = self.sse_ask_for_user_validation
+                
+                # Set up event handlers
+                self._setup_agent_events(agent)
+                
+                # Update the agent in registry
+                self.agent_registry.register_agent(agent_id, agent)
+            
+            logger.info(f"Updated agent {agent_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update agent: {e}", exc_info=True)
+            return False
+
+    async def delete_agent(self, agent_id: str) -> bool:
+        """Delete an agent.
+        
+        Args:
+            agent_id: ID of the agent to delete
+            
+        Returns:
+            bool: True if agent was deleted successfully
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            # Remove from registry first
+            self.agent_registry.unregister_agent(agent_id)
+            
+            # Remove configuration
+            del self.agent_configs[agent_id]
+            
+            logger.info(f"Deleted agent {agent_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete agent: {e}", exc_info=True)
+            return False
+
+    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
+        """Get agent configuration by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Optional[AgentConfig]: Agent configuration if found, None otherwise
         """
         return self.agent_configs.get(agent_id)
-
-    def list_agents(self) -> List[AgentConfig]:
-        """List all available agents.
-        
-        Returns:
-            List[AgentConfig]: List of agent configurations
-        """
-        return list(self.agent_configs.values())
 
     async def get_agent(self, agent_id: str) -> Agent:
         """Get an agent instance by ID.
