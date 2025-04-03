@@ -165,6 +165,7 @@ TOOL_IMPORTS = {
     "mermaid_validator_tool": lambda: _import_tool("quantalogic.tools.utilities", "MermaidValidatorTool"),
     "download_file_tool": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
     "vscode_server_tool": lambda: _import_tool("quantalogic.tools.utilities.vscode_tool", "VSCodeServerTool"),
+    "linkup_tool": lambda: _import_tool("quantalogic.tools", "LinkupTool"),
 }
 
 def create_custom_agent(
@@ -359,7 +360,8 @@ def create_custom_agent(
             force_reindex=params.get("force_reindex", True)
         ),
         
-        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]())
+        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]()),
+        "linkup_tool": lambda _: create_tool_instance(TOOL_IMPORTS["linkup_tool"]()),
     }
 
     # Log available tool types before processing

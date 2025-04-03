@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250402_163808.png",
+  "timestamp": "20250402_163808",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A vibrant and bustling cyberpunk city during the day. Towering skyscrapers pierce the sky, reflecting the bright daylight. Flying vehicles weave through the cityscape, leaving trails of light. Neon signs flash with intense colors, illuminating the streets below. Wide shot, detailed cityscape, dynamic angles, high resolution, 8k, realistic.",
+  "negative_prompt": "blur, distortions, artifacts, low resolution, grainy, blurry, oversaturated",
+  "size": "1024x1024",
+  "style": "neon-punk",
+  "cfg_scale": 7.0,
+  "steps": 30,
+  "seed": null,
+  "local_path": "generated_images/sd_20250402_163808.png"
+}

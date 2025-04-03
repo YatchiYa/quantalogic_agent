@@ -43,6 +43,9 @@ from .ServerState import ServerState
 from .models import AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, TutorialRequest, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
 from .AgentState import AgentState
 from .init_agents import init_agents 
+from .middlewares.logger_middleware import log_middleware
+from .middlewares.error_middleware import  register_exception_handlers
+from .middlewares.authenticate import require_auth
 
 # Configure logger
 logger.remove()
@@ -185,6 +188,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Add logger middleware
+app.middleware("http")(log_middleware)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -194,6 +200,9 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["*"],
 )
+
+# Register exception handlers
+register_exception_handlers(app)
 
 # Mount static files
 # app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")
@@ -523,7 +532,11 @@ async def list_tasks(status: Optional[str] = None, limit: int = 10, offset: int 
 
 # Agent management endpoints
 @app.post("/api/agent/agents")
-async def create_agent(config: AgentConfig) -> Dict[str, bool]:
+async def create_agent(config: AgentConfig, user: Dict[str, Any] = require_auth) -> Dict[str, bool]:
+    logger.info("Processing query request",
+        user_email=user.get('email'),
+        config=config
+    )
     """Create a new agent with the given configuration."""
     success = await agent_state.create_agent(config)
     return {"success": success}

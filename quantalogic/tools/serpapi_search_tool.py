@@ -151,7 +151,7 @@ def main():
 
         # Test basic search functionality
         print("Testing SerpApiTool with sample query...")
-        results = tool.execute(query="Python programming", page=1, num_results=3)
+        results = tool.execute(query="What is Microsoft's 2024 revenue?", page=2, num_results=10)
         print(results)
 
         # Test error handling

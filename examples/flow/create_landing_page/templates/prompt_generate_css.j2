@@ -1,0 +1,38 @@
+Generate custom CSS styles to complement Tailwind CSS for this landing page structure:
+
+Color Scheme:
+- Primary: {{ structure.color_scheme.primary }}
+- Secondary: {{ structure.color_scheme.secondary }}
+- Accent: {{ structure.color_scheme.accent }}
+- Text: {{ structure.color_scheme.text }}
+- Background: {{ structure.color_scheme.background }}
+
+Interactive Elements:
+1. Header Navigation:
+   - Sticky behavior: {{ structure.header.is_sticky }}
+   - Mobile menu: {{ structure.header.has_mobile_menu }}
+
+2. Hero Section:
+   - Background type: {{ structure.hero.background_type }}
+   - CTAs: {{ structure.hero.cta_primary.text }}{% if structure.hero.cta_secondary %}, {{ structure.hero.cta_secondary.text }}{% endif %}
+
+3. Features Section:
+   - Layout: {{ structure.features.layout }}
+   - Number of features: {{ structure.features.features | length }}
+
+4. Testimonials Section:
+   - Carousel with {{ structure.testimonials.testimonials | length }} testimonials
+   - Testimonial cards with images: {% for t in structure.testimonials.testimonials %}{% if t.image %}yes{% else %}no{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}
+
+5. CTA Section:
+   - Background style: {{ structure.cta.background_style }}
+
+Requirements:
+1. Define CSS custom properties for the color scheme
+2. Add custom animations for interactive elements
+3. Include responsive design adjustments
+4. Style custom components not covered by Tailwind
+5. Add hover and focus states
+6. Optimize for performance
+7. Include print styles
+8. Add fallbacks for older browsers
