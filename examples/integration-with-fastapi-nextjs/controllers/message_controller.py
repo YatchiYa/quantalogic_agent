@@ -25,6 +25,7 @@ async def create_message(
 
     try:
         # Create database record
+        logger.info("Creating new message in database with config: {config}")
         db_message = QMessage(
             pid=config.id,
             content=config.content,
@@ -36,13 +37,14 @@ async def create_message(
             tokens=config.tokens,
             loading_state=config.loading_state,
             feedback=config.feedback,
-            user_id=user.get('id')  # Use authenticated user's ID
+            user_id=user.get('id') # Use authenticated user's ID
         )
+        logger.info("Message created in database")
         db.add(db_message)
+        logger.info("Adding message to database")
         db.commit()
         db.refresh(db_message)
-        
-        logger.info(f"Message saved to database with ID: {db_message.pid}")
+        logger.info("Message saved to database with ID: {db_message.pid}")
         return {"success": True}
     except Exception as e:
         logger.error(f"Failed to save message to database: {str(e)}")

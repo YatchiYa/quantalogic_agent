@@ -57,7 +57,7 @@ async def list_conversations(
     try:
         conversations = db.query(QConversation).filter(
             QConversation.user_id == user.get('id')
-        ).all()
+        ).order_by(QConversation.created_at.desc()).limit(10).all()
         return [
             {
                 "id": str(conv.pid),

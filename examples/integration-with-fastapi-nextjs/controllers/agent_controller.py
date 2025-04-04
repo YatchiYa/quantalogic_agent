@@ -90,6 +90,33 @@ async def create_agent(
 
     return {"success": success}
 
+# @router.get("/agents/init_wide")
+async def init_wide(
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """List all available agents."""
+    try:
+        agents = db.query(Agent).all()
+        return [
+            {
+                "id": str(agent.pid),
+                "name": agent.name,
+                "description": agent.description,
+                "model_name": agent.model_name,
+                "expertise": agent.expertise,
+                "project": agent.project,
+                "agent_mode": agent.agent_mode,
+                "tags": agent.tags,
+                "tools": agent.tools,
+                "created_at": agent.created_at,
+                "updated_at": agent.updated_at
+            }
+            for agent in agents
+        ]
+    except Exception as e:
+        logger.error(f"Failed to list agents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list agents")
+
 @router.get("/agents")
 async def list_agents(
     user: Dict[str, Any] = require_auth,

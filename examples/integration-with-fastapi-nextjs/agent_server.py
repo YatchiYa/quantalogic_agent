@@ -47,7 +47,10 @@ from .middlewares.logger_middleware import log_middleware
 from .middlewares.error_middleware import  register_exception_handlers
 from .middlewares.authenticate import require_auth
 from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router, conversation_router, message_router
-from .database import init_db
+from .database import init_db, get_db, Agent
+ 
+from sqlalchemy.orm import Session
+
 # Configure logger
 logger.remove()
 logger.add(
@@ -61,37 +64,118 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
+async def init_wide(
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """List all available agents."""
+    try:
+        agents = db.query(Agent).all()
+        return [
+            {
+                "id": str(agent.pid),
+                "name": agent.name,
+                "description": agent.description,
+                "model_name": agent.model_name,
+                "expertise": agent.expertise,
+                "project": agent.project,
+                "agent_mode": agent.agent_mode,
+                "tags": agent.tags,
+                "tools": agent.tools,
+                "created_at": agent.created_at,
+                "updated_at": agent.updated_at
+            }
+            for agent in agents
+        ]
+    except Exception as e:
+        logger.error(f"Failed to list agents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list agents")
+
 async def load_initial_agents():
-    """Load initial agents from configuration."""
-    logger.info("Loading initial agents...")
-    for agent_dict in init_agents:
-        try:
-            # Convert tool configurations
-            tool_configs = []
-            for tool in agent_dict["tools"]:
-                tool_configs.append(ToolConfig(
-                    type=tool["type"],
-                    parameters=ToolParameters(**tool.get("parameters", {}))
-                ))
-            
-            # Create AgentConfig from dictionary
-            agent_config = AgentConfig(
-                id=agent_dict["id"],
-                name=agent_dict["name"],
-                description=agent_dict["description"],
-                expertise=agent_dict["expertise"],
-                model_name=agent_dict["model_name"],
-                agent_mode=agent_dict.get("agent_mode", "react"),
-                tools=tool_configs
-            )
-            
-            success = await agent_state.create_agent(agent_config)
-            if success:
-                logger.info(f"Successfully loaded agent: {agent_config.name}")
-            else:
-                logger.error(f"Failed to load agent: {agent_config.name}")
-        except Exception as e:
-            logger.error(f"Failed to load agent {agent_dict.get('name', 'unknown')}: {str(e)}")
+    """Load initial agents from database and configuration."""
+    logger.info("Loading initial agents from database and configuration...")
+    try:
+        # Get database session
+        db = next(get_db())
+        
+        # Get all agents from database
+        agents = await init_wide(db)
+        
+        # First load agents from database
+        for agent_data in agents:
+            try:
+                # Initialize empty tool configs list
+                tool_configs = []
+                
+                # Handle tools if they exist
+                tools = agent_data.get("tools", [])
+                if tools:
+                    # Convert tool configurations from JSON string to list if needed
+                    if isinstance(tools, str):
+                        tools = json.loads(tools)
+                    
+                    # Convert tool configurations
+                    for tool in tools:
+                        if isinstance(tool, dict) and "type" in tool:
+                            tool_configs.append(ToolConfig(
+                                type=tool["type"],
+                                parameters=ToolParameters(**tool.get("parameters", {}))
+                            ))
+                
+                # Create AgentConfig from database data
+                agent_config = AgentConfig(
+                    id=agent_data["id"],
+                    name=agent_data["name"],
+                    description=agent_data.get("description", ""),  # Handle optional fields
+                    expertise=agent_data.get("expertise", ""),
+                    model_name=agent_data.get("model_name", MODEL_NAME),  # Use default if not specified
+                    agent_mode=agent_data.get("agent_mode", "react"),
+                    tools=tool_configs
+                )
+                
+                # Create the agent
+                success = await agent_state.create_agent(agent_config)
+                if success:
+                    logger.info(f"Successfully loaded agent from DB: {agent_config.name}")
+                else:
+                    logger.error(f"Failed to load agent from DB: {agent_config.name}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to load agent {agent_data.get('name', 'unknown')}: {str(e)}")
+        
+        # Then load agents from init_agents configuration
+        logger.info("Loading agents from init_agents configuration...")
+        for agent_dict in init_agents:
+            try:
+                # Convert tool configurations
+                tool_configs = []
+                for tool in agent_dict.get("tools", []):
+                    if isinstance(tool, dict) and "type" in tool:
+                        tool_configs.append(ToolConfig(
+                            type=tool["type"],
+                            parameters=ToolParameters(**tool.get("parameters", {}))
+                        ))
+                
+                # Create AgentConfig from dictionary
+                agent_config = AgentConfig(
+                    id=agent_dict["id"],
+                    name=agent_dict["name"],
+                    description=agent_dict.get("description", ""),
+                    expertise=agent_dict.get("expertise", ""),
+                    model_name=agent_dict.get("model_name", MODEL_NAME),
+                    agent_mode=agent_dict.get("agent_mode", "react"),
+                    tools=tool_configs
+                )
+                
+                success = await agent_state.create_agent(agent_config)
+                if success:
+                    logger.info(f"Successfully loaded agent from config: {agent_config.name}")
+                else:
+                    logger.error(f"Failed to load agent from config: {agent_config.name}")
+            except Exception as e:
+                logger.error(f"Failed to load agent {agent_dict.get('name', 'unknown')}: {str(e)}")
+                
+    except Exception as e:
+        logger.error(f"Failed to load initial agents: {str(e)}")
 
 # Initialize FastAPI app
 @asynccontextmanager

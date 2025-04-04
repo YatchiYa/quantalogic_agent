@@ -37,7 +37,7 @@ from quantalogic.memory import AgentMemory
 from quantalogic.task_runner import configure_logger
 from .utils import handle_sigterm, get_version
 from .ServerState import ServerState
-from .models import AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, TutorialRequest, UserValidationRequest, UserValidationResponse, AgentConfig, TaskSubmission
+from .models import AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, ToolConfig, ToolParameters, TutorialRequest, UserValidationRequest, UserValidationResponse, AgentConfig, TaskSubmission
 
 SHUTDOWN_TIMEOUT = 10.0  # seconds
 VALIDATION_TIMEOUT = 10.0  # seconds
@@ -165,6 +165,188 @@ class AgentState:
             
         except Exception as e:
             logger.error(f"Failed to create agent: {e}", exc_info=True)
+            raise
+
+    async def update_agent_config(self, agent_id: str, update_data: dict) -> bool:
+        """Update an existing agent's configuration.
+        
+        Args:
+            agent_id: ID of the agent to update
+            update_data: Dictionary containing the fields to update
+            
+        Returns:
+            bool: True if agent was updated successfully
+            
+        Raises:
+            ValueError: If agent_id doesn't exist or if update data is invalid
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            config = self.agent_configs[agent_id]
+            
+            # Handle tools separately to ensure proper conversion
+            if "tools" in update_data:
+                tools = []
+                if update_data["tools"]:  # If tools is not None or empty
+                    for tool_data in update_data["tools"]:
+                        # Convert each tool dict to a ToolConfig object
+                        if isinstance(tool_data, dict):
+                            # Create ToolParameters object if parameters exist
+                            parameters = None
+                            if "parameters" in tool_data:
+                                parameters = ToolParameters(**tool_data["parameters"])
+                            
+                            tool_config = ToolConfig(
+                                type=tool_data["type"],
+                                parameters=parameters or ToolParameters()
+                            )
+                            tools.append(tool_config)
+                        elif isinstance(tool_data, ToolConfig):
+                            tools.append(tool_data)
+                config.tools = tools
+                del update_data["tools"]  # Remove tools from update_data since we handled it
+            
+            # Update other configuration fields
+            for key, value in update_data.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
+            
+            # Validate model name
+            if not config.model_name:
+                raise ValueError("Model name cannot be empty")
+            
+            # If tools were updated or if model/expertise changed, recreate the agent
+            if any(key in update_data for key in ["tools", "model_name", "expertise", "agent_mode"]):
+                # Convert tools to dict format for create_custom_agent
+                tools_dict = []
+                if config.tools:
+                    for tool in config.tools:
+                        tool_dict = {
+                            "type": tool.type,
+                            "parameters": {}
+                        }
+                        if tool.parameters:
+                            params = tool.parameters.dict(exclude_none=True)
+                            tool_dict["parameters"] = params
+                        tools_dict.append(tool_dict)
+                
+                logger.debug(f"Updating agent {agent_id} with new tools: {tools_dict}")
+                
+                # Get the existing agent's memory if it exists
+                existing_memory = None
+                try:
+                    existing_agent = AgentRegistry._agents.get(agent_id)
+                    if existing_agent and hasattr(existing_agent, 'memory'):
+                        existing_memory = existing_agent.memory
+                except Exception as e:
+                    logger.warning(f"Could not retrieve existing agent memory: {e}")
+                
+                # Create new agent instance with existing memory if available
+                agent = create_custom_agent(
+                    model_name=config.model_name,
+                    vision_model_name=None,
+                    no_stream=False,
+                    tools=tools_dict,
+                    specific_expertise=config.expertise or "",  # Ensure expertise is never None
+                    memory=existing_memory or AgentMemory(),  # Use existing memory or create new one
+                    agent_mode=config.agent_mode or "default"  # Ensure agent_mode is never None
+                )
+                
+                # Override ask_for_user_validation with SSE-based method 
+                agent.ask_for_user_validation = self.sse_ask_for_user_validation
+                
+                # Set up event handlers
+                self._setup_agent_events(agent)
+                
+                # Update the agent in registry by directly modifying the singleton's dict
+                AgentRegistry._agents[agent_id] = agent
+            
+            logger.info(f"Successfully updated agent {agent_id} with new configuration")
+            return True
+            
+        except ValueError as ve:
+            logger.error(f"Validation error while updating agent: {ve}")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to update agent: {e}", exc_info=True)
+            raise
+
+    async def delete_agent(self, agent_id: str) -> bool:
+        """Delete an agent.
+        
+        Args:
+            agent_id: ID of the agent to delete
+            
+        Returns:
+            bool: True if agent was deleted successfully
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            # Remove from registry first
+            self.agent_registry.unregister_agent(agent_id)
+            
+            # Remove configuration
+            del self.agent_configs[agent_id]
+            
+            logger.info(f"Deleted agent {agent_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete agent: {e}", exc_info=True)
+            return False
+
+    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
+        """Get agent configuration by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Optional[AgentConfig]: Agent configuration if found, None otherwise
+        """
+        return self.agent_configs.get(agent_id)
+
+    async def get_agent(self, agent_id: str) -> Agent:
+        """Get an agent instance by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Agent: The agent instance
+            
+        Raises:
+            ValueError: If agent not found and use_default_agent is False
+        """
+        try:
+            # If agent_id is 'default' or (agent doesn't exist and use_default_agent is True)
+            if agent_id == "default" or (agent_id not in self.agent_configs and self.use_default_agent):
+                if "default" not in self.agent_registry._agents:
+                    # Initialize default agent if it doesn't exist
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
+                
+            # Normal case - get specified agent
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent {agent_id} not found")
+                
+            if agent_id not in self.agent_registry._agents:
+                # Recreate the agent if it doesn't exist
+                config = self.agent_configs[agent_id]
+                await self.create_agent(config)
+                
+            return self.agent_registry.get_agent(agent_id)
+            
+        except Exception as e:
+            if self.use_default_agent:
+                logger.warning(f"Failed to get agent {agent_id}, falling back to default agent: {str(e)}")
+                if "default" not in self.agent_registry._agents:
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
             raise
 
     
@@ -342,146 +524,6 @@ class AgentState:
                 del self._validation_timeouts[validation_id]
             self._validation_requests.pop(validation_id, None)
             self._validation_responses.pop(validation_id, None)
-
-    async def update_agent_config(self, agent_id: str, update_data: dict) -> bool:
-        """Update an existing agent's configuration.
-        
-        Args:
-            agent_id: ID of the agent to update
-            update_data: Dictionary containing the fields to update
-            
-        Returns:
-            bool: True if agent was updated successfully
-        """
-        try:
-            if agent_id not in self.agent_configs:
-                raise ValueError(f"Agent with ID {agent_id} does not exist")
-            
-            config = self.agent_configs[agent_id]
-            
-            # Update configuration fields
-            for key, value in update_data.items():
-                if hasattr(config, key):
-                    setattr(config, key, value)
-            
-            # If tools were updated, recreate the agent with new tools
-            if "tools" in update_data:
-                # Convert tools to dict format
-                tools_dict = []
-                for tool in config.tools:
-                    tool_dict = {
-                        "type": tool.type,
-                        "parameters": {}
-                    }
-                    if tool.parameters:
-                        params = tool.parameters.dict(exclude_none=True)
-                        tool_dict["parameters"] = params
-                    tools_dict.append(tool_dict)
-                
-                logger.debug(f"Updating agent {agent_id} with new tools: {tools_dict}")
-                
-                # Create new agent instance
-                agent = create_custom_agent(
-                    model_name=config.model_name,
-                    vision_model_name=None,
-                    no_stream=False,
-                    tools=tools_dict,
-                    specific_expertise=config.expertise,
-                    memory=AgentMemory(),
-                    agent_mode=config.agent_mode
-                )
-                
-                # Override ask_for_user_validation with SSE-based method
-                agent.ask_for_user_validation = self.sse_ask_for_user_validation
-                
-                # Set up event handlers
-                self._setup_agent_events(agent)
-                
-                # Update the agent in registry
-                self.agent_registry.register_agent(agent_id, agent)
-            
-            logger.info(f"Updated agent {agent_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to update agent: {e}", exc_info=True)
-            return False
-
-    async def delete_agent(self, agent_id: str) -> bool:
-        """Delete an agent.
-        
-        Args:
-            agent_id: ID of the agent to delete
-            
-        Returns:
-            bool: True if agent was deleted successfully
-        """
-        try:
-            if agent_id not in self.agent_configs:
-                raise ValueError(f"Agent with ID {agent_id} does not exist")
-            
-            # Remove from registry first
-            self.agent_registry.unregister_agent(agent_id)
-            
-            # Remove configuration
-            del self.agent_configs[agent_id]
-            
-            logger.info(f"Deleted agent {agent_id}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to delete agent: {e}", exc_info=True)
-            return False
-
-    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
-        """Get agent configuration by ID.
-        
-        Args:
-            agent_id: ID of the agent to get
-            
-        Returns:
-            Optional[AgentConfig]: Agent configuration if found, None otherwise
-        """
-        return self.agent_configs.get(agent_id)
-
-    async def get_agent(self, agent_id: str) -> Agent:
-        """Get an agent instance by ID.
-        
-        Args:
-            agent_id: ID of the agent to get
-            
-        Returns:
-            Agent: The agent instance
-            
-        Raises:
-            ValueError: If agent not found and use_default_agent is False
-        """
-        try:
-            # If agent_id is 'default' or (agent doesn't exist and use_default_agent is True)
-            if agent_id == "default" or (agent_id not in self.agent_configs and self.use_default_agent):
-                if "default" not in self.agent_registry._agents:
-                    # Initialize default agent if it doesn't exist
-                    await self.initialize_agent_with_sse_validation()
-                return self.agent_registry.get_agent("default")
-                
-            # Normal case - get specified agent
-            if agent_id not in self.agent_configs:
-                raise ValueError(f"Agent {agent_id} not found")
-                
-            if agent_id not in self.agent_registry._agents:
-                # Recreate the agent if it doesn't exist
-                config = self.agent_configs[agent_id]
-                await self.create_agent(config)
-                
-            return self.agent_registry.get_agent(agent_id)
-            
-        except Exception as e:
-            if self.use_default_agent:
-                logger.warning(f"Failed to get agent {agent_id}, falling back to default agent: {str(e)}")
-                if "default" not in self.agent_registry._agents:
-                    await self.initialize_agent_with_sse_validation()
-                return self.agent_registry.get_agent("default")
-            raise
 
     async def initialize_agent_with_sse_validation(
         self, 
@@ -1589,7 +1631,7 @@ class AgentState:
                 "task_id": task_id, 
                 "agent_id": "default",
                 "message": "Image generation started"
-            }) 
+            })
 
             example_content = """
             A psychological exploration of memory and identity through the lens of an unreliable narrator.
