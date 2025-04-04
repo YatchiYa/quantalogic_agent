@@ -6,6 +6,7 @@ from .validation_controller import router as validation_router
 from .generation_controller import router as generation_router
 from .conversation_controller import router as conversation_router
 from .message_controller import router as message_router
+from .message_conversation_controller_public import router as message_conversation_router_public
 
 __all__ = [
     'agent_router',
@@ -15,5 +16,6 @@ __all__ = [
     'validation_router',
     'generation_router',
     'conversation_router',
-    'message_router'
+    'message_router',
+    'message_conversation_router_public'
 ]
