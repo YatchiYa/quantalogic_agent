@@ -83,6 +83,7 @@ class Agent(BaseModel):
     ask_for_user_validation: Callable[[str, str], bool] = console_ask_for_user_validation
     last_tool_call: dict[str, Any] = {}  # Stores the last tool call information
     total_tokens: int = 0  # Total tokens in the conversation
+    total_cost: float = 0.0  # Total cost of the conversation
     current_iteration: int = 0
     max_input_tokens: int = DEFAULT_MAX_INPUT_TOKENS
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS
@@ -176,6 +177,7 @@ class Agent(BaseModel):
                 ask_for_user_validation=ask_for_user_validation,
                 last_tool_call={},
                 total_tokens=0,
+                total_cost=0.0,
                 current_iteration=0,
                 max_input_tokens=DEFAULT_MAX_INPUT_TOKENS,
                 max_output_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
@@ -288,7 +290,7 @@ class Agent(BaseModel):
                         content += chunk
                     result = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -303,6 +305,7 @@ class Agent(BaseModel):
                 if not streaming:
                     token_usage = result.usage
                     self.total_tokens = token_usage.total_tokens
+                    self.total_cost = token_usage.cost
 
                 self._emit_event("task_think_end", {"response": content})
                 result = await self._async_observe_response(content, iteration=self.current_iteration)
@@ -409,6 +412,7 @@ class Agent(BaseModel):
         # Add user message to memory
         self.memory.add(Message(role="user", content=message))
         self._update_total_tokens(self.memory.memory, "")
+        self._update_total_cost(self.memory.memory, "")
 
         # Iterative tool usage with auto-execution
         current_prompt = message
@@ -432,7 +436,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -587,7 +591,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -600,6 +604,7 @@ class Agent(BaseModel):
                     content = response.response
 
                 self.total_tokens = response.usage.total_tokens if not streaming else self.total_tokens
+                self.total_cost = response.usage.cost if not streaming else self.total_cost
 
                 # Observe response for tool calls
                 observation = await self._async_observe_response(content)
@@ -1031,6 +1036,7 @@ class Agent(BaseModel):
             self.memory.reset()
             self.variable_store.reset()
             self.total_tokens = 0
+            self.total_cost = 0.0
         self.current_iteration = 0
         self.max_output_tokens = self.model.get_model_max_output_tokens() or DEFAULT_MAX_OUTPUT_TOKENS
         self.max_input_tokens = self.model.get_model_max_input_tokens() or DEFAULT_MAX_INPUT_TOKENS
@@ -1045,6 +1051,15 @@ class Agent(BaseModel):
         """
         self.total_tokens = self.model.token_counter_with_history(message_history, prompt)
 
+    def _update_total_cost(self, message_history: list[Message], prompt: str) -> None:
+        """Update the total cost based on message history and prompt.
+
+        Args:
+            message_history: List of messages
+            prompt: Current prompt
+        """
+        self.total_cost = self.model.token_counter_with_history(message_history, prompt)
+
     def _emit_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """Emit an event with system context and optional additional data.
 
@@ -1055,6 +1070,7 @@ class Agent(BaseModel):
         event_data = {
             "iteration": self.current_iteration,
             "total_tokens": self.total_tokens,
+            "total_cost": self.total_cost,
             "context_occupancy": self._calculate_context_occupancy(),
             "max_input_tokens": self.max_input_tokens,
             "max_output_tokens": self.max_output_tokens,

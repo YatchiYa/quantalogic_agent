@@ -46,7 +46,7 @@ from .init_agents import init_agents
 from .middlewares.logger_middleware import log_middleware
 from .middlewares.error_middleware import  register_exception_handlers
 from .middlewares.authenticate import require_auth
-from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router, conversation_router, message_router, message_conversation_router_public
+from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router, conversation_router, message_router, message_conversation_router_public, tools, chat_router
 from .database import init_db, get_db, Agent
  
 from sqlalchemy.orm import Session
@@ -241,6 +241,8 @@ app.include_router(generation_router)
 app.include_router(conversation_router)
 app.include_router(message_router)
 app.include_router(message_conversation_router_public)
+app.include_router(tools)
+app.include_router(chat_router)
 
 # Mount static files
 # app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")

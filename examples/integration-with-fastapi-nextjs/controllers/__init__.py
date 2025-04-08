@@ -7,6 +7,8 @@ from .generation_controller import router as generation_router
 from .conversation_controller import router as conversation_router
 from .message_controller import router as message_router
 from .message_conversation_controller_public import router as message_conversation_router_public
+from .tools import router as tools
+from .chat_native_controller import router as chat_router
 
 __all__ = [
     'agent_router',
@@ -17,5 +19,7 @@ __all__ = [
     'generation_router',
     'conversation_router',
     'message_router',
-    'message_conversation_router_public'
+    'tools',
+    'message_conversation_router_public',
+    'chat_router'
 ]

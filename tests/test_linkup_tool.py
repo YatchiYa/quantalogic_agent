@@ -11,7 +11,7 @@ def test_microsoft_revenue():
         logger.info("Testing Microsoft revenue query...")
         response = tool.execute(
             query="What is Microsoft's 2024 revenue?",
-            depth="deep",
+            depth="standard",
             output_type="sourcedAnswer"
         )
         print("\n=== Microsoft Revenue Query ===")

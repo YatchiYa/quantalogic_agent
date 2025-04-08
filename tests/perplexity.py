@@ -67,7 +67,7 @@ def test_with_streaming():
 
 if __name__ == "__main__":
     # Test without streaming
-    test_without_streaming()
+    # test_without_streaming()
     
     # Test with streaming
-    # test_with_streaming()
+    test_with_streaming()

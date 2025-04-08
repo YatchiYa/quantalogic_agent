@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.sql import func
 from loguru import logger
 
-DATABASE_URL = "postgresql://quantadbu:azerty1234@localhost:5432/quanta_db"
+DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set")
 
@@ -56,7 +56,7 @@ class QConversation(Base):
     model_id = Column(String, nullable=True)
     user_id = Column(UUID(as_uuid=True), nullable=False)
     organization_id = Column(UUID(as_uuid=True), nullable=True)
-    agent_id = Column(UUID(as_uuid=True), nullable=True)
+    agent_id = Column(String, nullable=True)
     last_message_at = Column(DateTime(timezone=True), server_default=func.now())
     is_public = Column(Boolean, default=False)
     is_archived = Column(Boolean, default=False)

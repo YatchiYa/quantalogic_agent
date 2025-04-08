@@ -1,0 +1,121 @@
+Market Analysis:
+Error: Invalid format specifier '.2f if isinstance(latest_rsi, (int, float)) else 'N/A'' for object of type 'float'
+
+Trading Strategy:
+Okay, I will generate a detailed trading decision for BTC-USD based on the requested structure, even though the provided MARKET CONTEXT is incomplete (due to the error message). I'll make assumptions and provide a general framework, which you should adapt with actual market data once available.  Since I have no market data, I will create hypothetical data for the sake of the example.
+
+**Important Disclaimer:** This is a hypothetical trade plan based on assumed data. It is for educational purposes only and should not be considered financial advice. Always conduct your own thorough research and analysis before making any trading decisions.
+
+**Hypothetical Market Context:**
+
+*   **Higher Timeframe Trend (Daily):** Bullish
+*   **Key Market Structure:** Recent break of a significant resistance level at $70,000, now acting as support.
+*   **Volume Profile:** Point of Control (POC) around $69,000. High volume node around $70,000.
+*   **Order Flow:** Bullish, with consistent buying pressure during pullbacks.
+*   **Institutional Activity:** Evidence of institutional accumulation around $68,000-$70,000.
+*   **Recent Price Action:** BTC is currently trading around $71,000, consolidating after a recent rally.
+*   **RSI (Daily):** 65 (trending upwards)
+*   **MACD (Daily):** Bullish crossover
+
+**1. CONTEXT ANALYSIS**
+
+*   **Key Technical Levels Identified:** Support at $70,000 (previous resistance), potential resistance around $72,000 (psychological level).
+*   **Market Structure Assessment:** Bullish, with higher highs and higher lows.
+*   **Volume Profile Analysis:** Strong support at $70,000, suggesting potential buying interest.
+*   **Order Flow Analysis:** Bullish, indicating sustained buying pressure.
+*   **Institutional Activity Analysis:** Institutional accumulation around $68,000-$70,000 suggests confidence in the asset.
+*   **Risk Points Identification:** Potential for a pullback to the $70,000 support level.
+
+**2. DECISION FRAMEWORK**
+
+**A. Primary Assessment**
+
+*   **Trading Bias:** BUY
+*   **Confidence Score:** 0.75 (Reasoning: Bullish market structure, positive order flow, and institutional support. However, the consolidation phase introduces some uncertainty.)
+*   **Entry Type:** LIMIT (Justification: A limit order allows us to enter at a more favorable price if a pullback occurs.)
+*   **Setup Quality Score:** 0.7 (Analysis: The setup aligns with the overall bullish trend and has good support levels, but the consolidation phase requires careful monitoring.)
+
+**B. Technical Confluence**
+
+*   **Support/Resistance Alignment:** $70,000 acts as a confluence zone with previous resistance turning into support.
+*   **Order Block Validation:** Potential bullish order block forming around the $70,000 area.
+*   **Fair Value Gap Assessment:** No significant fair value gaps immediately below the current price.
+*   **Liquidity Level Analysis:** Liquidity resting above $72,000 (potential target).
+*   **Volume Structure Confirmation:** High volume node around $70,000 supports the price.
+
+**3. TRADE PARAMETERS**
+
+**A. Entry Strategy**
+
+*   **Entry Price/Zone:** $70,250
+*   **Entry Trigger Conditions:** Price retraces to the $70,250 level.
+*   **Technical Confirmations Required:** A bullish candlestick pattern (e.g., hammer, bullish engulfing) near the entry price. Increased buying volume as price reaches the entry level.
+*   **Order Flow Validations:** Confirmation of increased buying pressure at the entry price.
+
+**B. Risk Management**
+
+*   **Stop Loss Price:** $69,500 (Justification: Below the $70,000 support level and below the potential order block.)
+*   **Position Size:**  Assuming a $50,000 account and a maximum risk of 2% per trade, the risk amount is $1,000.  Position size = Risk Amount / (Entry Price - Stop Loss Price) = $1000 / ($70,250 - $69,500) = $1000 / $750 = 1.33 BTC (approx. 1.3 BTC)
+*   **Risk Amount:** $1,000 (2% of $50,000 account)
+*   **Risk:Reward Ratio:** (See Profit Targets)
+
+**C. Profit Targets**
+
+*   **TP1:** $71,500 - Previous minor resistance/psychological level - 33%
+*   **TP2:** $72,000 - Psychological level/liquidity target - 33%
+*   **TP3:** $73,000 - Extension of the bullish trend - 34%
+
+**Risk/Reward Calculations:**
+
+*   **TP1:** Reward = ($71,500 - $70,250) * 1.3 BTC = $1,625. R/R = 1.625:1
+*   **TP2:** Reward = ($72,000 - $70,250) * 1.3 BTC = $2,275. R/R = 2.275:1
+*   **TP3:** Reward = ($73,000 - $70,250) * 1.3 BTC = $3,575. R/R = 3.575:1
+
+**4. EXECUTION PLAN**
+
+**A. Position Management**
+
+*   **Entry Execution Method:** Place a limit order at $70,250.
+*   **Position Scaling Rules:** No scaling in planned for this trade.
+*   **Stop Loss Management:** Move the stop loss to breakeven once TP1 is hit. Trail the stop loss higher as the price moves in our favor.
+*   **Take Profit Management:** Take profits at each target level, reducing the position size accordingly.
+
+**B. Risk Factors**
+
+*   **Technical Invalidation Points:** Price breaking below $69,500 and failing to recover.
+*   **Warning Signs to Monitor:** Decreasing volume on upward moves, increasing volume on downward moves, a break of the $70,000 level.
+*   **Risk Mitigation Strategies:** Reduce position size if warning signs appear. Close the trade if the invalidation point is reached.
+*   **Position Heat Management:** Monitor overall portfolio exposure to Bitcoin.
+
+**5. TRADE MONITORING**
+
+*   **Critical Price Levels:** $70,000, $69,500, $71,500, $72,000, $73,000
+*   **Volume Thresholds:** Significant increase or decrease in volume relative to the average.
+*   **Order Flow Signals:** Changes in buying or selling pressure.
+*   **Technical Invalidation Points:** $69,500
+*   **Risk Management Checkpoints:** Re-evaluate the trade at each take profit level and if any warning signs appear.
+
+**6. TRADE EXECUTION SUMMARY**
+
+*   **Entry Price/Zone:** $70,250
+*   **Stop Loss Level:** $69,500
+*   **Take Profit Targets:** $71,500, $72,000, $73,000
+*   **Position Size:** 1.3 BTC
+*   **Risk Amount:** $1,000
+*   **Expected Return:** Varies depending on which take profit levels are hit (see Risk/Reward calculations above).
+*   **Time Horizon:** Days to Weeks
+*   **Key Invalidation Criteria:** Price breaking below $69,500 and failing to recover.
+
+**Important Considerations:**
+
+*   **Volatility:** Bitcoin is highly volatile. Be prepared for rapid price swings.
+*   **News Events:** Monitor news events that could impact the price of Bitcoin.
+*   **Market Sentiment:** Pay attention to overall market sentiment, which can significantly influence Bitcoin's price.
+
+**Before taking this trade (or any trade), you MUST:**
+
+1.  **Replace the hypothetical data** with actual, real-time market data.
+2.  **Conduct your own thorough analysis.**
+3.  **Adjust the parameters** based on your own risk tolerance and trading style.
+
+This detailed plan provides a framework for a potential BTC-USD trade. Remember to adapt it based on your ongoing analysis and real-time market conditions. Good luck!

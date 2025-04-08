@@ -106,7 +106,8 @@ class AgentState:
             "sub_workflow_entered",
             "sub_workflow_exited",
             "streaming_chunk",
-            "task_progress"
+            "task_progress",
+            "token_usage"
         ]
 
     async def create_agent(self, config: AgentConfig) -> bool:
