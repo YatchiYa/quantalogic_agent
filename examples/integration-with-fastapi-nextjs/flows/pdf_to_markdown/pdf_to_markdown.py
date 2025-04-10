@@ -1,5 +1,3 @@
-
-
 import asyncio
 from collections.abc import Callable
 import datetime
@@ -18,7 +16,7 @@ from ..service import event_observer
 
 
 def validate_pdf_path(pdf_path: str) -> bool:
-    """Validate the PDF file path."""
+    """Validate the PDF file path and required dependencies."""
     if not pdf_path:
         logger.error("PDF path is required")
         return False
@@ -28,6 +26,20 @@ def validate_pdf_path(pdf_path: str) -> bool:
     if not pdf_path.lower().endswith(".pdf"):
         logger.error(f"File must be a PDF: {pdf_path}")
         return False
+    
+    # Check for poppler installation
+    try:
+        import shutil
+        if not shutil.which('pdfinfo'):
+            logger.error("Poppler is not installed. Please install poppler-utils package.")
+            logger.error("On Ubuntu/Debian: sudo apt-get install poppler-utils")
+            logger.error("On CentOS/RHEL: sudo yum install poppler-utils")
+            logger.error("On macOS: brew install poppler")
+            return False
+    except Exception as e:
+        logger.error(f"Error checking poppler installation: {e}")
+        return False
+        
     return True
 
 # Node to convert PDF to Markdown
@@ -181,4 +193,3 @@ async def convert(
         except Exception as e:
             logger.error(f"Error during workflow execution: {e}")
             raise
-

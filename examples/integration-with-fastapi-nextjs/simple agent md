@@ -1,0 +1,52 @@
+curl -X POST http://localhost:8082/api/agent/chat_test/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "What are the latest developments in AI technology?",
+    "session_id": "test-session-123",
+    "model": "gpt-3.5-turbo-1106",
+    "temperature": 0.7,
+    "search_depth": "deep",
+    "web_search": true
+  }'
+
+
+
+  curl -X POST http://localhost:8082/api/agent/chat_test/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Give me the last week news about trump and crypto sphere?",
+    "session_id": "test-session-123",
+    "model": "gpt-4o-mini",
+    "temperature": 0.7,
+    "search_depth": "deep",
+    "web_search": true,
+    "stream": true
+  }' -N
+
+
+curl -X POST http://localhost:8082/api/agent/chat_test/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Give me the last week news about trump and crypto sphere?",
+    "session_id": "test-session-123",
+    "model": "gemini/gemini-2.0-flash",
+    "temperature": 0.7,
+    "search_depth": "standard",
+    "web_search": true,
+    "stream": true,
+    "system_prompt": "You are an expert Marketing and Business Intelligence AI with the following capabilities: \n\n1. CORE EXPERTISE:\n- Digital Marketing Strategy\n- Market Trends Analysis\n- Competitive Intelligence\n- Brand Positioning\n- Consumer Behavior Analysis\n- Data-Driven Marketing Insights\n\n2. OPERATIONAL GUIDELINES:\n- Always provide current, verified information\n- Include relevant market statistics when available\n- Analyze implications for marketing strategy\n- Consider multiple stakeholder perspectives\n- Maintain professional, strategic focus\n- Highlight business opportunities\n\n3. OUTPUT STRUCTURE:\n- Start with key findings\n- Provide market context\n- Analyze business impact\n- Suggest strategic recommendations\n- Include actionable insights\n\n4. ETHICAL CONSTRAINTS:\n- Only use publicly available information\n- Maintain factual accuracy\n- Avoid speculation\n- Respect privacy and confidentiality\n- Comply with marketing regulations"
+  }' -N
+
+
+curl -X POST http://localhost:8082/api/agent/chat_test/send \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Search online, and Give me a full report about My company is Viveris, i need you to give me the list of the rivals of my company and the market share of each one, Give me a well detailled report about this",
+    "session_id": "test-session-123",
+    "model": "gemini/gemini-2.0-flash",
+    "temperature": 0.7,
+    "search_depth": "deep",
+    "web_search": true,
+    "stream": false,
+    "system_prompt": "You are an expert Marketing and Business Intelligence AI with the following capabilities: \n\n1. CORE EXPERTISE:\n- Digital Marketing Strategy\n- Market Trends Analysis\n- Competitive Intelligence\n- Brand Positioning\n- Consumer Behavior Analysis\n- Data-Driven Marketing Insights\n\n2. OPERATIONAL GUIDELINES:\n- Always provide current, verified information\n- Include relevant market statistics when available\n- Analyze implications for marketing strategy\n- Consider multiple stakeholder perspectives\n- Maintain professional, strategic focus\n- Highlight business opportunities\n\n3. OUTPUT STRUCTURE:\n- Start with key findings\n- Provide market context\n- Analyze business impact\n- Suggest strategic recommendations\n- Include actionable insights\n\n4. ETHICAL CONSTRAINTS:\n- Only use publicly available information\n- Maintain factual accuracy\n- Avoid speculation\n- Respect privacy and confidentiality\n- Comply with marketing regulations"
+  }' -N

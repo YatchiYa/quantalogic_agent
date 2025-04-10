@@ -445,7 +445,7 @@ async def display_results(formatted_post: str, output_file_path: str, copy_to_cl
 def create_post(
     file_path: Annotated[str, typer.Argument(help="Path to the markdown file (supports ~ expansion)")],
     analysis_model: Annotated[str, typer.Option(help="LLM model for content analysis")] = DEFAULT_ANALYSIS_MODEL,
-    writing_model: Annotated[str, typer.Option(help="LLM model for LinkedIn post writing")] = DEFAULT_WRITING_MODEL,
+    writing_model: Annotated[str, typer.Option(help="LLM model for LinkedIn post writing")] = DEFAULT_ANALYSIS_MODEL,
     cleaning_model: Annotated[str, typer.Option(help="LLM model for cleaning LinkedIn post")] = DEFAULT_CLEANING_MODEL,
     formatting_model: Annotated[str, typer.Option(help="LLM model for formatting LinkedIn post")] = DEFAULT_FORMATTING_MODEL,
     copy_to_clipboard_flag: Annotated[bool, typer.Option("--copy/--no-copy", help="Copy the final post to clipboard")] = True,

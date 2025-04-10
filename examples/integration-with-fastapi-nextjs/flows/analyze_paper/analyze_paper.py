@@ -381,7 +381,7 @@ async def generate_analyze_paper(
     cleaning_model: str,
     writing_model: str,
     output_dir: Optional[str] = None,
-    copy_to_clipboard_flag: bool = True,
+    copy_to_clipboard_flag: bool = False,
     max_character_count: int = 3000,
     _handle_event: Optional[Callable[[str, dict], None]] = None,
     task_id: Optional[str] = None,
@@ -403,7 +403,7 @@ async def generate_analyze_paper(
         "cleaning_model": cleaning_model,
         "writing_model": writing_model,
         "output_dir": output_dir if output_dir else str(Path(file_path).parent),
-        "do_copy": copy_to_clipboard_flag,
+        "do_copy": False,
         "max_character_count": max_character_count
     }
 
