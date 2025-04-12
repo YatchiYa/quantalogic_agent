@@ -57,6 +57,20 @@ numpy = "^2.2.4"
 selenium = "^4.29.0"
 webdriver-manager = "^4.0.2"
 asciinema = "^2.4.0"
+pypandoc = "^1.15"
+folium = "^0.19.5"
+geocoder = "^1.38.1"
+hkdf = "^0.0.3"
+python-jose = {extras = ["cryptography"], version = "^3.4.0"}
+linkup-sdk = "^0.2.4"
+alembic = "^1.15.2"
+psycopg2-binary = "^2.9.10"
+websocket-client = "^1.8.0"
+undetected-chromedriver = "^3.5.5"
+yfinance = "^0.2.55"
+pytz = "^2025.2"
+plotly = "^6.0.1"
+neo4j = "^5.28.1"
 
 [tool.poetry.group.file-tools]
 optional = false
@@ -202,7 +216,7 @@ preview = true
 [tool.pytest.ini_options]
 addopts = "-v"
 markers = [
-    "integration: marks integration tests that require external services",
-    "unit: marks unit tests"
+"integration: marks integration tests that require external services",
+"unit: marks unit tests"
 ]
 testpaths = ["tests"]

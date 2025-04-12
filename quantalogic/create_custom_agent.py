@@ -10,6 +10,21 @@ from quantalogic.console_print_token import console_print_token
 from quantalogic.event_emitter import EventEmitter
 from quantalogic.tools.tool import Tool
 
+import sys
+from pathlib import Path
+# Configure loguru logger
+""" logger.remove()  # Remove default handler
+# Add file handler
+project_root = Path(__file__).resolve().parents[3]  # Go up 3 levels to reach project root
+log_file = project_root / "agent_log.log"
+logger.add(
+    log_file,
+    rotation="1 day",  # Create a new file daily
+    retention="7 days",  # Keep logs for 7 days
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} - {message}",
+    level="DEBUG",
+    enqueue=True  # Thread-safe logging
+)
 # Configure loguru to output only INFO and above
 logger.remove()  # Remove default handler
 logger.add(
@@ -17,7 +32,7 @@ logger.add(
     level="INFO",
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 )
-
+ """
 # Helper function to import tool classes
 def _import_tool(module_path: str, class_name: str) -> Type[Tool]:
     """
@@ -82,6 +97,7 @@ TOOL_IMPORTS = {
     # File Tools
     "download_http_file": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
     "write_file": lambda: _import_tool("quantalogic.tools.write_file_tool", "WriteFileTool"),
+    "file_tracker": lambda: _import_tool("quantalogic.tools.file_tracker_tool", "FileTrackerTool"),
     "edit_whole_content": lambda: _import_tool("quantalogic.tools", "EditWholeContentTool"),
     "read_file_block": lambda: _import_tool("quantalogic.tools", "ReadFileBlockTool"),
     "read_file": lambda: _import_tool("quantalogic.tools", "ReadFileTool"),
@@ -134,12 +150,14 @@ TOOL_IMPORTS = {
     
     # RAG Tools 
     "rag_tool_hf": lambda: _import_tool("quantalogic.tools.rag_tool", "RagToolHf"),
+    "openai_legal_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "OpenAILegalRAG"),
+    "legal_embedding_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "LegalEmbeddingRAG"),
     
     # Utility Tools
     "task_complete": lambda: _import_tool("quantalogic.tools.task_complete_tool", "TaskCompleteTool"),
     "input_question": lambda: _import_tool("quantalogic.tools.utilities", "InputQuestionTool"),
     "markitdown": lambda: _import_tool("quantalogic.tools.utilities", "MarkitdownTool"),
-    "read_html": lambda: _import_tool("quantalogic.tools.utilities", "ReadHTMLTool"),
+    "read_html": lambda: _import_tool("quantalogic.tools.read_html_tool", "ReadHTMLTool"),
     "oriented_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "OrientedLLMTool"),
     "presentation_llm": lambda: _import_tool("quantalogic.tools.presentation_tools", "PresentationLLMTool"),
     "sequence": lambda: _import_tool("quantalogic.tools.utilities", "SequenceTool"),
@@ -147,6 +165,7 @@ TOOL_IMPORTS = {
     "mermaid_validator_tool": lambda: _import_tool("quantalogic.tools.utilities", "MermaidValidatorTool"),
     "download_file_tool": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
     "vscode_server_tool": lambda: _import_tool("quantalogic.tools.utilities.vscode_tool", "VSCodeServerTool"),
+    "linkup_tool": lambda: _import_tool("quantalogic.tools", "LinkupTool"),
 }
 
 def create_custom_agent(
@@ -157,7 +176,9 @@ def create_custom_agent(
     max_tokens_working_memory: Optional[int] = None,
     specific_expertise: str = "",
     tools: Optional[list[dict[str, Any]]] = None,
-    memory: Optional[AgentMemory] = None
+    memory: Optional[AgentMemory] = None,
+    agent_mode: str = "react",
+    max_iterations: Optional[int] = 15,
 ) -> Agent:
     """Create an agent with lazy-loaded tools and graceful error handling.
 
@@ -211,6 +232,7 @@ def create_custom_agent(
         "download_http_file": lambda _: create_tool_instance(TOOL_IMPORTS["download_http_file"]()),
         "duck_duck_go_search": lambda _: create_tool_instance(TOOL_IMPORTS["duck_duck_go_search"]()),
         "write_file": lambda _: create_tool_instance(TOOL_IMPORTS["write_file"]()),
+        "file_tracker": lambda _: create_tool_instance(TOOL_IMPORTS["file_tracker"]()),
         "task_complete": lambda _: create_tool_instance(TOOL_IMPORTS["task_complete"]()),
         "edit_whole_content": lambda _: create_tool_instance(TOOL_IMPORTS["edit_whole_content"]()),
         "execute_bash_command": lambda _: create_tool_instance(TOOL_IMPORTS["execute_bash_command"]()),
@@ -310,12 +332,37 @@ def create_custom_agent(
             use_ocr_for_pdfs=params.get("use_ocr_for_pdfs", False),
             ocr_model=params.get("ocr_model", "openai/gpt-4o-mini"),
             embed_model=params.get("embed_model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"),
-            document_paths=params.get("document_paths", [
-            "./docs/test/Code_Civil.pdf",
-            ])
+            document_paths=params.get("document_paths", ["ddd"])
         ),
         
-        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]())
+        # Legal RAG tool
+        "openai_legal_rag": lambda params: create_tool_instance(TOOL_IMPORTS["openai_legal_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/openai_legal_rag"),
+            document_paths=params.get("document_paths", []),
+            openai_api_key=params.get("openai_api_key", os.getenv("OPENAI_API_KEY")),
+            embedding_model=params.get("embedding_model", "text-embedding-3-large"),
+            chunk_size=params.get("chunk_size", 512),
+            chunk_overlap=params.get("chunk_overlap", 128),
+            bm25_weight=params.get("bm25_weight", 0.3),
+            embedding_weight=params.get("embedding_weight", 0.7),
+            force_reindex=params.get("force_reindex", True),
+            cache_embeddings=params.get("cache_embeddings", True)
+        ),
+        
+        # Legal Embedding RAG tool
+        "legal_embedding_rag": lambda params: create_tool_instance(TOOL_IMPORTS["legal_embedding_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/legal_embedding_rag"),
+            document_paths=[
+                "./docs/test/code_civile.md",
+                "./docs/test/code_procedure.md"],
+            embed_model=params.get("embed_model", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"),
+            chunk_size=params.get("chunk_size", 512),
+            chunk_overlap=params.get("chunk_overlap", 128),
+            force_reindex=params.get("force_reindex", True)
+        ),
+        
+        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]()),
+        "linkup_tool": lambda _: create_tool_instance(TOOL_IMPORTS["linkup_tool"]()),
     }
 
     # Log available tool types before processing
@@ -379,52 +426,9 @@ def create_custom_agent(
             max_tokens_working_memory=max_tokens_working_memory,
             specific_expertise=specific_expertise,
             memory=memory if memory else AgentMemory(),
+            agent_mode=agent_mode,
+            max_iterations=max_iterations,
         )
     except Exception as e:
         logger.error(f"Failed to create agent: {str(e)}")
         raise
-
-if __name__ == "__main__":
-    # Example usage
-    tools_config = [
-        {"type": "duck_duck_go_search", "parameters": {}},
-    ]
-    
-    agent = create_custom_agent(
-        model_name="openrouter/openai/gpt-4o-mini",
-        specific_expertise="General purpose assistant",
-        tools=tools_config
-    )
-    print(f"Created agent with {len(agent.tools.tool_names())} tools")
-    
-    # Display all tool names
-    print("Agent Tools:")
-    for tool_name in agent.tools.tool_names():
-        print(f"- {tool_name}")
-
-    # Set up event monitoring to track agent's lifecycle
-    # The event system provides:
-    # 1. Real-time observability into the agent's operations
-    # 2. Debugging and performance monitoring
-    # 3. Support for future analytics and optimization efforts
-    agent.event_emitter.on(
-        event=[
-            "task_complete",
-            "task_think_start",
-            "task_think_end",
-            "tool_execution_start",
-            "tool_execution_end",
-            "error_max_iterations_reached",
-            "memory_full",
-            "memory_compacted",
-            "memory_summary",
-        ],
-        listener=console_print_events,
-    )
-
-    # Enable token streaming for detailed output
-    agent.event_emitter.on(event=["stream_chunk"], listener=console_print_token)
-
-    # Solve task with streaming enabled
-    result = agent.solve_task("Who is the Prime Minister of France in 2025 ?", max_iterations=10, streaming=True)
-    print(result)

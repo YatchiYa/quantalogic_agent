@@ -1,0 +1,7 @@
+Market Analysis:
+Error: Invalid format specifier '.2f if latest_rsi != 'N/A' else 'N/A'' for object of type 'str'
+
+Trading Strategy:
+Okay, I will generate a detailed trading decision based on the provided structure, but I need you to provide the MARKET CONTEXT. The error message indicates that the market context is missing or in an invalid format.  Specifically, the RSI value is causing an issue.
+
+Once you provide the MARKET CONTEXT information, I will be able to complete the analysis and provide a detailed trading decision.  I will then follow the requested structure and provide all the necessary details.

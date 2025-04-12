@@ -1,3 +1,4 @@
+
 """Enhanced QuantaLogic agent implementing the ReAct framework with optional chat mode."""
 
 import asyncio
@@ -82,6 +83,7 @@ class Agent(BaseModel):
     ask_for_user_validation: Callable[[str, str], bool] = console_ask_for_user_validation
     last_tool_call: dict[str, Any] = {}  # Stores the last tool call information
     total_tokens: int = 0  # Total tokens in the conversation
+    total_cost: float = 0.0  # Total cost of the conversation
     current_iteration: int = 0
     max_input_tokens: int = DEFAULT_MAX_INPUT_TOKENS
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS
@@ -92,6 +94,8 @@ class Agent(BaseModel):
     _model_name: str = PrivateAttr(default="")
     chat_system_prompt: str  # Base persona prompt for chat mode
     tool_mode: Optional[str] = None  # Tool or toolset to prioritize in chat mode
+    tracked_files: list[str] = []  # List to track files created or modified during execution
+    agent_mode: str = "react"  # Default mode is ReAct
 
     def __init__(
         self,
@@ -108,6 +112,8 @@ class Agent(BaseModel):
         event_emitter: EventEmitter | None = None,
         chat_system_prompt: str | None = None,
         tool_mode: Optional[str] = None,
+        agent_mode: str = "react",
+        max_iterations: Optional[int] = 30,
     ):
         """Initialize the agent with model, memory, tools, and configurations.
 
@@ -125,6 +131,7 @@ class Agent(BaseModel):
             event_emitter: EventEmitter instance for event handling
             chat_system_prompt: Optional base system prompt for chat mode persona
             tool_mode: Optional tool or toolset to prioritize in chat mode
+            agent_mode: Mode to use ("react" or "chat")
         """
         try:
             logger.debug("Initializing agent...")
@@ -141,8 +148,9 @@ class Agent(BaseModel):
             tools_markdown = tool_manager.to_markdown()
             logger.debug(f"Tools Markdown: {tools_markdown}")
 
+            logger.info(f"Agent mode: {agent_mode}")
             system_prompt_text = system_prompt(
-                tools=tools_markdown, environment=environment, expertise=specific_expertise
+                tools=tools_markdown, environment=environment, expertise=specific_expertise, agent_mode=agent_mode
             )
             logger.debug(f"System prompt: {system_prompt_text}")
 
@@ -170,15 +178,17 @@ class Agent(BaseModel):
                 ask_for_user_validation=ask_for_user_validation,
                 last_tool_call={},
                 total_tokens=0,
+                total_cost=0.0,
                 current_iteration=0,
                 max_input_tokens=DEFAULT_MAX_INPUT_TOKENS,
                 max_output_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                max_iterations=30,
+                max_iterations=max_iterations,
                 system_prompt="",
                 compact_every_n_iterations=compact_every_n_iterations or 30,
                 max_tokens_working_memory=max_tokens_working_memory,
                 chat_system_prompt=chat_system_prompt,
                 tool_mode=tool_mode,
+                agent_mode=agent_mode,
             )
 
             self._model_name = model_name
@@ -281,7 +291,7 @@ class Agent(BaseModel):
                         content += chunk
                     result = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -296,13 +306,18 @@ class Agent(BaseModel):
                 if not streaming:
                     token_usage = result.usage
                     self.total_tokens = token_usage.total_tokens
+                    self.total_cost = token_usage.cost
 
                 self._emit_event("task_think_end", {"response": content})
                 result = await self._async_observe_response(content, iteration=self.current_iteration)
                 current_prompt = result.next_prompt
 
                 if result.executed_tool == "task_complete":
-                    self._emit_event("task_complete", {"response": result.answer})
+                    self._emit_event("task_complete", {
+                        "response": result.answer,
+                        "message": "Task execution completed",
+                        "tracked_files": self.tracked_files if self.tracked_files else []
+                    })
                     answer = result.answer or ""
                     done = True
 
@@ -317,7 +332,12 @@ class Agent(BaseModel):
                 answer = f"Error: {str(e)}"
                 done = True
 
-        self._emit_event("task_solve_end")
+        task_solve_end_data = {
+            "result": answer,
+            "message": "Task execution completed",
+            "tracked_files": self.tracked_files if self.tracked_files else []
+        }
+        self._emit_event("task_solve_end", task_solve_end_data)
         return answer
 
     def chat(
@@ -393,6 +413,7 @@ class Agent(BaseModel):
         # Add user message to memory
         self.memory.add(Message(role="user", content=message))
         self._update_total_tokens(self.memory.memory, "")
+        self._update_total_cost(self.memory.memory, "")
 
         # Iterative tool usage with auto-execution
         current_prompt = message
@@ -416,7 +437,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -571,7 +592,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -584,6 +605,7 @@ class Agent(BaseModel):
                     content = response.response
 
                 self.total_tokens = response.usage.total_tokens if not streaming else self.total_tokens
+                self.total_cost = response.usage.cost if not streaming else self.total_cost
 
                 # Observe response for tool calls
                 observation = await self._async_observe_response(content)
@@ -694,18 +716,23 @@ class Agent(BaseModel):
                 is_repeated_call = self._is_repeated_tool_call(tool_name, arguments_with_values)
 
                 if is_repeated_call:
-                    executed_tool, response = self._handle_repeated_tool_call(tool_name, arguments_with_values)
+                    executed_tool, response, answer = self._handle_repeated_tool_call(tool_name, arguments_with_values)
                 else:
                     executed_tool, response = await self._async_execute_tool(tool_name, tool, arguments_with_values)
 
                 if not executed_tool:
                     return self._handle_tool_execution_failure(response)
 
+                # Track files when write_file_tool or writefile is used
+                if (tool_name in ["write_file_tool", "writefile", "edit_whole_content", "replace_in_file", "replaceinfile", "EditWholeContent"]) and "file_path" in arguments_with_values:
+                    self._track_file(arguments_with_values["file_path"], tool_name)
+
                 variable_name = self.variable_store.add(response)
                 new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration)
 
                 # In chat mode, don't set answer; in task mode, set answer only for task_complete
                 is_task_complete_answer = executed_tool == "task_complete" and not is_chat_mode
+                
                 return ObserveResponseResult(
                     next_prompt=new_prompt,
                     executed_tool=executed_tool,
@@ -1010,6 +1037,7 @@ class Agent(BaseModel):
             self.memory.reset()
             self.variable_store.reset()
             self.total_tokens = 0
+            self.total_cost = 0.0
         self.current_iteration = 0
         self.max_output_tokens = self.model.get_model_max_output_tokens() or DEFAULT_MAX_OUTPUT_TOKENS
         self.max_input_tokens = self.model.get_model_max_input_tokens() or DEFAULT_MAX_INPUT_TOKENS
@@ -1024,6 +1052,15 @@ class Agent(BaseModel):
         """
         self.total_tokens = self.model.token_counter_with_history(message_history, prompt)
 
+    def _update_total_cost(self, message_history: list[Message], prompt: str) -> None:
+        """Update the total cost based on message history and prompt.
+
+        Args:
+            message_history: List of messages
+            prompt: Current prompt
+        """
+        self.total_cost = self.model.token_counter_with_history(message_history, prompt)
+
     def _emit_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """Emit an event with system context and optional additional data.
 
@@ -1034,6 +1071,7 @@ class Agent(BaseModel):
         event_data = {
             "iteration": self.current_iteration,
             "total_tokens": self.total_tokens,
+            "total_cost": self.total_cost,
             "context_occupancy": self._calculate_context_occupancy(),
             "max_input_tokens": self.max_input_tokens,
             "max_output_tokens": self.max_output_tokens,
@@ -1152,14 +1190,16 @@ class Agent(BaseModel):
         Returns:
             Tuple of (executed_tool_name, error_message)
         """
+        answer = arguments_with_values.get('answer')
         repeat_count = self.last_tool_call.get("count", 0)
         error_message = self._render_template(
             'repeated_tool_call_error.j2',
             tool_name=tool_name,
             arguments_with_values=arguments_with_values,
-            repeat_count=repeat_count
+            repeat_count=repeat_count,
+            last_answer=answer
         )
-        return tool_name, error_message
+        return tool_name, error_message, answer
 
     def _handle_tool_execution_failure(self, response: str) -> ObserveResponseResult:
         """Handle the case where tool execution fails.
@@ -1660,3 +1700,36 @@ class Agent(BaseModel):
         except Exception as e:
             logger.error(f"Error rendering template {template_name}: {str(e)}")
             raise
+
+    def _track_file(self, file_path: str, tool_name: str) -> None:
+        """Track files created or modified by tools.
+        
+        Args:
+            file_path: Path to the file to track
+            tool_name: Name of the tool that created/modified the file
+        """
+        try:
+            # Handle /tmp directory for write tools
+            if tool_name in ["write_file_tool", "writefile", "edit_whole_content", "replace_in_file", "replaceinfile", "EditWholeContent"]:
+                if not file_path.startswith("/tmp/"):
+                    file_path = os.path.join("/tmp", file_path.lstrip("/"))
+            
+            # For other tools, ensure we have absolute path
+            elif not os.path.isabs(file_path):
+                file_path = os.path.abspath(os.path.join(os.getcwd(), file_path))
+            
+            # Resolve any . or .. in the path
+            tracked_path = os.path.realpath(file_path)
+            
+            # For write tools, ensure path is in /tmp
+            if tool_name in ["write_file_tool", "writefile"] and not tracked_path.startswith("/tmp/"):
+                logger.warning(f"Attempted to track file outside /tmp: {tracked_path}")
+                return
+                
+            # Add to tracked files if not already present
+            if tracked_path not in self.tracked_files:
+                self.tracked_files.append(tracked_path)
+                logger.debug(f"Added {tracked_path} to tracked files")
+                
+        except Exception as e:
+            logger.error(f"Error tracking file {file_path}: {str(e)}")

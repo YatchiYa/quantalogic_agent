@@ -12,7 +12,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from queue import Empty, Queue
 from threading import Lock
-from typing import Any, AsyncGenerator, Dict, List, Optional
+from typing import Any, AsyncGenerator, Dict, List, Optional 
+import os
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, Request
@@ -36,12 +37,10 @@ from quantalogic.memory import AgentMemory
 from quantalogic.task_runner import configure_logger
 from .utils import handle_sigterm, get_version
 from .ServerState import ServerState
-from .models import EventMessage, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus, AgentConfig
+from .models import AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, ToolConfig, ToolParameters, TutorialRequest, UserValidationRequest, UserValidationResponse, AgentConfig, TaskSubmission
 
-memory = AgentMemory()
 SHUTDOWN_TIMEOUT = 10.0  # seconds
 VALIDATION_TIMEOUT = 10.0  # seconds
-
 
 class AgentState:
     """Manages agent state and event queues."""
@@ -56,6 +55,7 @@ class AgentState:
         self.task_queues: Dict[str, Queue] = {}
         self.event_queues: Dict[str, Dict[str, Queue]] = {}
         self.active_agents: Dict[str, Dict[str, Dict[str, Any]]] = {}
+        self.conversation_memories: Dict[str, AgentMemory] = {}  # Track memories by conversation
         self.queue_lock = Lock()
         self.client_counter = 0
         self.agent = None
@@ -98,6 +98,17 @@ class AgentState:
             "memory_compacted",
             "memory_summary",
             "error_agent_not_found",
+            "node_started",
+            "node_completed",
+            "node_failed",
+            "transition_evaluated",
+            "workflow_started",
+            "workflow_completed",
+            "sub_workflow_entered",
+            "sub_workflow_exited",
+            "streaming_chunk",
+            "task_progress",
+            "token_usage"
         ]
 
     async def create_agent(self, config: AgentConfig) -> bool:
@@ -109,6 +120,8 @@ class AgentState:
         Returns:
             bool: True if agent was created successfully
         """
+        logger.info("=== Creating agent in memory")
+        logger.info(f"Agent config: {config}")
         try:
             if config.id in self.agent_configs:
                 raise ValueError(f"Agent with ID {config.id} already exists")
@@ -138,7 +151,8 @@ class AgentState:
                 no_stream=False,
                 tools=tools_dict,
                 specific_expertise=config.expertise,
-                memory=AgentMemory()
+                memory=AgentMemory(),
+                agent_mode=config.agent_mode
             )
              
             # Override ask_for_user_validation with SSE-based method 
@@ -155,6 +169,188 @@ class AgentState:
             
         except Exception as e:
             logger.error(f"Failed to create agent: {e}", exc_info=True)
+            raise
+
+    async def update_agent_config(self, agent_id: str, update_data: dict) -> bool:
+        """Update an existing agent's configuration.
+        
+        Args:
+            agent_id: ID of the agent to update
+            update_data: Dictionary containing the fields to update
+            
+        Returns:
+            bool: True if agent was updated successfully
+            
+        Raises:
+            ValueError: If agent_id doesn't exist or if update data is invalid
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            config = self.agent_configs[agent_id]
+            
+            # Handle tools separately to ensure proper conversion
+            if "tools" in update_data:
+                tools = []
+                if update_data["tools"]:  # If tools is not None or empty
+                    for tool_data in update_data["tools"]:
+                        # Convert each tool dict to a ToolConfig object
+                        if isinstance(tool_data, dict):
+                            # Create ToolParameters object if parameters exist
+                            parameters = None
+                            if "parameters" in tool_data:
+                                parameters = ToolParameters(**tool_data["parameters"])
+                            
+                            tool_config = ToolConfig(
+                                type=tool_data["type"],
+                                parameters=parameters or ToolParameters()
+                            )
+                            tools.append(tool_config)
+                        elif isinstance(tool_data, ToolConfig):
+                            tools.append(tool_data)
+                config.tools = tools
+                del update_data["tools"]  # Remove tools from update_data since we handled it
+            
+            # Update other configuration fields
+            for key, value in update_data.items():
+                if hasattr(config, key):
+                    setattr(config, key, value)
+            
+            # Validate model name
+            if not config.model_name:
+                raise ValueError("Model name cannot be empty")
+            
+            # If tools were updated or if model/expertise changed, recreate the agent
+            if any(key in update_data for key in ["tools", "model_name", "expertise", "agent_mode"]):
+                # Convert tools to dict format for create_custom_agent
+                tools_dict = []
+                if config.tools:
+                    for tool in config.tools:
+                        tool_dict = {
+                            "type": tool.type,
+                            "parameters": {}
+                        }
+                        if tool.parameters:
+                            params = tool.parameters.dict(exclude_none=True)
+                            tool_dict["parameters"] = params
+                        tools_dict.append(tool_dict)
+                
+                logger.debug(f"Updating agent {agent_id} with new tools: {tools_dict}")
+                
+                # Get the existing agent's memory if it exists
+                existing_memory = None
+                try:
+                    existing_agent = AgentRegistry._agents.get(agent_id)
+                    if existing_agent and hasattr(existing_agent, 'memory'):
+                        existing_memory = existing_agent.memory
+                except Exception as e:
+                    logger.warning(f"Could not retrieve existing agent memory: {e}")
+                
+                # Create new agent instance with existing memory if available
+                agent = create_custom_agent(
+                    model_name=config.model_name,
+                    vision_model_name=None,
+                    no_stream=False,
+                    tools=tools_dict,
+                    specific_expertise=config.expertise or "",  # Ensure expertise is never None
+                    memory=existing_memory or AgentMemory(),  # Use existing memory or create new one
+                    agent_mode=config.agent_mode or "default"  # Ensure agent_mode is never None
+                )
+                
+                # Override ask_for_user_validation with SSE-based method 
+                agent.ask_for_user_validation = self.sse_ask_for_user_validation
+                
+                # Set up event handlers
+                self._setup_agent_events(agent)
+                
+                # Update the agent in registry by directly modifying the singleton's dict
+                AgentRegistry._agents[agent_id] = agent
+            
+            logger.info(f"Successfully updated agent {agent_id} with new configuration")
+            return True
+            
+        except ValueError as ve:
+            logger.error(f"Validation error while updating agent: {ve}")
+            raise
+        except Exception as e:
+            logger.error(f"Failed to update agent: {e}", exc_info=True)
+            raise
+
+    async def delete_agent(self, agent_id: str) -> bool:
+        """Delete an agent.
+        
+        Args:
+            agent_id: ID of the agent to delete
+            
+        Returns:
+            bool: True if agent was deleted successfully
+        """
+        try:
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent with ID {agent_id} does not exist")
+            
+            # Remove from registry first
+            self.agent_registry.unregister_agent(agent_id)
+            
+            # Remove configuration
+            del self.agent_configs[agent_id]
+            
+            logger.info(f"Deleted agent {agent_id}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to delete agent: {e}", exc_info=True)
+            return False
+
+    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
+        """Get agent configuration by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Optional[AgentConfig]: Agent configuration if found, None otherwise
+        """
+        return self.agent_configs.get(agent_id)
+
+    async def get_agent(self, agent_id: str) -> Agent:
+        """Get an agent instance by ID.
+        
+        Args:
+            agent_id: ID of the agent to get
+            
+        Returns:
+            Agent: The agent instance
+            
+        Raises:
+            ValueError: If agent not found and use_default_agent is False
+        """
+        try:
+            # If agent_id is 'default' or (agent doesn't exist and use_default_agent is True)
+            if agent_id == "default" or (agent_id not in self.agent_configs and self.use_default_agent):
+                if "default" not in self.agent_registry._agents:
+                    # Initialize default agent if it doesn't exist
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
+                
+            # Normal case - get specified agent
+            if agent_id not in self.agent_configs:
+                raise ValueError(f"Agent {agent_id} not found")
+                
+            if agent_id not in self.agent_registry._agents:
+                # Recreate the agent if it doesn't exist
+                config = self.agent_configs[agent_id]
+                await self.create_agent(config)
+                
+            return self.agent_registry.get_agent(agent_id)
+            
+        except Exception as e:
+            if self.use_default_agent:
+                logger.warning(f"Failed to get agent {agent_id}, falling back to default agent: {str(e)}")
+                if "default" not in self.agent_registry._agents:
+                    await self.initialize_agent_with_sse_validation()
+                return self.agent_registry.get_agent("default")
             raise
 
     
@@ -333,64 +529,6 @@ class AgentState:
             self._validation_requests.pop(validation_id, None)
             self._validation_responses.pop(validation_id, None)
 
-    def get_agent_config(self, agent_id: str) -> Optional[AgentConfig]:
-        """Get the configuration for an agent.
-        
-        Args:
-            agent_id: ID of the agent
-            
-        Returns:
-            Optional[AgentConfig]: Agent configuration if found
-        """
-        return self.agent_configs.get(agent_id)
-
-    def list_agents(self) -> List[AgentConfig]:
-        """List all available agents.
-        
-        Returns:
-            List[AgentConfig]: List of agent configurations
-        """
-        return list(self.agent_configs.values())
-
-    async def get_agent(self, agent_id: str) -> Agent:
-        """Get an agent instance by ID.
-        
-        Args:
-            agent_id: ID of the agent to get
-            
-        Returns:
-            Agent: The agent instance
-            
-        Raises:
-            ValueError: If agent not found and use_default_agent is False
-        """
-        try:
-            # If agent_id is 'default' or (agent doesn't exist and use_default_agent is True)
-            if agent_id == "default" or (agent_id not in self.agent_configs and self.use_default_agent):
-                if "default" not in self.agent_registry._agents:
-                    # Initialize default agent if it doesn't exist
-                    await self.initialize_agent_with_sse_validation()
-                return self.agent_registry.get_agent("default")
-                
-            # Normal case - get specified agent
-            if agent_id not in self.agent_configs:
-                raise ValueError(f"Agent {agent_id} not found")
-                
-            if agent_id not in self.agent_registry._agents:
-                # Recreate the agent if it doesn't exist
-                config = self.agent_configs[agent_id]
-                await self.create_agent(config)
-                
-            return self.agent_registry.get_agent(agent_id)
-            
-        except Exception as e:
-            if self.use_default_agent:
-                logger.warning(f"Failed to get agent {agent_id}, falling back to default agent: {str(e)}")
-                if "default" not in self.agent_registry._agents:
-                    await self.initialize_agent_with_sse_validation()
-                return self.agent_registry.get_agent("default")
-            raise
-
     async def initialize_agent_with_sse_validation(
         self, 
         model_name: str = MODEL_NAME, 
@@ -435,6 +573,59 @@ class AgentState:
             logger.error(f"Failed to initialize agent: {e}", exc_info=True)
             raise
 
+    def _handle_workflow_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Handle workflow-specific events."""
+        # Add workflow-specific metadata
+        if event_type == "workflow_started":
+            data["workflow_info"] = {
+                "start_time": datetime.utcnow().isoformat(),
+                "status": "running"
+            }
+        elif event_type == "workflow_completed":
+            data["workflow_info"] = {
+                "end_time": datetime.utcnow().isoformat(),
+                "status": "completed"
+            }
+        elif event_type in ["node_started", "node_completed", "node_failed"]:
+            # Add node execution metadata
+            data["node_info"] = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "status": event_type.replace("node_", "")
+            }
+        elif event_type == "transition_evaluated":
+            # Add transition metadata
+            data["transition_info"] = {
+                "timestamp": datetime.utcnow().isoformat()
+            }
+        
+        # Broadcast the enhanced event
+        self._handle_event(event_type, data)
+
+    def _setup_workflow_events(self, agent: Agent) -> None:
+        """Set up workflow-specific event handlers."""
+        workflow_events = [
+            "workflow_started",
+            "workflow_completed",
+            "node_started",
+            "node_completed",
+            "node_failed",
+            "transition_evaluated",
+            "sub_workflow_entered",
+            "sub_workflow_exited"
+        ]
+        
+        for event in workflow_events:
+            def create_workflow_handler(event_type: str):
+                def handler(event: str, *args: Any, **kwargs: Any):
+                    logger.debug(f"Received workflow event: {event_type}")
+                    data = args[0] if args else kwargs
+                    self._handle_workflow_event(event_type, data)
+                return handler
+                
+            handler = create_workflow_handler(event)
+            self._event_handlers[event] = handler
+            agent.event_emitter.on(event, handler)
+
     def _setup_agent_events(self, agent: Agent) -> None:
         """Set up event handlers for the agent."""
         # Instead of removing all listeners, we'll track our handlers
@@ -455,7 +646,7 @@ class AgentState:
                 # Get data from args or kwargs
                 data = args[0] if args else kwargs
                 
-                # CHECKKKKK !!!! Handle string data for stream_chunk events
+                # Handle string data for stream_chunk events
                 if event_type == "stream_chunk" and isinstance(data, str):
                     data = {"chunk": data}
                 
@@ -470,14 +661,20 @@ class AgentState:
                 self._handle_event(event_type, data)
             return handler
 
-        # Set up new handlers
+        # Set up standard event handlers
         for event in self.agent_events:
-            logger.debug(f"Setting up handler for event: {event}")
-            handler = create_event_handler(event)
-            self._event_handlers[event] = handler
-            agent.event_emitter.on(event, handler)
-
-        # agent.event_emitter.on(event=["stream_chunk"], listener=console_print_token)
+            if event not in [
+                "workflow_started", "workflow_completed",
+                "node_started", "node_completed", "node_failed",
+                "transition_evaluated", "sub_workflow_entered", "sub_workflow_exited"
+            ]:
+                logger.debug(f"Setting up handler for event: {event}")
+                handler = create_event_handler(event)
+                self._event_handlers[event] = handler
+                agent.event_emitter.on(event, handler)
+        
+        # Set up workflow-specific event handlers
+        self._setup_workflow_events(agent)
 
     def _handle_event(self, event_type: str, data: Dict[str, Any]) -> None:
         """Handle agent events with rich console output."""
@@ -531,10 +728,23 @@ class AgentState:
             logger.info(f"Starting task execution: {task_id}")
             request = task_info.get("request", {})
             agent_id = request.get("agent_id")
+            conversation_id = request.get("conversation_id")
             
             try:
                 # Get the agent for this task
                 agent = await self.get_agent(agent_id)
+                
+                # Handle conversation-specific memory
+                """ if conversation_id:
+                    if conversation_id not in self.conversation_memories:
+                        # Create new memory for this conversation
+                        self.conversation_memories[conversation_id] = AgentMemory()
+                    # Use the conversation-specific memory
+                    agent.memory = self.conversation_memories[conversation_id]
+                else:
+                    # Use a fresh memory if no conversation ID
+                    agent.memory = AgentMemory() """
+                    
             except ValueError as e:
                 if self.use_default_agent:
                     logger.warning(f"Using default agent due to: {str(e)}")
@@ -546,6 +756,7 @@ class AgentState:
             self._handle_event("task_solve_start", {
                 "task_id": task_id,
                 "agent_id": agent_id,
+                "conversation_id": conversation_id,
                 "message": "Task execution started"
             })
             
@@ -562,14 +773,17 @@ class AgentState:
             )
 
             self._update_task_success(task_info, result, agent)
-            
+
             # Create event for task completion
-            self._handle_event("task_solve_end", {
+            """ self._handle_event("task_solve_end", {
                 "task_id": task_id,
                 "agent_id": agent_id,
                 "message": "Task execution completed",
-                "result": result
-            })
+                "result": result,
+            }) """ 
+            # Compact memory if needed for long conversations
+            # if conversation_id and len(agent.memory.memory) > 10:
+            #     agent.memory.compact(n=3)  # Keep more recent context for conversations
             
         except Exception as e:
             self._update_task_failure(task_info, e)
@@ -630,7 +844,7 @@ class AgentState:
             
             # Create event for task completion
             self._handle_event("task_solve_end", {
-                "task_id": task_id,
+                "task_id": task_id, 
                 "agent_id": agent_id,
                 "message": "Task execution completed",
                 "result": result
@@ -695,7 +909,7 @@ class AgentState:
             
             # Create event for task completion
             self._handle_event("task_solve_end", {
-                "task_id": task_id,
+                "task_id": task_id, 
                 "agent_id": agent_id,
                 "message": "Task execution completed",
                 "result": result
@@ -714,7 +928,7 @@ class AgentState:
         finally:
             self.remove_task_event_queue(task_id)
 
-    def _update_task_success(self, task_info: Dict[str, Any], result: str, agent: Agent) -> None:
+    def _update_task_success(self, task_info: Dict[str, Any], result: str, agent: Optional[Agent]) -> None:
         """Update task info after successful execution.
         
         Args:
@@ -858,3 +1072,718 @@ class AgentState:
             self.agent = None
             if server_state.force_exit:
                 sys.exit(1)
+
+            # Import the tutorial generation module
+            from quantalogic.flows.create_tutorial import generate_tutorial
+
+
+    async def execute_tutorial(self, task_id: str, request: TutorialRequest) -> None:
+        """Execute a tutorial generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"Starting tutorial generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.create_tutorial.create_tutorial import generate_tutorial
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Tutorial generation started"
+            })
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: generate_tutorial(
+                    markdown_content=request.markdown_content,
+                    model=request.model,
+                    num_chapters=request.num_chapters,
+                    words_per_chapter=request.words_per_chapter,
+                    copy_to_clipboard=request.copy_to_clipboard,
+                    skip_refinement=request.skip_refinement,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                )
+            )
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Tutorial generation completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Tutorial generation failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_course(self, task_id: str, request: CourseRequest) -> None:
+        """Execute a course generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting course generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.courses_generator.course_generator_agent import generate_course
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Course generation started"
+            })
+
+            request = CourseRequest(
+                subject=request.subject,
+                number_of_chapters=request.number_of_chapters,
+                level=request.level,
+                words_by_chapter=request.words_by_chapter,
+                target_directory="./courses/python3",
+                pdf_generation=True,
+                docx_generation=True,
+                epub_generation=False,
+                model=request.model_name,
+                model_name=request.model_name,
+            )
+
+            logger.info(f"== Course request: {request}")
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_course(
+                    request,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.info(f"== Course generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Course generation completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Tutorial generation failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+
+    async def execute_journey(self, task_id: str, request: JourneyRequest) -> None:
+        """Execute a journey generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting journey generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.planner_journey.planner import generate_journey_plan
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Journey generation started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_journey_plan(
+                    destination=request.destination,
+                    start_date=request.start_date,
+                    end_date=request.end_date,
+                    budget=request.budget,
+                    model=request.model,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Journey generation completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Tutorial generation failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_quizz(self, task_id: str, request: QuizRequest) -> None:
+        """Execute a quiz generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting quiz generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.questions_and_answers.question_and_anwsers import generate_quiz
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Quiz generation started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_quiz(
+                    file_path=request.file_path,
+                    model=request.model,
+                    num_questions=request.num_questions,
+                    token_limit=request.token_limit,
+                    save=request.save,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Journey generation completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Tutorial generation failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_analyze_paper(self, task_id: str, request: AnalyzePaperRequest) -> None:
+        """Execute a paper analysis task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting paper analysis: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.analyze_paper.analyze_paper import generate_analyze_paper
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Paper analysis started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_analyze_paper(
+                    file_path=request.file_path,
+                    text_extraction_model=request.text_extraction_model or "gemini/gemini-2.0-flash",
+                    cleaning_model=request.cleaning_model or "gemini/gemini-2.0-flash",
+                    writing_model=request.writing_model or "gemini/gemini-2.0-flash",
+                    # output_dir=request.output_dir,
+                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or True,
+                    max_character_count=request.max_character_count or 3000,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Paper analysis completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Paper analysis failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_linkedin_introduce_content(self, task_id: str, request: LinkedInIntroduceContentRequest) -> None:
+        """Execute a LinkedIn introduce content task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting paper analysis: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.linkedin_introduce_content.linkedin_introduce_content import generate_linkedin_introduce_content
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "LinkedIn introduce content started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_linkedin_introduce_content(
+                    file_path=request.file_path,
+                    analysis_model=request.analysis_model or "gemini/gemini-2.0-flash", 
+                    writing_model=request.writing_model or "gemini/gemini-2.0-flash",
+                    cleaning_model=request.cleaning_model or "gemini/gemini-2.0-flash",
+                    formatting_model=request.formatting_model or "gemini/gemini-2.0-flash",
+                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or True, 
+                    intent=request.intent or None,
+                    mock_analysis=request.mock_analysis or False,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "LinkedIn introduce content completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"LinkedIn introduce content failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error generating tutorial {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_convert(self, task_id: str, request: ConvertRequest) -> None:
+        """Execute a PDF to Markdown conversion task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting PDF to Markdown conversion: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.pdf_to_markdown.pdf_to_markdown import convert
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "PDF to Markdown conversion started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(convert(
+                    input_pdf=request.input_pdf,
+                    output_md=request.output_md,
+                    model=request.model,
+                    system_prompt=request.system_prompt,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "PDF to Markdown conversion completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"PDF to Markdown conversion failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error converting PDF to Markdown {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_image_generation(self, task_id: str, request: ImageGenerationRequest) -> None:
+        """Execute an image generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting image generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.image_generation.image_generation_flow import generate_image
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Image generation started"
+            }) 
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(generate_image(
+                    prompt=request.prompt,
+                    model_type=request.model_type,
+                    style=request.style,
+                    size=request.size,
+                    analysis_model=request.analysis_model or "gemini/gemini-2.0-flash",
+                    enhancement_model=request.enhancement_model or "gemini/gemini-2.0-flash",
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "PDF to Markdown conversion completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"PDF to Markdown conversion failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error converting PDF to Markdown {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_book_creation_novel_only(self, task_id: str, request: BookNovelRequest) -> None:
+        """Execute an image generation task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting image generation: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.book_animation.book_novel import create_book
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Image generation started"
+            })
+
+            example_content = """
+            A psychological exploration of memory and identity through the lens of an unreliable narrator.
+            Set in a small coastal town, the story follows a reclusive writer who begins receiving mysterious
+            letters that seem to be written by their younger self, forcing them to confront long-buried truths
+            about their past.
+            """
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(create_book(
+                    content=example_content,
+                    title="Echoes of Yesterday",
+                    author="A.I. Wordsworth",
+                    output_path="novel.md",
+                    num_chapters=3,
+                    words_per_chapter=3000,
+                    narration_style={
+                        "type": "unreliable_narrator",
+                        "perspective": "first person with questionable memory",
+                        "tense": "present"
+                    },
+                    literary_style={
+                        "genre": "psychological literary fiction",
+                        "tone": "introspective and unsettling",
+                        "themes": ["memory", "identity", "truth", "self-deception"],
+                        "writing_style": "stream of consciousness with unreliable elements",
+                        "influences": ["Virginia Woolf", "Kazuo Ishiguro", "Vladimir Nabokov"]
+                    },
+                    target_audience="Readers of literary fiction and psychological narratives",
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Journey generation result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "PDF to Markdown conversion completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"PDF to Markdown conversion failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error converting PDF to Markdown {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id)
+
+    async def execute_image_analysis(self, task_id: str, request: ImageAnalysisRequest) -> None:
+        """Execute an image analysis task asynchronously."""
+        if task_id not in self.tasks:
+            raise ValueError(f"Task {task_id} not found")
+
+        task_info = self.tasks[task_id]
+        task_info["started_at"] = datetime.now().isoformat()
+        task_info["status"] = "running"
+
+        try:
+            logger.info(f"== Starting image analysis: {task_id}") 
+            
+            # Add the examples directory to Python path
+            examples_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'examples', "integration-with-fastapi-nextjs"))
+            sys.path.append(examples_dir)
+            
+            from flows.image_analysis.image_analysis_flow import analyze_image_workflow
+            
+            # Run tutorial generation in a thread to not block the event loop
+            loop = asyncio.get_running_loop()
+
+            # Create event for task completion
+            self._handle_event("task_solve_start", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Image analysis started"
+            })
+
+            result = await loop.run_in_executor(
+                None,
+                lambda: asyncio.run(analyze_image_workflow(  
+                    image_url=request.image_url,
+                    image_context=request.image_context,
+                    analysis_context=request.analysis_context,
+                    vision_model=request.vision_model,
+                    analysis_model=request.analysis_model,
+                    task_id=task_id,
+                    _handle_event=self._handle_event
+                ))
+            )
+            logger.debug(f"================================================================")
+            logger.info(f"================================================================")
+            logger.info(f"== Image analysis result: {result}")
+
+            self._update_task_success(task_info, result, None) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Image analysis completed",
+                "result": result
+            })
+            
+        except Exception as e:
+            self._update_task_failure(task_info, e)
+            
+            # Create event for task failure
+            self._handle_event("error_tool_execution", {
+                "task_id": task_id,
+                "message": f"Image analysis failed: {str(e)}"
+            })
+            
+            logger.exception(f"Error analyzing image {task_id}")
+        finally:
+            self.remove_task_event_queue(task_id) 
+            
+            # Create event for task completion
+            self._handle_event("task_solve_end", {
+                "task_id": task_id, 
+                "agent_id": "default",
+                "message": "Image analysis completed",
+                "result": result
+            })

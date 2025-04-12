@@ -16,13 +16,18 @@
 
 ## Your Task
 1. Analyze the execution result and progress, formalize if the current step is solved according to the task.
-2. Determine the most effective next step
-3. Select exactly ONE tool from the available list
-4. Utilize variable interpolation where needed
+2. Update the <ongoing_plan> tag
+3. Determine the most effective next step
+4. Select exactly ONE tool from the available list ONLY.
+5. Utilize variable interpolation where needed
+6. Always use the content of the variable instead of the variable name as a string.
+7. Do not over iterate the plan
 
 ## Response Requirements
 Provide TWO markdown-formatted XML blocks:
-1. Your analysis of the progression resulting from the execution of the tool in <thinking> tags, don't include <context_analysis/>
+1. Your analysis of the progression resulting from the execution of the tool in <thinking> tags,
+  - include the <ongoing_plan> tag
+  - do not include <context_analysis/>
 2. Your tool execution plan in <tool_name> tags
 
 ## Last executed action result
@@ -35,9 +40,10 @@ Last executed tool {{ last_executed_tool }} Execution Result:
 ## Response Format
 ```xml
 <thinking>
-[Detailed analysis of progress, and reasoning for next step]
+[Detailed analysis of progress, ongoing plan and reasoning only for next step if not completed yet in <ongoing_plan> tag]
 </thinking>
 ```
+
 ```xml
 <action>
 <selected_tool_name>
@@ -47,9 +53,16 @@ Last executed tool {{ last_executed_tool }} Execution Result:
 ```
 
 ⚠️ Important:
-- Respond ONLY with the two XML blocks
+- Respond ONLY with the three XML blocks
 - No additional commentary
-- If previous step failed, revise approach
+- Always capture and update the progress of the plan with checks icons for completed steps.✅ 
+- When all the steps are completed in the <ongoing_plan> tag, use <action><task_complete><answer>...</answer></task_complete><action> tag to indicate task completion, don't go wilde for nothing.
+- If previous step failed, revise approach and plan.
 - Use interpolated variables ($variable_name$) where required in tool calls, to minimize token usage, if possible
-- strictly follow the required arguments for each tool as defined in system prompt
-- Utilize <action><task_complete><answer>...</answer></task_complete><action> to indicate task completion, display the result or if the task is deemed unfeasible.
+- Strictly follow the required arguments for each tool as defined in system prompt
+- Never return interpolated variables ($variable_name$)in the task complete, always return the content of the variable.
+- Never save interpolated variables ($variable_name$)in the files, always save the content of the variable.
+- Utilize <action><task_complete><answer>...</answer></task_complete><action> to indicate task completion.
+- ✅ Return complete, usable results well structured.
+- ✅ Give detailed and relevant solution or information
+- ✅ Structure content in clear sections using markdown (###, ####)

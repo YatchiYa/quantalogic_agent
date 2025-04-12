@@ -5,6 +5,7 @@ import asyncio
 import functools
 import json
 import os
+from pickle import NONE
 import shutil
 import signal
 import sys
@@ -17,14 +18,18 @@ from threading import Lock
 from typing import Any, AsyncGenerator, Dict, List, Optional
 
 import uvicorn
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from loguru import logger
 from pydantic import BaseModel
 from rich.console import Console
+
+import mimetypes
+import urllib.parse
+from pathlib import Path
 
 from quantalogic.agent import Agent
 from quantalogic.agent_config import (
@@ -34,10 +39,17 @@ from quantalogic.agent_factory import AgentRegistry, create_agent_for_mode
 from quantalogic.console_print_events import console_print_events
 from quantalogic.task_runner import configure_logger
 from .utils import handle_sigterm, get_version
-from .ServerState import ServerState
-from .models import EventMessage, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
+from .app_state import server_state, agent_state
+from .models import UPLOAD_DIR, AgentConfig, AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, ToolConfig, ToolParameters, TutorialRequest, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
 from .AgentState import AgentState
-from .init_agents import init_agents
+from .init_agents import init_agents 
+from .middlewares.logger_middleware import log_middleware
+from .middlewares.error_middleware import  register_exception_handlers
+from .middlewares.authenticate import require_auth
+from .controllers import agent_router, file_router, task_router, health_router, validation_router, generation_router, conversation_router, message_router, message_conversation_router_public, tools, chat_router
+from .database import init_db, get_db, Agent
+ 
+from sqlalchemy.orm import Session
 
 # Configure logger
 logger.remove()
@@ -47,99 +59,132 @@ logger.add(
     level="INFO",
 )
 
-
-class HtmlContent(BaseModel):
-    content: str
-
-class ToolParameters(BaseModel):
-    """Parameters for tool configurations.
-    
-    This class defines all possible parameters that can be passed to different tools.
-    Each tool will only use the parameters it needs.
-    """
-    # LLM and Model related parameters
-    model_name: Optional[str] = None
-    vision_model_name: Optional[str] = None
-    provider: Optional[str] = None
-    additional_info: Optional[str] = None
-
-    # Database related parameters
-    connection_string: Optional[str] = None
-
-    # Git related parameters
-    access_token: Optional[str] = None  # For Bitbucket
-    auth_token: Optional[str] = None    # For GitHub and other git operations
-
-    class Config:
-        """Pydantic config for ToolParameters."""
-        extra = "allow"  # Allow extra fields for future extensibility
-
-class ToolConfig(BaseModel):
-    """Configuration for a single tool."""
-    type: str
-    parameters: ToolParameters
-
-
-class AgentConfig(BaseModel):
-    """Configuration for creating a new agent."""
-    id: str
-    name: str
-    description: str
-    expertise: str
-    mode: str = "custom"
-    model_name: str
-    tools: List[ToolConfig]
-
-# Constants
-SHUTDOWN_TIMEOUT = 10.0  # seconds
-VALIDATION_TIMEOUT = 30.0  # seconds
-UPLOAD_DIR = "/tmp/data"  # Directory for file uploads
-
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 signal.signal(signal.SIGTERM, handle_sigterm)
 
-# Initialize global states
-server_state = ServerState()
-agent_state = AgentState()
+async def init_wide(
+    db: Session = Depends(get_db)
+) -> List[Dict[str, Any]]:
+    """List all available agents."""
+    try:
+        agents = db.query(Agent).all()
+        return [
+            {
+                "id": str(agent.pid),
+                "name": agent.name,
+                "description": agent.description,
+                "model_name": agent.model_name,
+                "expertise": agent.expertise,
+                "project": agent.project,
+                "agent_mode": agent.agent_mode,
+                "tags": agent.tags,
+                "tools": agent.tools,
+                "created_at": agent.created_at,
+                "updated_at": agent.updated_at
+            }
+            for agent in agents
+        ]
+    except Exception as e:
+        logger.error(f"Failed to list agents: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to list agents")
 
 async def load_initial_agents():
-    """Load initial agents from configuration."""
-    logger.info("Loading initial agents...")
-    for agent_dict in init_agents:
-        try:
-            # Convert tool configurations
-            tool_configs = []
-            for tool in agent_dict["tools"]:
-                tool_configs.append(ToolConfig(
-                    type=tool["type"],
-                    parameters=ToolParameters(**tool.get("parameters", {}))
-                ))
-            
-            # Create AgentConfig from dictionary
-            agent_config = AgentConfig(
-                id=agent_dict["id"],
-                name=agent_dict["name"],
-                description=agent_dict["description"],
-                expertise=agent_dict["expertise"],
-                model_name=agent_dict["model_name"],
-                tools=tool_configs
-            )
-            
-            success = await agent_state.create_agent(agent_config)
-            if success:
-                logger.info(f"Successfully loaded agent: {agent_config.name}")
-            else:
-                logger.error(f"Failed to load agent: {agent_config.name}")
-        except Exception as e:
-            logger.error(f"Failed to load agent {agent_dict.get('name', 'unknown')}: {str(e)}")
+    """Load initial agents from database and configuration."""
+    logger.info("Loading initial agents from database and configuration...")
+    try:
+        # Get database session
+        db = next(get_db())
+        
+        # Get all agents from database
+        agents = await init_wide(db)
+        
+        # First load agents from database
+        for agent_data in agents:
+            try:
+                # Initialize empty tool configs list
+                tool_configs = []
+                
+                # Handle tools if they exist
+                tools = agent_data.get("tools", [])
+                if tools:
+                    # Convert tool configurations from JSON string to list if needed
+                    if isinstance(tools, str):
+                        tools = json.loads(tools)
+                    
+                    # Convert tool configurations
+                    for tool in tools:
+                        if isinstance(tool, dict) and "type" in tool:
+                            tool_configs.append(ToolConfig(
+                                type=tool["type"],
+                                parameters=ToolParameters(**tool.get("parameters", {}))
+                            ))
+                
+                # Create AgentConfig from database data
+                agent_config = AgentConfig(
+                    id=agent_data["id"],
+                    name=agent_data["name"],
+                    description=agent_data.get("description", ""),  # Handle optional fields
+                    expertise=agent_data.get("expertise", ""),
+                    model_name=agent_data.get("model_name", MODEL_NAME),  # Use default if not specified
+                    agent_mode=agent_data.get("agent_mode", "react"),
+                    tools=tool_configs
+                )
+                
+                # Create the agent
+                success = await agent_state.create_agent(agent_config)
+                if success:
+                    logger.info(f"Successfully loaded agent from DB: {agent_config.name}")
+                else:
+                    logger.error(f"Failed to load agent from DB: {agent_config.name}")
+                    
+            except Exception as e:
+                logger.error(f"Failed to load agent {agent_data.get('name', 'unknown')}: {str(e)}")
+        
+        # Then load agents from init_agents configuration
+        logger.info("Loading agents from init_agents configuration...")
+        for agent_dict in init_agents:
+            try:
+                # Convert tool configurations
+                tool_configs = []
+                for tool in agent_dict.get("tools", []):
+                    if isinstance(tool, dict) and "type" in tool:
+                        tool_configs.append(ToolConfig(
+                            type=tool["type"],
+                            parameters=ToolParameters(**tool.get("parameters", {}))
+                        ))
+                
+                # Create AgentConfig from dictionary
+                agent_config = AgentConfig(
+                    id=agent_dict["id"],
+                    name=agent_dict["name"],
+                    description=agent_dict.get("description", ""),
+                    expertise=agent_dict.get("expertise", ""),
+                    model_name=agent_dict.get("model_name", MODEL_NAME),
+                    agent_mode=agent_dict.get("agent_mode", "react"),
+                    tools=tool_configs
+                )
+                
+                success = await agent_state.create_agent(agent_config)
+                if success:
+                    logger.info(f"Successfully loaded agent from config: {agent_config.name}")
+                else:
+                    logger.error(f"Failed to load agent from config: {agent_config.name}")
+            except Exception as e:
+                logger.error(f"Failed to load agent {agent_dict.get('name', 'unknown')}: {str(e)}")
+                
+    except Exception as e:
+        logger.error(f"Failed to load initial agents: {str(e)}")
 
 # Initialize FastAPI app
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager for FastAPI app."""
     try:
+        # Initialize database
+        init_db()
+        
         # Setup signal handlers
         await load_initial_agents()
         loop = asyncio.get_running_loop()
@@ -170,6 +215,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Add logger middleware
+app.middleware("http")(log_middleware)
+
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -180,67 +228,28 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
+# Register exception handlers
+register_exception_handlers(app)
+
+# Include routers
+app.include_router(agent_router)
+app.include_router(file_router)
+app.include_router(task_router)
+app.include_router(health_router)
+app.include_router(validation_router)
+app.include_router(generation_router)
+app.include_router(conversation_router)
+app.include_router(message_router)
+app.include_router(message_conversation_router_public)
+app.include_router(tools)
+app.include_router(chat_router)
+
 # Mount static files
 # app.mount("/static", StaticFiles(directory="quantalogic/server/static"), name="static")
 
 # Configure Jinja2 templates
 # templates = Jinja2Templates(directory="quantalogic/server/templates")
 
-
-# Middleware to log requests
-@app.middleware("http")
-async def log_requests(request: Request, call_next):
-    """Log all requests."""
-    start_time = time.time()
-    response = await call_next(request)
-    process_time = time.time() - start_time
-
-    logger.debug(
-        f"Path: {request.url.path} "
-        f"Method: {request.method} "
-        f"Time: {process_time:.3f}s "
-        f"Status: {response.status_code}"
-    )
-
-    return response
-
-
-@app.post("/api/agent/validation/{validation_id}")
-async def submit_validation_response(validation_id: str, response: UserValidationResponse):
-    """Submit a validation response."""
-    start_time = time.time()
-    logger.info(f"[{validation_id}] Processing validation response")
-    
-    # Get the response queue with proper locking
-    with agent_state._validation_lock:
-        response_queue = agent_state._validation_responses.get(validation_id)
-        if not response_queue:
-            logger.warning(f"[{validation_id}] No validation request found")
-            raise HTTPException(status_code=404, detail="Validation request not found")
-        
-        # Cancel timeout task immediately
-        if validation_id in agent_state._validation_timeouts:
-            timeout_task = agent_state._validation_timeouts[validation_id]
-            timeout_task.cancel()
-            del agent_state._validation_timeouts[validation_id]
-            logger.debug(f"[{validation_id}] Cancelled timeout task")
-        
-        # Update request status and put response
-        if validation_id in agent_state._validation_requests:
-            agent_state._validation_requests[validation_id]["status"] = "responded"
-            try:
-                response_queue.put_nowait(response.approved)
-                elapsed = time.time() - start_time
-                logger.info(f"[{validation_id}] Processed validation response in {elapsed:.2f} seconds")
-                return {"status": "success"}
-            except asyncio.QueueFull:
-                elapsed = time.time() - start_time
-                logger.warning(f"[{validation_id}] Response already processed after {elapsed:.2f} seconds")
-                return {"status": "already_processed"}
-
-    elapsed = time.time() - start_time
-    logger.error(f"[{validation_id}] Failed to process validation after {elapsed:.2f} seconds")
-    raise HTTPException(status_code=500, detail="Failed to process validation response")
 
 
 @app.get("/api/agent/events")
@@ -303,6 +312,24 @@ async def event_stream(request: Request, task_id: Optional[str] = None) -> Strea
         },
     )
 
+# Middleware to log requests
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    """Log all requests."""
+    start_time = time.time()
+    response = await call_next(request)
+    process_time = time.time() - start_time
+
+    logger.debug(
+        f"Path: {request.url.path} "
+        f"Method: {request.method} "
+        f"Time: {process_time:.3f}s "
+        f"Status: {response.status_code}"
+    )
+
+    return response
+
+
 
 @app.get("/api/agent/")
 async def get_index(request: Request) -> HTMLResponse:
@@ -313,166 +340,6 @@ async def get_index(request: Request) -> HTMLResponse:
     # response.headers["Expires"] = "0"
     # return response
     return HTMLResponse(content="")
-
-
-@app.post("/api/agent/upload")
-async def upload_file(file: UploadFile = File(...)) -> Dict[str, str]:
-    """Handle file uploads."""
-    try:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        random_suffix = str(uuid.uuid4())[:8]
-        file_extension = os.path.splitext(file.filename)[1]
-        new_filename = f"{timestamp}_{file.filename}"
-        file_path = os.path.join(UPLOAD_DIR, new_filename)
-        
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-            
-        return {
-            "status": "success",
-            "filename": new_filename,
-            "path": file_path
-        }
-    except Exception as e:
-        logger.error(f"Error uploading file: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/agent/upload-html")
-async def upload_html_content(payload: HtmlContent) -> Dict[str, str]:
-    """Handle HTML content upload and save to file."""
-    try:
-        # Create directory if it doesn't exist
-        html_dir = "/tmp/html_templates"
-        os.makedirs(html_dir, exist_ok=True)
-        
-        # Generate random filename
-        file_id = str(uuid.uuid4())[:8]
-        filename = f"{file_id}.html"
-        file_path = os.path.join(html_dir, filename)
-        
-        # Write content to file
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(payload.content)
-            
-        return {
-            "status": "success",
-            "id": file_id,
-            "filename": filename,
-            "path": file_path
-        }
-    except Exception as e:
-        logger.error(f"Error saving HTML content: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-        
-@app.get("/api/agent/html/{file_id}")
-async def get_html_content(file_id: str) -> Dict[str, str]:
-    """Retrieve HTML content by file ID."""
-    try:
-        html_dir = "/tmp/html_templates"
-        file_path = os.path.join(html_dir, f"{file_id}.html")
-        
-        if not os.path.exists(file_path):
-            raise HTTPException(
-                status_code=404, 
-                detail=f"HTML file with id {file_id} not found"
-            )
-            
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-            
-        return {
-            "status": "success",
-            "id": file_id,
-            "content": content
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error reading HTML content: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/agent/tasks")
-async def submit_task(request: TaskSubmission) -> Dict[str, str]:
-    """Submit a new task and return its ID."""
-    task_id = await agent_state.submit_task(request)
-    # Start task execution in background
-    asyncio.create_task(agent_state.execute_task(task_id))
-    return {"task_id": task_id}
-
-@app.post("/api/agent/chat")
-async def submit_chat(request: TaskSubmission) -> Dict[str, str]:
-    """Submit a new chat and return its ID."""
-    chat_id = await agent_state.submit_task(request)
-    # Start chat execution in background
-    asyncio.create_task(agent_state.execute_chat(chat_id))
-    return {"task_id": chat_id}
-
-@app.post("/api/agent/get_news")
-async def submit_chat(request: TaskSubmission) -> Dict[str, str]:
-    """Submit a new chat and return its ID."""
-    chat_id = await agent_state.submit_task(request)
-    # Start chat execution in background
-    asyncio.create_task(agent_state.get_news(chat_id))
-    return {"task_id": chat_id}
-
-
-@app.get("/api/agent/tasks/{task_id}")
-async def get_task_status(task_id: str) -> TaskStatus:
-    """Get the status of a specific task."""
-    if task_id not in agent_state.tasks:
-        raise HTTPException(status_code=404, detail="Task not found")
-
-    task = agent_state.tasks[task_id]
-    return TaskStatus(task_id=task_id, **task)
-
-
-@app.get("/api/agent/tasks")
-async def list_tasks(status: Optional[str] = None, limit: int = 10, offset: int = 0) -> List[TaskStatus]:
-    """List all tasks with optional filtering."""
-    tasks = []
-    for task_id, task in agent_state.tasks.items():
-        if status is None or task["status"] == status:
-            tasks.append(TaskStatus(task_id=task_id, **task))
-
-    return tasks[offset : offset + limit]
-
-
-# Agent management endpoints
-@app.post("/api/agent/agents")
-async def create_agent(config: AgentConfig) -> Dict[str, bool]:
-    """Create a new agent with the given configuration."""
-    success = await agent_state.create_agent(config)
-    return {"success": success}
-
-@app.get("/api/agent/agents")
-async def list_agents() -> List[AgentConfig]:
-    """List all available agents."""
-    return agent_state.list_agents()
-
-@app.get("/api/agent/agents/{agent_id}")
-async def get_agent(agent_id: str) -> AgentConfig:
-    """Get agent configuration by ID."""
-    config = agent_state.get_agent_config(agent_id)
-    if not config:
-        raise HTTPException(status_code=404, detail=f"Agent {agent_id} not found")
-    return config
-
-@app.get("/api/agent/download/{filename}")
-async def download_file(filename: str):
-    """Download a file from the upload directory."""
-    file_path = os.path.join(UPLOAD_DIR, filename)
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found")
-    return FileResponse(
-        path=file_path,
-        filename=filename,
-        media_type='application/octet-stream'
-    )
-
-@app.get("/api/agent/health")
-async def health_check() -> Dict[str, str]:
-    return {"status": "ok"}
 
 
 if __name__ == "__main__":

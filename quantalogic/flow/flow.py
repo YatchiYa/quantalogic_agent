@@ -36,6 +36,7 @@ class WorkflowEventType(Enum):
     WORKFLOW_COMPLETED = "workflow_completed"
     SUB_WORKFLOW_ENTERED = "sub_workflow_entered"
     SUB_WORKFLOW_EXITED = "sub_workflow_exited"
+    STREAMING_CHUNK = "streaming_chunk"
 
 
 @dataclass
@@ -152,6 +153,10 @@ class WorkflowEngine:
             for param in self.workflow.node_inputs[current_node]:
                 if param not in inputs:
                     inputs[param] = self.context.get(param)
+            
+            # UPDATED !!! Only pass engine to LLM nodes that expect it
+            if 'engine' in self.workflow.node_inputs[current_node]:
+                inputs['engine'] = self
 
             result = None
             exception = None
@@ -598,7 +603,8 @@ class Nodes:
             Decorator function wrapping the LLM logic.
         """
         def decorator(func: Callable) -> Callable:
-            async def wrapped_func(model_param: str = None, **func_kwargs):
+            # UPDATED !!!
+            async def wrapped_func(engine: Optional[WorkflowEngine] = None, model_param: str = None, **func_kwargs):
                 system_prompt_to_use = func_kwargs.pop("system_prompt", system_prompt)
                 system_prompt_file_to_use = func_kwargs.pop("system_prompt_file", system_prompt_file)
                 
@@ -616,7 +622,7 @@ class Nodes:
                 frequency_penalty_to_use = func_kwargs.pop("frequency_penalty", frequency_penalty)
                 
                 # Prioritize model from func_kwargs (workflow mapping), then model_param, then default
-                model_to_use = func_kwargs.get("model", model_param if model_param is not None else model(func_kwargs))
+                model_to_use = func_kwargs.get("model", model_param if model_param is not None else (model(func_kwargs) if callable(model) else model))
                 logger.debug(f"Selected model for {func.__name__}: {model_to_use}")
 
                 sig = inspect.signature(func)
@@ -642,22 +648,66 @@ class Nodes:
                         presence_penalty=presence_penalty_to_use,
                         frequency_penalty=frequency_penalty_to_use,
                         drop_params=True,
+                        # stream=True,
                         **kwargs,
                     )
-                    content = response.choices[0].message.content.strip()
-                    wrapped_func.usage = {
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens,
-                        "cost": getattr(response, "cost", None),
-                    }
+                    
+                    # Handle streaming response
+                    if hasattr(response, 'choices') and isinstance(response.choices, list):
+                        # Non-streaming response
+                        content = response.choices[0].message.content.strip()
+                        wrapped_func.usage = {
+                            "prompt_tokens": response.usage.prompt_tokens,
+                            "completion_tokens": response.usage.completion_tokens,
+                            "total_tokens": response.usage.total_tokens,
+                            "cost": getattr(response, "cost", None),
+                        }
+                    else:
+                        # Streaming response
+                        content = []
+                        logger.info(f"Starting streaming response for {func.__name__}...")
+                        async for chunk in response:
+                            if hasattr(chunk, 'choices') and chunk.choices:
+                                delta = chunk.choices[0].delta
+                                if hasattr(delta, 'content') and delta.content:
+                                    content.append(delta.content)
+                                    # Print streaming chunks in real-time
+                                    # print(delta.content, end='', flush=True)
+                                    # UPDATED !!! Emit streaming chunk event if engine is available
+                                    if engine:
+                                        await engine._notify_observers(
+                                            WorkflowEvent(
+                                                event_type=WorkflowEventType.STREAMING_CHUNK,
+                                                node_name=func.__name__,
+                                                context=func_kwargs,
+                                                result=delta.content
+                                            )
+                                        )
+                                        
+                        content = ''.join(content).strip()
+                        print()  # New line after streaming completes
+                        logger.info(f"Completed streaming response for {func.__name__}")
+                        
+                        # For streaming, usage is typically available on the last chunk
+                        if hasattr(chunk, 'usage'):
+                            wrapped_func.usage = {
+                                "prompt_tokens": chunk.usage.prompt_tokens,
+                                "completion_tokens": chunk.usage.completion_tokens,
+                                "total_tokens": chunk.usage.total_tokens,
+                                "cost": getattr(chunk, "cost", None),
+                            }
+                        else:
+                            wrapped_func.usage = None
+                                
                     logger.debug(f"LLM output from {func.__name__}: {content[:50]}...")
                     return content
                 except Exception as e:
                     logger.error(f"Error in LLM node {func.__name__}: {e}")
                     raise
             sig = inspect.signature(func)
-            inputs = ['model'] + [param.name for param in sig.parameters.values()]
+            # UPDATED !!
+            func_inputs = [param.name for param in sig.parameters.values() if param.name != 'engine']
+            inputs = ['engine', 'model'] + func_inputs
             logger.debug(f"Registering node {func.__name__} with inputs {inputs} and output {output}")
             cls.NODE_REGISTRY[func.__name__] = (wrapped_func, inputs, output)
             return wrapped_func
@@ -707,7 +757,8 @@ class Nodes:
             raise ImportError("Instructor is required for structured_llm_node")
 
         def decorator(func: Callable) -> Callable:
-            async def wrapped_func(model_param: str = None, **func_kwargs):
+            # UPDATED !!! Only pass engine to LLM nodes that expect it
+            async def wrapped_func(engine: Optional[WorkflowEngine] = None, model_param: str = None, **func_kwargs):
                 system_prompt_to_use = func_kwargs.pop("system_prompt", system_prompt)
                 system_prompt_file_to_use = func_kwargs.pop("system_prompt_file", system_prompt_file)
                 
@@ -725,7 +776,7 @@ class Nodes:
                 frequency_penalty_to_use = func_kwargs.pop("frequency_penalty", frequency_penalty)
                 
                 # Prioritize model from func_kwargs (workflow mapping), then model_param, then default
-                model_to_use = func_kwargs.get("model", model_param if model_param is not None else model(func_kwargs))
+                model_to_use = func_kwargs.get("model", model_param if model_param is not None else (model(func_kwargs) if callable(model) else model))
                 logger.debug(f"Selected model for {func.__name__}: {model_to_use}")
 
                 sig = inspect.signature(func)
@@ -770,7 +821,9 @@ class Nodes:
                     logger.error(f"Error in structured LLM node {func.__name__}: {e}")
                     raise
             sig = inspect.signature(func)
-            inputs = ['model'] + [param.name for param in sig.parameters.values()]
+            # UPDATED !!!
+            func_inputs = [param.name for param in sig.parameters.values() if param.name != 'engine']
+            inputs = ['engine', 'model'] + func_inputs
             logger.debug(f"Registering node {func.__name__} with inputs {inputs} and output {output}")
             cls.NODE_REGISTRY[func.__name__] = (wrapped_func, inputs, output)
             return wrapped_func

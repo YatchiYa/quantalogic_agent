@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250402_142748.png",
+  "timestamp": "20250402_142748",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A sprawling cyberpunk city during the day, towering skyscrapers piercing the sky, flying vehicles weaving through dense traffic, crowded streets teeming with diverse people, vibrant neon signs illuminating the scene, \u099d\u09b2\u5149 sun rays cutting through the cityscape, metallic reflections shimmering on building surfaces, dynamic perspective, high resolution, 8k, sharp focus, detailed environment",
+  "negative_prompt": "blur, distortion, artifacts, low quality, grainy, blurry, oversaturated",
+  "size": "1024x1024",
+  "style": "neon-punk",
+  "cfg_scale": 7.0,
+  "steps": 30,
+  "seed": null,
+  "local_path": "generated_images/sd_20250402_142748.png"
+}

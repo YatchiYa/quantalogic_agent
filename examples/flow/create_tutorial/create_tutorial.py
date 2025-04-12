@@ -292,6 +292,7 @@ workflow = (
     .then("save_and_display")
 )
 
+
 # CLI with Typer
 app = typer.Typer()
 

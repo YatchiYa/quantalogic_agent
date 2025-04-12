@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250401_142320.png",
+  "timestamp": "20250401_142320",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "Landing page for 'Company 360 vision' CRM plan. Hero image featuring a modern, minimalist dashboard interface. Key metrics, customer data visualization, and interactive elements displayed. Clean, well-organized layout with a clear call to action. Professional design. Soft, diffused lighting. High resolution, clean vector graphics in white, blue, and grey tones.",
+  "negative_prompt": "clutter, disorganization, poor design, low resolution, blurry, text, people",
+  "size": "1024x1024",
+  "style": "digital-art",
+  "cfg_scale": 7.0,
+  "steps": 30,
+  "seed": null,
+  "local_path": "generated_images/sd_20250401_142320.png"
+}

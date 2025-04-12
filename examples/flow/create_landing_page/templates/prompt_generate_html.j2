@@ -1,0 +1,70 @@
+Generate the HTML code for a landing page based on this structure:
+
+Page Title: {{ structure.title }}
+Description: {{ structure.description }}
+
+Color Scheme:
+- Primary: {{ structure.color_scheme.primary }}
+- Secondary: {{ structure.color_scheme.secondary }}
+- Accent: {{ structure.color_scheme.accent }}
+- Text: {{ structure.color_scheme.text }}
+- Background: {{ structure.color_scheme.background }}
+
+Header:
+- Logo: {{ structure.header.logo }}
+- Navigation Items:
+{%- for item in structure.header.navigation %}
+  - {{ item.text }} ({% if item.is_button %}Button{% else %}Link{% endif %})
+{%- endfor %}
+- Sticky: {{ structure.header.is_sticky }}
+- Mobile Menu: {{ structure.header.has_mobile_menu }}
+
+Hero Section:
+- Title: {{ structure.hero.title }}
+- Subtitle: {{ structure.hero.subtitle }}
+- Primary CTA: {{ structure.hero.cta_primary.text }}
+{%- if structure.hero.cta_secondary %}
+- Secondary CTA: {{ structure.hero.cta_secondary.text }}
+{%- endif %}
+- Background: {{ structure.hero.background_type }} ({{ structure.hero.background_content }})
+
+Features Section:
+- Title: {{ structure.features.title }}
+- Subtitle: {{ structure.features.subtitle }}
+- Layout: {{ structure.features.layout }}
+- Features:
+{%- for feature in structure.features.features %}
+  - {{ feature.title }}: {{ feature.description }}
+{%- endfor %}
+
+Testimonials Section:
+- Title: {{ structure.testimonials.title }}
+- Subtitle: {{ structure.testimonials.subtitle }}
+- Testimonials:
+{%- for testimonial in structure.testimonials.testimonials %}
+  - {{ testimonial.quote }} - {{ testimonial.author }}, {{ testimonial.role }} at {{ testimonial.company }}
+{%- endfor %}
+
+CTA Section:
+- Title: {{ structure.cta.title }}
+- Subtitle: {{ structure.cta.subtitle }}
+- Button: {{ structure.cta.button.text }}
+- Style: {{ structure.cta.background_style }}
+
+Footer:
+- Logo: {{ structure.footer.logo }}
+- Description: {{ structure.footer.description }}
+- Social Links:
+{%- for link in structure.footer.social_links %}
+  - {{ link.text }}: {{ link.link }}
+{%- endfor %}
+
+Requirements:
+1. Use semantic HTML5 elements
+2. Include Tailwind CSS classes
+3. Make it fully responsive
+4. Add proper ARIA attributes
+5. Include comments for each major section
+6. Use proper meta tags
+7. Add loading attributes for images/videos
+8. Include viewport settings
