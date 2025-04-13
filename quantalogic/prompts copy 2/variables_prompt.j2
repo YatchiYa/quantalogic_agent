@@ -7,13 +7,6 @@ Core Rules:
 2. Never modify variable names
 3. Only use listed variables
 4. Variables must use $ delimiters
-5. Never write raw variables to files
-
-Variable Content Rules:
-1. Always display actual content
-2. Never output raw $varN$ format
-3. Validate content before use
-4. Handle missing content gracefully
 
 Variable Usage Patterns:
 
@@ -24,18 +17,18 @@ Variable Usage Patterns:
 </tool_name>
 ```
 
-2. File Operations:
+2. Combined Operations:
 ```xml
-<write_file>
-  <content>[Actual content, never raw variable]</content>
-</write_file>
+<tool_name>
+  <param>prefix_$variable$_suffix</param>
+</tool_name>
 ```
 
 3. Task Completion:
 ```xml
 <task_complete>
   <answer>
-[Final result well structured in markdown, with clear sections using ###, ####, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]
+    [Final result well structured in markdown, with clear sections using ###, ####, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]
   </answer>
 </task_complete>
 ```
@@ -55,5 +48,4 @@ Error Prevention:
 - Validate variable content type
 - Handle null/undefined cases
 - Consider variable scope
-- Never write raw variables
 </variables>

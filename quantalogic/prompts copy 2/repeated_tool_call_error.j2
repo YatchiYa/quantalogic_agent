@@ -1,0 +1,24 @@
+⚠️ Tool Call Error: Consecutive Failed Attempts Detected in the same flow
+
+Tool: {{ tool_name }}
+Last Arguments: {{ arguments_with_values }}
+Failure Count: {{ repeat_count }}
+
+🔍 Analysis:
+• Identical tool call pattern detected
+• No progress made in {{ repeat_count }} attempts
+• Potential issue with tool parameters or approach
+
+🛑 Action Required:
+1. Operation paused for safety
+2. User guidance needed before proceeding
+
+💡 Recommendations:
+• Verify input parameters are correct
+• Check if prerequisites are met
+• Consider alternative tools or methods
+• Provide additional context if needed
+
+Reply with the last answer directly.
+
+{{ last_answer }}

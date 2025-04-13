@@ -200,7 +200,8 @@ class ListDirectoryTool(Tool):
             if end >= total_lines:
                 header += " [LAST BLOCK]"
                 
-            return f"{header}\n" + "\n".join(paginated_lines) + "\n==== End of Block ===="
+            # return f"{header}\n" + "\n".join(paginated_lines) + "\n==== End of Block ===="
+            return "\n".join(paginated_lines)
             
         except Exception as e:
             logger.error(f"Error listing directory: {str(e)}")
