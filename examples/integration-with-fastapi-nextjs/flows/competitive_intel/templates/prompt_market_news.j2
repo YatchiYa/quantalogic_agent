@@ -1,0 +1,53 @@
+Analyze recent news and developments for the following company:
+
+Company: {{ company_profile.name }}
+Search Results:
+{% for result in search_results %}
+Title: {{ result.title }}
+Content: {{ result.content }}
+Source: {{ result.source }}
+Date: {{ result.date }}
+
+{% endfor %}
+
+Based on the above search results, analyze the news and provide structured output in the following format:
+
+{
+  "news_items": [
+    {
+      "timestamp": "YYYY-MM-DD",
+      "company": "{{ company_profile.name }}",
+      "title": "Clear and concise title",
+      "summary": "Brief summary of the news",
+      "source": "Source name",
+      "impact_analysis": {
+        "market_impact": "Analysis of market impact",
+        "competitive_implications": "Analysis of competitive implications",
+        "industry_trends": [
+          "Trend 1",
+          "Trend 2",
+          "Trend 3"
+        ]
+      },
+      "categories": [
+        "Category 1",
+        "Category 2"
+      ]
+    }
+  ]
+}
+
+Focus on:
+1. Recent and significant developments
+2. Market impact and competitive implications
+3. Emerging industry trends
+4. Strategic moves and partnerships
+5. Technology advancements
+6. Market dynamics and changes
+
+Ensure that:
+1. Timestamps are in YYYY-MM-DD format
+2. Summaries are clear and concise
+3. Impact analysis is specific and actionable
+4. Categories are relevant to the news
+5. Trends reflect industry-wide patterns

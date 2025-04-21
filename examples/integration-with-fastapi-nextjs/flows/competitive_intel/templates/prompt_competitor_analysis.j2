@@ -1,0 +1,63 @@
+Analyze the following competitors in detail:
+
+Company Being Analyzed: {{ company_profile.name }}
+Industry Context: {{ company_profile.industry }}
+
+Competitors to Analyze:
+{% for segment in competitors.segments %}
+{{ segment.name }}:
+{% for competitor in segment.competitors %}
+- {{ competitor }} (Score: {{ competitors.scores | selectattr("name", "equalto", competitor) | map(attribute="score") | first }})
+{% endfor %}
+{% endfor %}
+
+Provide a list of CompetitorInfo objects in the following format:
+{
+  "competitors": [
+    {
+      "name": "string",
+      "profile": {
+        "company_type": "string",
+        "headquarters": "string",
+        "founded": "string",
+        "employees": "string",
+        "revenue": "string"
+      },
+      "market_position": {
+        "global_rank": "string",
+        "market_share": "string",
+        "target_segments": ["string"],
+        "geographic_presence": ["string"]
+      },
+      "recent_activities": [
+        {
+          "activity_type": "string",
+          "date": "string",
+          "description": "string",
+          "impact": "string"
+        }
+      ],
+      "products": [
+        {
+          "name": "string",
+          "category": "string",
+          "description": "string",
+          "market_position": "string"
+        }
+      ],
+      "swot": {
+        "strengths": ["string"],
+        "weaknesses": ["string"],
+        "opportunities": ["string"],
+        "threats": ["string"]
+      },
+      "financials": {
+        "revenue_growth": "string",
+        "market_cap": "string",
+        "r_and_d_investment": "string"
+      }
+    }
+  ]
+}
+
+Use the Linkup search results to gather detailed information about each competitor.

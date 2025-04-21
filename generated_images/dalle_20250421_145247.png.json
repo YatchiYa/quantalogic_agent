@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250421_145247.png",
+  "prompt": "A macro close-up shot of a steaming, dark roast coffee in a ceramic mug, with scattered coffee beans creating a textured foreground. The background features a soft sunrise with golden hour light gently illuminating the scene, enhancing the rich texture and aroma. Emphasize the intricate details of the coffee crema and the condensation on the mug.",
+  "revised_prompt": "Create a macro-photography image of a dark roast coffee in a ceramic mug, emitting steam, with a foreground detailing coffee beans scattered around the surface. The background dynamics include a soft sunrise scene with morning sunshine, casting golden hour light, subtly illuminating the layout. Focus on the intricate details of the foamy coffee crema atop the beverage and dew-like condensation on the exterior surface of the mug. The visual representation should express the rich texture of the coffee, and the warmth and aromatic vibes of the depicted scene.",
+  "model": "dall-e-3",
+  "created": "2025-04-21T14:52:46",
+  "parameters": {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "standard",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "A macro close-up shot of a steaming, dark roast coffee in a ceramic mug, with scattered coffee beans creating a textured foreground. The background features a soft sunrise with golden hour light gently illuminating the scene, enhancing the rich texture and aroma. Emphasize the intricate details of the coffee crema and the condensation on the mug."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-CnVLtdYeY1YXRUGDzsFSYbkG.png?st=2025-04-21T11%3A52%3A46Z&se=2025-04-21T13%3A52%3A46Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-21T11%3A29%3A00Z&ske=2025-04-22T11%3A29%3A00Z&sks=b&skv=2024-08-04&sig=X7ND4RUptCQeC0zeaOJYkVmaThHWgg5qcVsK85VsRkI%3D",
+  "local_path": "generated_images/dalle_20250421_145247.png"
+}

@@ -1,0 +1,13 @@
+Please perform a SWOT analysis for this tender opportunity based on the following information:
+
+Tender Requirements:
+{{ requirements.model_dump_json(indent=2) }}
+
+Company Profile:
+{{ company_profile | tojson(indent=2) }}
+
+Analyze how well the company's capabilities align with the tender requirements and identify:
+1. Key strengths that give us competitive advantage
+2. Weaknesses that might need mitigation
+3. Opportunities we could leverage
+4. Potential threats we should prepare for

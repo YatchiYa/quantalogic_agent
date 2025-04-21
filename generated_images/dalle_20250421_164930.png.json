@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250421_164930.png",
+  "prompt": "A serene person in a yoga pose, centered in a bright, airy room with minimalist decor. Soft pastel colors, diffused natural light, creating a peaceful atmosphere. High-resolution, photorealistic, Instagram-optimized.",
+  "revised_prompt": "A serene Asian male person is positioned in a calming yoga pose at the center of an airy room with minimalist decor. The room is suffused with pastel hues, casting a cheerful tone around the space. The natural light pours through a large window, beautifully diffusing across the room, contributing to the peaceful ambience. The image is high-resolution, photorealistic, and has been optimized for Instagram to enhance its visual impact.",
+  "model": "dall-e-3",
+  "created": "2025-04-21T16:49:29",
+  "parameters": {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "standard",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "A serene person in a yoga pose, centered in a bright, airy room with minimalist decor. Soft pastel colors, diffused natural light, creating a peaceful atmosphere. High-resolution, photorealistic, Instagram-optimized."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-0bPAsztvoKpCSoTw9Q4IvCdW.png?st=2025-04-21T13%3A49%3A29Z&se=2025-04-21T15%3A49%3A29Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-21T07%3A42%3A01Z&ske=2025-04-22T07%3A42%3A01Z&sks=b&skv=2024-08-04&sig=PLHj1YZXEG7kjBr/t4aT007uGNuZvVRXrPqUswmlXbQ%3D",
+  "local_path": "generated_images/dalle_20250421_164930.png"
+}

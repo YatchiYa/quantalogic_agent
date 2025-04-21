@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250421_131704.png",
+  "prompt": "A brightly lit, minimalist workspace bathed in natural light, featuring a smiling person focused on a laptop. The scene is accented with lush green plants, a clean desk, and motivational art prints. The overall atmosphere is one of calm, productive energy and serene focus. The composition is clean and inviting, perfect for an Instagram post. Shot with a shallow depth of field to emphasize the person and workspace.",
+  "revised_prompt": "Envision a brightly illuminated, minimalist workspace that's submerged in generous natural light. An adult individual of an undetermined descent and a non-binary gender is seated at a desk, presenting a sunny smile as they're captivated by a laptop screen. Their surroundings are accented with luxuriant green plants helping to purify the air, a well-organized desk lending to productivity, and motivational art prints designed to inspire. The overall ambiance emanates calm, productive energy, pushing a serene focus. The composition is clean and stimulating, an ideal scene for a photo to be shared on a popular social media platform. The shot depth is shallow, drawing attention to the individual and their workspace.",
+  "model": "dall-e-3",
+  "created": "2025-04-21T13:17:03",
+  "parameters": {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "standard",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "A brightly lit, minimalist workspace bathed in natural light, featuring a smiling person focused on a laptop. The scene is accented with lush green plants, a clean desk, and motivational art prints. The overall atmosphere is one of calm, productive energy and serene focus. The composition is clean and inviting, perfect for an Instagram post. Shot with a shallow depth of field to emphasize the person and workspace."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-OWNpYtw3QaElUI2OM1PSrJ4o.png?st=2025-04-21T10%3A17%3A03Z&se=2025-04-21T12%3A17%3A03Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-21T08%3A01%3A49Z&ske=2025-04-22T08%3A01%3A49Z&sks=b&skv=2024-08-04&sig=3grLoHITUT9%2BAjt89PXpgfTmdKoh5sJVPlH93TcCa0Y%3D",
+  "local_path": "generated_images/dalle_20250421_131704.png"
+}

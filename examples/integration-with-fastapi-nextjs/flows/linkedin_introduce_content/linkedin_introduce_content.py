@@ -448,7 +448,7 @@ def create_post(
     writing_model: Annotated[str, typer.Option(help="LLM model for LinkedIn post writing")] = DEFAULT_ANALYSIS_MODEL,
     cleaning_model: Annotated[str, typer.Option(help="LLM model for cleaning LinkedIn post")] = DEFAULT_CLEANING_MODEL,
     formatting_model: Annotated[str, typer.Option(help="LLM model for formatting LinkedIn post")] = DEFAULT_FORMATTING_MODEL,
-    copy_to_clipboard_flag: Annotated[bool, typer.Option("--copy/--no-copy", help="Copy the final post to clipboard")] = True,
+    copy_to_clipboard_flag: Annotated[bool, typer.Option("--copy/--no-copy", help="Copy the final post to clipboard")] = False,
     intent: Annotated[Optional[str], typer.Option("--intent", "-i", help="Intent or specific focus for the LinkedIn post")] = None,
     mock_analysis: Annotated[bool, typer.Option("--mock-analysis/--no-mock", help="Mock the analysis step for testing")] = False,
 ):

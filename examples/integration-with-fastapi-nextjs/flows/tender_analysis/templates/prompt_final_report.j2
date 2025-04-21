@@ -1,0 +1,23 @@
+Please prepare a comprehensive final report for tender {{ tender_id }} based on:
+
+Requirements Analysis:
+{{ requirements.model_dump_json(indent=2) }}
+
+SWOT Analysis:
+{{ swot.model_dump_json(indent=2) }}
+
+PESTEL Analysis:
+{{ pestel.model_dump_json(indent=2) }}
+
+Competition Analysis:
+{{ competition.model_dump_json(indent=2) }}
+
+Scoring Matrix:
+{{ scoring.model_dump_json(indent=2) }}
+
+Provide:
+1. Executive summary
+2. Synthesis of all analyses
+3. Clear go/no-go recommendation
+4. Risk assessment and mitigation strategies
+5. Detailed next steps

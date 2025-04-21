@@ -1,0 +1,31 @@
+Compile the final tender response for tender {{ tender_id }} using:
+
+Executive Summary:
+{{ executive_summary.model_dump_json(indent=2) }}
+
+Methodology:
+{{ methodology.model_dump_json(indent=2) }}
+
+Team Structure:
+{{ team_structure.model_dump_json(indent=2) }}
+
+Deliverables:
+{{ deliverables.model_dump_json(indent=2) }}
+
+Pricing:
+{{ pricing.model_dump_json(indent=2) }}
+
+Compliance Matrix:
+{{ compliance.model_dump_json(indent=2) }}
+
+Supporting Documents:
+{{ supporting_docs | tojson(indent=2) }}
+
+Create a cohesive document that:
+1. Flows logically between sections
+2. Maintains consistent formatting
+3. Integrates all components effectively
+4. Includes appropriate cross-references
+5. Incorporates supporting materials
+
+Ensure the final document meets all tender submission requirements.

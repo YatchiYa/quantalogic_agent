@@ -33,7 +33,7 @@ from quantalogic.agent_config import (
 from quantalogic.agent_factory import AgentRegistry, create_agent_for_mode
 from quantalogic.create_custom_agent import create_custom_agent
 from quantalogic.console_print_events import console_print_events
-from quantalogic.memory import AgentMemory
+from quantalogic.memory import AgentMemory, VariableMemory
 from quantalogic.task_runner import configure_logger
 from .utils import handle_sigterm, get_version
 from .ServerState import ServerState
@@ -56,6 +56,7 @@ class AgentState:
         self.event_queues: Dict[str, Dict[str, Queue]] = {}
         self.active_agents: Dict[str, Dict[str, Dict[str, Any]]] = {}
         self.conversation_memories: Dict[str, AgentMemory] = {}  # Track memories by conversation
+        self.conversation_variables: Dict[str, VariableMemory] = {}  # Track variables by conversation
         self.queue_lock = Lock()
         self.client_counter = 0
         self.agent = None
@@ -734,16 +735,24 @@ class AgentState:
                 # Get the agent for this task
                 agent = await self.get_agent(agent_id)
                 
-                # Handle conversation-specific memory
-                """ if conversation_id:
+                # Handle conversation-specific memory and variables
+                if conversation_id:
+                    # Initialize conversation memory if not exists
                     if conversation_id not in self.conversation_memories:
-                        # Create new memory for this conversation
+                        logger.info(f"Creating new memory for conversation {conversation_id}")
                         self.conversation_memories[conversation_id] = AgentMemory()
-                    # Use the conversation-specific memory
+                        self.conversation_variables[conversation_id] = VariableMemory()
+                    
+                    # Use conversation-specific memory and variables
                     agent.memory = self.conversation_memories[conversation_id]
+                    agent.variable_store = self.conversation_variables[conversation_id]
+                    
+                    logger.debug(f"Using existing memory for conversation {conversation_id}")
                 else:
-                    # Use a fresh memory if no conversation ID
-                    agent.memory = AgentMemory() """
+                    # Use fresh memory and variables for one-off tasks
+                    logger.debug("Using fresh memory for one-off task")
+                    agent.memory = AgentMemory()
+                    agent.variable_store = VariableMemory()
                     
             except ValueError as e:
                 if self.use_default_agent:
@@ -774,16 +783,10 @@ class AgentState:
 
             self._update_task_success(task_info, result, agent)
 
-            # Create event for task completion
-            """ self._handle_event("task_solve_end", {
-                "task_id": task_id,
-                "agent_id": agent_id,
-                "message": "Task execution completed",
-                "result": result,
-            }) """ 
             # Compact memory if needed for long conversations
-            # if conversation_id and len(agent.memory.memory) > 10:
-            #     agent.memory.compact(n=3)  # Keep more recent context for conversations
+            if conversation_id and len(agent.memory.memory) > 10:
+                logger.info(f"Compacting memory for conversation {conversation_id}")
+                agent.memory.compact(n=3)  # Keep more recent context for conversations
             
         except Exception as e:
             self._update_task_failure(task_info, e)
@@ -1389,8 +1392,8 @@ class AgentState:
                     cleaning_model=request.cleaning_model or "gemini/gemini-2.0-flash",
                     writing_model=request.writing_model or "gemini/gemini-2.0-flash",
                     # output_dir=request.output_dir,
-                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or True,
-                    max_character_count=request.max_character_count or 3000,
+                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or False,
+                    max_character_count=request.max_character_count or 180000,
                     task_id=task_id,
                     _handle_event=self._handle_event
                 ))
@@ -1458,7 +1461,7 @@ class AgentState:
                     writing_model=request.writing_model or "gemini/gemini-2.0-flash",
                     cleaning_model=request.cleaning_model or "gemini/gemini-2.0-flash",
                     formatting_model=request.formatting_model or "gemini/gemini-2.0-flash",
-                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or True, 
+                    copy_to_clipboard_flag=request.copy_to_clipboard_flag or False, 
                     intent=request.intent or None,
                     mock_analysis=request.mock_analysis or False,
                     task_id=task_id,

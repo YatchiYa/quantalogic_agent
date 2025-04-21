@@ -1,0 +1,43 @@
+<task_summary>
+Generate a focused task summary by analyzing the following task description. Structure your response in these four essential components:
+
+1. OBJECTIVE
+   - Extract the primary goal/purpose
+   - Focus on the "what" not the "how"
+   - Use single, clear statement
+
+2. COMPLEXITY ASSESSMENT
+   - Task Level: [Simple|Standard|Complex]
+   - Estimated Steps: [Number]
+   - Dependencies: [List]
+   - Risk Factors: [List]
+
+3. REQUIREMENTS
+   - List core actions/steps required
+   - Include only essential elements
+   - Maximum 3-4 key points
+   - Identify critical tools needed
+
+4. SUCCESS CRITERIA
+   - Define measurable end-state
+   - Specify concrete deliverables
+   - State completion indicators
+   - List validation checks
+
+Guidelines:
+- Use imperative voice ("Create", "Implement", not "Creating", "Implementing")
+- Omit auxiliary details or nice-to-haves
+- Focus on actionable elements
+- Consider resource constraints
+- Identify potential blockers
+- Note any dependencies
+
+Complexity Rules:
+- Simple: Single operation, direct solution
+- Standard: 2-4 steps, linear flow
+- Complex: 5+ steps, multiple dependencies
+
+</task_summary>
+
+Input Task Description:
+{{ content }}

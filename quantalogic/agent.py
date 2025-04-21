@@ -1,4 +1,3 @@
-
 """Enhanced QuantaLogic agent implementing the ReAct framework with optional chat mode."""
 
 import asyncio
@@ -11,7 +10,7 @@ from typing import Any, Optional
 
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, PrivateAttr
+from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
 
 from quantalogic.event_emitter import EventEmitter
 from quantalogic.generative_model import GenerativeModel, ResponseStats, TokenUsage
@@ -73,8 +72,8 @@ class Agent(BaseModel):
 
     specific_expertise: str
     model: GenerativeModel
-    memory: AgentMemory = AgentMemory()  # List of User/Assistant Messages
-    variable_store: VariableMemory = VariableMemory()  # Dictionary of variables
+    memory: AgentMemory = Field(default_factory=AgentMemory)  # List of User/Assistant Messages
+    variable_store: VariableMemory = Field(default_factory=VariableMemory)  # Dictionary of variables
     tools: ToolManager = ToolManager()
     event_emitter: EventEmitter = EventEmitter()
     config: AgentConfig
@@ -96,12 +95,13 @@ class Agent(BaseModel):
     tool_mode: Optional[str] = None  # Tool or toolset to prioritize in chat mode
     tracked_files: list[str] = []  # List to track files created or modified during execution
     agent_mode: str = "react"  # Default mode is ReAct
+    conversation_id: Optional[str] = None  # Track current conversation ID
 
     def __init__(
         self,
         model_name: str = "",
-        memory: AgentMemory = AgentMemory(),
-        variable_store: VariableMemory = VariableMemory(),
+        memory: Optional[AgentMemory] = None,
+        variable_store: Optional[VariableMemory] = None,
         tools: list[Tool] = [TaskCompleteTool()],
         ask_for_user_validation: Callable[[str, str], bool] = console_ask_for_user_validation,
         task_to_solve: str = "",
@@ -114,6 +114,7 @@ class Agent(BaseModel):
         tool_mode: Optional[str] = None,
         agent_mode: str = "react",
         max_iterations: Optional[int] = 30,
+        conversation_id: Optional[str] = None,
     ):
         """Initialize the agent with model, memory, tools, and configurations.
 
@@ -132,6 +133,7 @@ class Agent(BaseModel):
             chat_system_prompt: Optional base system prompt for chat mode persona
             tool_mode: Optional tool or toolset to prioritize in chat mode
             agent_mode: Mode to use ("react" or "chat")
+            conversation_id: Optional conversation ID for memory management
         """
         try:
             logger.debug("Initializing agent...")
@@ -165,6 +167,10 @@ class Agent(BaseModel):
                 "answer questions, and use tools when explicitly requested or when they enhance your response."
             )
 
+            # Initialize memory and variable store
+            memory = memory or AgentMemory()
+            variable_store = variable_store or VariableMemory()
+
             super().__init__(
                 specific_expertise=specific_expertise,
                 model=GenerativeModel(model=model_name, event_emitter=event_emitter),
@@ -189,6 +195,7 @@ class Agent(BaseModel):
                 chat_system_prompt=chat_system_prompt,
                 tool_mode=tool_mode,
                 agent_mode=agent_mode,
+                conversation_id=conversation_id,
             )
 
             self._model_name = model_name
@@ -196,6 +203,7 @@ class Agent(BaseModel):
             logger.debug(f"Memory will be compacted every {self.compact_every_n_iterations} iterations")
             logger.debug(f"Max tokens for working memory set to: {self.max_tokens_working_memory}")
             logger.debug(f"Tool mode set to: {self.tool_mode}")
+            logger.debug(f"Conversation ID: {self.conversation_id}")
             logger.debug("Agent initialized successfully.")
         except Exception as e:
             logger.error(f"Failed to initialize agent: {str(e)}")
@@ -1152,7 +1160,7 @@ class Agent(BaseModel):
             current_call["count"] = 1
 
         self.last_tool_call = current_call
-        return is_repeated_call and current_call.get("count", 0) >= 2
+        return is_repeated_call and current_call.get("count", 0) >= 4
 
     def _handle_no_tool_usage(self) -> ObserveResponseResult:
         """Handle the case where no tool usage is found in the response.

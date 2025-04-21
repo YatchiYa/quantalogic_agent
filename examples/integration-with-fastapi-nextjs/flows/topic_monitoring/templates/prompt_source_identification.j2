@@ -1,0 +1,14 @@
+Identify relevant information sources for the following theme:
+
+Main Topic: {{ theme.main_topic }}
+Subtopics: {{ theme.subtopics | join(", ") }}
+Keywords: {{ theme.keywords | join(", ") }}
+Languages: {{ theme.languages | join(", ") }}
+Time Scope: {{ theme.time_scope }}
+
+For each source, provide:
+1. Source type (website, RSS, social media, etc.)
+2. URL
+3. Reliability assessment (0-1 score)
+4. Update frequency
+5. Additional metadata (language, coverage, etc.)

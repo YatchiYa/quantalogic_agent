@@ -1,0 +1,172 @@
+# Task Execution Analysis
+
+📊 Iteration: {{ iteration }}/{{ max_iterations }}
+🤖 Mode: [Simple|Standard|Complex|Autonomous]
+
+### Current Task
+```
+{{ task_to_solve_summary }}
+```
+
+### Task Complexity
+🎯 Level: [Simple|Standard|Complex|Autonomous]
+📈 Progress: {{ progress_percentage }}%
+⏱️ Time Elapsed: {{ elapsed_time }}
+🔄 Phase: [Current Phase Number]/[Total Phases]
+
+### Available Resources
+🛠️ Tools: {{ tools_prompt }}
+📦 State: {{ variables_prompt }}
+
+### Last Action Result
+Tool: {{ last_executed_tool }}
+<{{ variable_name }}>
+{{ response_display }}
+</{{ variable_name }}>
+
+### Response Requirements
+
+[IF Autonomous Mode]
+Provide comprehensive execution in TWO blocks:
+
+1. Analysis Block (<thinking>):
+   • Update phase and step tracking
+   • Validate action results
+   • Plan next steps autonomously
+   • Track error states
+   • Handle retries automatically
+
+2. Action Block (<action>):
+   • Execute next planned step
+   • Use precise parameters
+   • Include validation criteria
+   • Track progress metrics
+
+[ELSE IF Simple Task]
+Provide focused solution in TWO blocks:
+
+1. Analysis Block (<thinking>):
+   • Track tool call count (max 2)
+   • Validate action result
+   • Confirm completion status
+   • If not complete after 2 calls:
+     - Escalate to standard complexity
+     - Request user guidance
+
+2. Action Block (<action>):
+   • Execute precise tool call
+   • Use clear parameters
+   • Include completion criteria
+
+[ELSE]
+Provide detailed analysis in TWO blocks:
+
+1. Analysis Block (<thinking>):
+   • Update progress tracking
+   • Evaluate action results
+   • Determine next step
+   • Track completion status
+   • Handle any errors
+
+2. Action Block (<action>):
+   • Select ONE tool
+   • Use variable interpolation
+   • Provide precise parameters
+
+### Response Format
+
+[IF Autonomous Mode]
+```xml
+<thinking>
+  <task_analysis>
+    • 📋 Goal: [Clear objective]
+    • 🎯 Success Criteria: [Measurable outcomes]
+    • 🤖 Mode: Autonomous
+    • 📈 Phase: [Current/Total]
+  </task_analysis>
+
+  <execution_plan>
+    • 📈 Current Phase: [Description]
+    • 🎯 Current Step: [Step Details]
+    • 📝 Next Steps: [Outline]
+  </execution_plan>
+
+  <progress_tracker>
+    • ✅ Completed: [Steps with outcomes]
+    • 🔄 Current: [Step details]
+    • 📊 Progress: [Phase: X/Y, Overall: Z%]
+    • ⏱️ Duration: [Time per phase]
+  </progress_tracker>
+
+  <execution_state>
+    • 🔄 Last Result: [Outcome]
+    • ⚡ Next Action: [Plan]
+    • ⚠️ Failures: [Count/Type]
+    • 🔍 Validation: [Status]
+  </execution_state>
+</thinking>
+
+<action>
+<tool_name>
+  [Parameters]
+</tool_name>
+</action>
+```
+
+[ELSE IF Simple Task]
+```xml
+<thinking>
+  <progress_tracker>
+    • 🎯 Task Type: Simple
+    • 🔄 Tool Calls: [N/2]
+    • ✅ Previous Result: [Success/Failure]
+    • 📊 Status: [In Progress/Need Escalation]
+  </progress_tracker>
+
+  <quick_assessment>
+    • ✅ Result: [Outcome]
+    • 📊 Status: [Complete/Pending]
+    • ⚡ Next: [Action/Complete/Escalate]
+  </quick_assessment>
+</thinking>
+
+<action>
+<tool_name>
+  [Parameters]
+</tool_name>
+</action>
+```
+
+[ELSE]
+```xml
+<thinking>
+  <progress_tracker>
+    • ✅ Completed: [Steps]
+    • 🎯 Current: [Step]
+    • 📝 Pending: [Steps]
+    • 📊 Progress: [X/Y]
+  </progress_tracker>
+
+  <execution_state>
+    • 🔄 Last Result: [Outcome]
+    • ⚡ Next Action: [Plan]
+    • 💾 State Update: [Changes]
+    • ⚠️ Issues: [If any]
+  </execution_state>
+</thinking>
+
+<action>
+<tool_name>
+  [Parameters]
+</tool_name>
+</action>
+```
+
+### Critical Rules
+1. ✅ Match response format to task complexity
+2. 🎯 Follow execution plan strictly
+3. 💾 Use variable content, not names
+4. 📝 Structure output in markdown
+5. 🔄 Revise plan on failures
+6. ⚡ Complete task when all steps done
+7. 🔍 Validate results before completion

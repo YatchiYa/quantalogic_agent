@@ -1,0 +1,25 @@
+Develop investment strategy based on:
+
+Financial Metrics:
+{{ financial_metrics.model_dump_json(indent=2) }}
+
+Market Analysis:
+{{ market_analysis.model_dump_json(indent=2) }}
+
+Technical Analysis:
+{{ technical_analysis.model_dump_json(indent=2) }}
+
+Risk Assessment:
+{{ risk_assessment.model_dump_json(indent=2) }}
+
+Investment Goals:
+{{ investment_goals | tojson(indent=2) }}
+
+Please provide:
+1. Strategic asset allocation
+2. Tactical recommendations
+3. Implementation plan
+4. Monitoring framework
+5. Review process
+
+Focus on achieving investment objectives while managing risks.

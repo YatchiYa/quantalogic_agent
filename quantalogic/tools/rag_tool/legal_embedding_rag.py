@@ -308,16 +308,37 @@ class LegalEmbeddingRAG(Tool):
         chroma_persist_dir = os.path.join(self.persist_dir, "chroma")
         if force_reindex and os.path.exists(chroma_persist_dir):
             logger.warning(f"Force reindex enabled - removing existing ChromaDB at: {chroma_persist_dir}")
-            shutil.rmtree(chroma_persist_dir)
+            try:
+                shutil.rmtree(chroma_persist_dir)
+            except Exception as e:
+                logger.error(f"Failed to remove existing ChromaDB directory: {e}")
+                raise RuntimeError(f"Cannot remove existing ChromaDB directory: {e}")
         
-        os.makedirs(chroma_persist_dir, exist_ok=True)
-        logger.info(f"ChromaDB persist directory: {chroma_persist_dir}")
-        chroma_client = chromadb.PersistentClient(path=chroma_persist_dir)
-        collection = chroma_client.create_collection(
-            name="legal_collection",
-            get_or_create=True
-        )
-        logger.success("Successfully initialized ChromaDB collection")
+        try:
+            # Ensure directory exists with proper permissions
+            os.makedirs(chroma_persist_dir, exist_ok=True)
+            os.chmod(chroma_persist_dir, 0o755)  # Set proper permissions
+            
+            # Test write permissions
+            test_file = os.path.join(chroma_persist_dir, "test_write")
+            try:
+                with open(test_file, 'w') as f:
+                    f.write('test')
+                os.remove(test_file)
+            except Exception as e:
+                logger.error(f"No write permissions in ChromaDB directory: {e}")
+                raise RuntimeError(f"ChromaDB directory is not writable: {e}")
+                
+            logger.info(f"ChromaDB persist directory: {chroma_persist_dir}")
+            chroma_client = chromadb.PersistentClient(path=chroma_persist_dir)
+            collection = chroma_client.create_collection(
+                name="legal_collection",
+                get_or_create=True
+            )
+            logger.success("Successfully initialized ChromaDB collection")
+        except Exception as e:
+            logger.error(f"Failed to initialize ChromaDB: {e}")
+            raise RuntimeError(f"ChromaDB initialization failed: {e}")
         
         self.vector_store = ChromaVectorStore(chroma_collection=collection)
         self.storage_context = StorageContext.from_defaults(vector_store=self.vector_store)
@@ -711,15 +732,17 @@ class LegalEmbeddingRAG(Tool):
             # Prepare response based on mode
             response_mode = ResponseMode(response_mode)
             if response_mode == ResponseMode.SOURCES_ONLY:
-                return json.dumps({"sources": results}, indent=4, ensure_ascii=False)
+                return json.dumps({"sources": results, "query": query, "all_sources": all_results}, indent=4, ensure_ascii=False)
             elif response_mode == ResponseMode.CONTEXTUAL_ANSWER:
                 answer = self._generate_contextual_answer(query, results)
-                return json.dumps({"answer": answer}, indent=4, ensure_ascii=False)
+                return json.dumps({"answer": answer, "query": query, "all_sources": all_results}, indent=4, ensure_ascii=False)
             else:  # ANSWER_WITH_SOURCES
                 answer = self._generate_contextual_answer(query, results)
                 return json.dumps({
                     "answer": answer,
-                    "sources": results
+                    "sources": results,
+                    "query": query,
+                    "all_sources": all_results
                 }, indent=4, ensure_ascii=False)
 
         except Exception as e:
@@ -729,7 +752,8 @@ class LegalEmbeddingRAG(Tool):
                 'error': error_msg,
                 'query': query,
                 'timestamp': str(datetime.now().isoformat()),
-                'sources': []
+                'sources': [],
+                'all_sources': []
             }
             return json.dumps(error_response, indent=4, ensure_ascii=False)
 
@@ -744,8 +768,8 @@ if __name__ == "__main__":
         tool = LegalEmbeddingRAG(
             persist_dir="./storage/legal_embedding_rag",
             document_paths=[
-                "./docs/test/code_civile.md",
-                "./docs/test/code_procedure.md"
+                "./docs/folder_test/code_civile.md",
+                "./docs/folder_test/code_procedure.md"
             ],
             chunk_size=512,
             chunk_overlap=128,
@@ -753,7 +777,7 @@ if __name__ == "__main__":
         )
         
         # Test query
-        test_query = "Mon voisin à des ouverture (fenêtres) donnant sur ma propriété. j'aimerai invoquer la lois pour qu'il les ferme, quelles sont les lois qui me defends ?"
+        test_query = "Lois algériennes concernant les ouvertures (fenêtres) donnant sur la propriété voisine et les droits du propriétaire"
     
         try:
             result = tool.execute(

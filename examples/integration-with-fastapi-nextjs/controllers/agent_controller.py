@@ -11,9 +11,9 @@ from ..database import get_db, Agent
 
 router = APIRouter(prefix="/api/agent", tags=["agents"])
 
-
 def convert_tools_to_json(tools: List[Any]) -> List[Dict[str, Any]]:
-    """Convert list of ToolConfig objects or dicts to JSON-serializable format."""
+    """Convert list of ToolConfig objects or dicts to JSON-serializable format.
+    Always includes parameters key with at least an empty dict."""
     if not tools:
         return None
     
@@ -23,22 +23,20 @@ def convert_tools_to_json(tools: List[Any]) -> List[Dict[str, Any]]:
         if isinstance(tool, dict):
             tool_dict = {
                 "type": tool["type"],
-                "parameters": tool["parameters"] if "parameters" in tool else None
+                "parameters": tool.get("parameters", {})
             }
         # If tool is a ToolConfig object, convert it
         else:
             tool_dict = {
                 "type": tool.type,
-                "parameters": {
-                    "model_name": tool.parameters.model_name,
-                    "vision_model_name": tool.parameters.vision_model_name,
-                    "provider": tool.parameters.provider,
-                    "additional_info": tool.parameters.additional_info,
-                    "connection_string": tool.parameters.connection_string,
-                    "access_token": tool.parameters.access_token,
-                    "auth_token": tool.parameters.auth_token
-                } if tool.parameters else None
+                "parameters": {}
             }
+            if tool.parameters:
+                # Convert Pydantic model to dict recursively
+                params = tool.parameters.dict(exclude_none=True)
+                if params:
+                    tool_dict["parameters"] = params
+        
         result.append(tool_dict)
     return result
 
@@ -49,16 +47,16 @@ async def create_agent(
     db: Session = Depends(get_db)
 ) -> Dict[str, bool]:
     """Create a new agent with the given configuration and save to database."""
-    logger.info("Processing query request",
-        user_email=user.get('email'),
-        config=config
-    )
+    # logger.info("Processing query request",
+    #     user_email=user.get('email'),
+    #     config=config
+    # )
 
     # Create agent in memory
+    logger.info("Creating agent ==============================  ")
+    logger.info(config)
     success = await agent_state.create_agent(config)
 
-    print(config)
-    
     if success:
         try:
             # Convert tools to JSON-serializable format

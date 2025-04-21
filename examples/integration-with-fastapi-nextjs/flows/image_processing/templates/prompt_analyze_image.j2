@@ -1,0 +1,15 @@
+Please analyze the following image according to these specifications:
+
+Analysis depth: {{ analysis_config.analysis_depth }}
+
+Aspects to analyze:
+{% for aspect in analysis_config.aspects_to_analyze %}
+- {{ aspect }}
+{% endfor %}
+
+{% if analysis_config.custom_instructions %}
+Additional instructions:
+{{ analysis_config.custom_instructions }}
+{% endif %}
+
+Please provide a structured analysis focusing on the requested aspects while maintaining the specified depth of analysis.

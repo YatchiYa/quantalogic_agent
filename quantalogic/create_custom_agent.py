@@ -93,6 +93,7 @@ TOOL_IMPORTS = {
     "llm": lambda: _import_tool("quantalogic.tools.llm_tool", "LLMTool"),
     "llm_vision": lambda: _import_tool("quantalogic.tools.llm_vision_tool", "LLMVisionTool"),
     "llm_image_generation": lambda: _import_tool("quantalogic.tools.image_generation.dalle_e", "LLMImageGenerationTool"),
+    "stable_diffusion": lambda: _import_tool("quantalogic.tools.image_generation.stable_diffusion", "StableDiffusionTool"),
     
     # File Tools
     "download_http_file": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
@@ -218,13 +219,15 @@ def create_custom_agent(
         "llm": lambda params: create_tool_instance(TOOL_IMPORTS["llm"](), **get_llm_params(params)),
         "oriented_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["oriented_llm_tool"](), **get_llm_params(params)),
         "llm_vision": lambda params: create_tool_instance(TOOL_IMPORTS["llm_vision"](),
-            model_name=params.get("vision_model_name") or "gpt-4-vision",
-            on_token=console_print_token if not no_stream else None,
-            event_emitter=event_emitter
-        ) if vision_model_name else None,
+            model_name=params.get("vision_model_name") or "gpt-4o-mini",
+            on_token=console_print_token if not no_stream else None
+        ),
         "llm_image_generation": lambda params: create_tool_instance(TOOL_IMPORTS["llm_image_generation"](),
             provider="dall-e",
             model_name="openai/dall-e-3",
+            on_token=console_print_token if not no_stream else None
+        ),
+        "stable_diffusion": lambda params: create_tool_instance(TOOL_IMPORTS["stable_diffusion"](),
             on_token=console_print_token if not no_stream else None
         ),
         
@@ -352,9 +355,7 @@ def create_custom_agent(
         # Legal Embedding RAG tool
         "legal_embedding_rag": lambda params: create_tool_instance(TOOL_IMPORTS["legal_embedding_rag"](),
             persist_dir=params.get("persist_dir", "./storage/legal_embedding_rag"),
-            document_paths=[
-                "./docs/test/code_civile.md",
-                "./docs/test/code_procedure.md"],
+            document_paths=params.get("document_paths", []),
             embed_model=params.get("embed_model", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"),
             chunk_size=params.get("chunk_size", 512),
             chunk_overlap=params.get("chunk_overlap", 128),

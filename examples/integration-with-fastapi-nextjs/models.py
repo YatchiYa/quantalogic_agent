@@ -93,8 +93,8 @@ class AnalyzePaperRequest(BaseModel):
     cleaning_model: Optional[str] = "gemini/gemini-2.0-flash"
     writing_model: Optional[str] = "gemini/gemini-2.0-flash"
     output_dir: Optional[str] = None
-    copy_to_clipboard_flag: Optional[bool] = True
-    max_character_count: Optional[int] = 3000
+    copy_to_clipboard_flag: Optional[bool] = False
+    max_character_count: Optional[int] = 180000
 
 class LinkedInIntroduceContentRequest(BaseModel):
     """Request model for LinkedIn introduce content generation."""
@@ -103,7 +103,7 @@ class LinkedInIntroduceContentRequest(BaseModel):
     writing_model: Optional[str] = "gemini/gemini-2.0-flash"
     cleaning_model: Optional[str] = "gemini/gemini-2.0-flash"
     formatting_model: Optional[str] = "gemini/gemini-2.0-flash"
-    copy_to_clipboard_flag: Optional[bool] = True
+    copy_to_clipboard_flag: Optional[bool] = False
     intent: Optional[str] = None
     mock_analysis: Optional[bool] = False
 

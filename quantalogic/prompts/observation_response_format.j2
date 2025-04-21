@@ -25,16 +25,19 @@ Tool: {{ last_executed_tool }}
 ### Response Requirements
 
 [IF Simple Task]
-Provide quick solution in TWO blocks:
+Provide focused solution in TWO blocks:
 
-1. Quick Analysis (<thinking>):
+1. Analysis Block (<thinking>):
+   • Track tool call count (max 2)
    • Validate action result
    • Confirm completion status
-   • Determine next action (if needed)
+   • If not complete after 2 calls:
+     - Escalate to standard complexity
+     - Request user guidance
 
 2. Action Block (<action>):
-   • Execute final step or complete task
-   • Use precise parameters
+   • Execute precise tool call
+   • Use clear parameters
    • Include completion criteria
 
 [ELSE]
@@ -57,10 +60,17 @@ Provide detailed analysis in TWO blocks:
 [IF Simple Task]
 ```xml
 <thinking>
+  <progress_tracker>
+    • 🎯 Task Type: Simple
+    • 🔄 Tool Calls: [N/2]
+    • ✅ Previous Result: [Success/Failure]
+    • 📊 Status: [In Progress/Need Escalation]
+  </progress_tracker>
+
   <quick_assessment>
     • ✅ Result: [Outcome]
     • 📊 Status: [Complete/Pending]
-    • ⚡ Next: [Action/Complete]
+    • ⚡ Next: [Action/Complete/Escalate]
   </quick_assessment>
 </thinking>
 

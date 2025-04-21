@@ -47,6 +47,20 @@ class AgentRegistry:
         """List all registered agents."""
         return {name: type(agent).__name__ for name, agent in cls._agents.items()}
 
+    @classmethod
+    def unregister_agent(cls, name: str) -> None:
+        """Remove an agent from the registry.
+        
+        Args:
+            name: Name of the agent to remove
+            
+        Raises:
+            KeyError: If agent with given name doesn't exist
+        """
+        if name not in cls._agents:
+            raise KeyError(f"Agent with name {name} does not exist")
+        del cls._agents[name]
+
 
 """Agent factory module for creating different types of agents."""
 

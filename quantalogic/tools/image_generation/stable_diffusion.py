@@ -222,8 +222,15 @@ class StableDiffusionTool(Tool):
         if not 10 <= steps <= 150:
             raise ValueError("steps must be between 10 and 150")
         
-        if seed is not None and not isinstance(seed, int):
-            raise ValueError("seed must be an integer or None")
+        # Handle seed validation - allow None or empty string to pass through
+        if seed == '' or seed is None:
+            return
+            
+        if not isinstance(seed, int):
+            try:
+                int(seed)  # Try to convert to int to validate
+            except (ValueError, TypeError):
+                raise ValueError("seed must be an integer, empty string, or None")
 
     async def _save_metadata(self, metadata: Dict[str, Any], filepath: Path) -> None:
         """Save image metadata to JSON file."""
@@ -263,6 +270,15 @@ class StableDiffusionTool(Tool):
             Path to the locally saved image
         """
         try:
+            # Convert seed to int if it's a non-empty string
+            if isinstance(seed, str) and seed.strip():
+                try:
+                    seed = int(seed)
+                except ValueError:
+                    raise ValueError("seed must be an integer, empty string, or None")
+            elif seed == '' or seed is None:
+                seed = None
+
             # Validate parameters
             self._validate_params(model_id, size, style, cfg_scale, steps, seed)
             

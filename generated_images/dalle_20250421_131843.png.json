@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250421_131843.png",
+  "prompt": "A serene minimalist workspace featuring a light oak desk, a high-resolution monitor displaying a clean code interface, and a small succulent plant. Soft, diffused lighting from an overhead skylight. Predominantly light beige and cream tones with subtle wood textures. Focus on clean lines and a sense of focused calm. High-resolution, professional quality. Medium shot, shallow depth of field to gently blur the background.",
+  "revised_prompt": "Generate a serene minimalist workspace image, depicted with predominantly light beige and cream tones that highlight subtle wood textures. The space should contain a light oak desk, and on it, a high-resolution monitor displaying a clean code interface, accompanied by a small succulent plant. Soft, diffused lighting should pour from an overhead skylight, casting a peaceful ambiance. The image should convey a sense of focused calm, with clean lines and an organized aesthetic. The image should be of high-resolution, professional quality. Set it to be a medium shot, with a shallow depth of field used to subtly blur the background.",
+  "model": "dall-e-3",
+  "created": "2025-04-21T13:18:42",
+  "parameters": {
+    "model": "dall-e-3",
+    "size": "1024x1024",
+    "quality": "standard",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "A serene minimalist workspace featuring a light oak desk, a high-resolution monitor displaying a clean code interface, and a small succulent plant. Soft, diffused lighting from an overhead skylight. Predominantly light beige and cream tones with subtle wood textures. Focus on clean lines and a sense of focused calm. High-resolution, professional quality. Medium shot, shallow depth of field to gently blur the background."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-71hs0bSPpAgSgDxOd1CcZRin.png?st=2025-04-21T10%3A18%3A42Z&se=2025-04-21T12%3A18%3A42Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-20T16%3A02%3A11Z&ske=2025-04-21T16%3A02%3A11Z&sks=b&skv=2024-08-04&sig=Oar8m2awMBcuLwY23TIeNZO5XCm79yLQZ%2BNApufUBDI%3D",
+  "local_path": "generated_images/dalle_20250421_131843.png"
+}

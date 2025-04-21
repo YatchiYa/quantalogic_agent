@@ -1,0 +1,28 @@
+Create an image generation prompt based on the following:
+
+User prompt:
+{{ user_prompt }}
+
+{% if image_analysis %}
+Reference image analysis:
+- Style: {{ image_analysis.style }}
+- Mood: {{ image_analysis.mood }}
+- Colors: {{ image_analysis.colors | join(", ") }}
+- Composition: {{ image_analysis.composition }}
+{% endif %}
+
+Generation configuration:
+{% if generation_config.style_preset %}
+Style preset: {{ generation_config.style_preset }}
+{% endif %}
+{% if generation_config.negative_prompt %}
+Negative prompt: {{ generation_config.negative_prompt }}
+{% endif %}
+{% if generation_config.custom_parameters %}
+Additional parameters:
+{% for key, value in generation_config.custom_parameters.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+
+Please generate a structured prompt that incorporates these elements while maintaining coherence and effectiveness.

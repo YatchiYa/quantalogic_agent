@@ -382,7 +382,7 @@ async def generate_analyze_paper(
     writing_model: str,
     output_dir: Optional[str] = None,
     copy_to_clipboard_flag: bool = False,
-    max_character_count: int = 3000,
+    max_character_count: int = 180000,
     _handle_event: Optional[Callable[[str, dict], None]] = None,
     task_id: Optional[str] = None,
 ) -> dict:
@@ -464,7 +464,7 @@ def analyze(
     writing_model: Annotated[str, typer.Option(help="LLM model for article writing and formatting")] = DEFAULT_WRITING_MODEL,
     output_dir: Annotated[Optional[str], typer.Option(help="Directory to save output files (supports ~ expansion)")] = None,
     save: Annotated[bool, typer.Option(help="Save output to a markdown file")] = True,
-    copy_to_clipboard_flag: Annotated[bool, typer.Option(help="Copy the final post to clipboard")] = True,
+    copy_to_clipboard_flag: Annotated[bool, typer.Option(help="Copy the final post to clipboard")] = False,
     max_character_count: Annotated[int, typer.Option(help="Maximum character count for the LinkedIn post")] = 3000
 ):
     """Convert a file (PDF, text, or Markdown) to a LinkedIn post using an LLM workflow."""

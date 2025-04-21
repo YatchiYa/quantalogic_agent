@@ -1,0 +1,26 @@
+Generate {{ table_schema.sample_count if table_schema.sample_count else 10 }} sample records for the table '{{ table_schema.name }}' with the following schema:
+
+Columns:
+{% for column in table_schema.columns %}
+- {{ column.name }}: {{ column.type }}
+  {% if column.primary_key %}  (Primary Key){% endif %}
+  {% if column.foreign_key %}  (Foreign Key -> {{ column.foreign_key }}){% endif %}
+  {% if not column.nullable %}  (Not Null){% endif %}
+  {% if column.default %}  (Default: {{ column.default }}){% endif %}
+{% endfor %}
+
+Relationships:
+{% for rel in table_schema.relationships %}
+- {{ rel }}
+{% endfor %}
+
+Additional Instructions:
+{{ instructions if instructions else "Generate realistic sample data" }}
+
+Please generate realistic sample data that:
+1. Follows all constraints (primary keys, foreign keys, not null)
+2. Uses appropriate data types
+3. Contains realistic values (e.g., valid emails, realistic names, valid dates)
+4. Maintains referential integrity
+
+Return the data as a JSON array of objects, where each object represents one record.
