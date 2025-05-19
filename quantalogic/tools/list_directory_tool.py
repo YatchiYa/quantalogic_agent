@@ -1,4 +1,4 @@
-"""Tool for listing the contents of a directory."""
+"""Tool for listing the contents of a directory in the /tmp directory only."""
 
 import os
 from pathlib import Path
@@ -9,10 +9,10 @@ from quantalogic.tools.tool import Tool, ToolArgument
 
 
 class ListDirectoryTool(Tool):
-    """Lists directory contents with pagination and .gitignore support."""
+    """Lists directory contents with pagination and .gitignore support, restricted to /tmp directory."""
 
     name: str = "list_directory_tool"
-    description: str = "Lists directory contents with pagination and .gitignore filtering"
+    description: str = "Lists directory contents with pagination and .gitignore filtering (restricted to /tmp directory)"
     arguments: list[ToolArgument] = [
         ToolArgument(
             name="directory_path",
@@ -146,7 +146,7 @@ class ListDirectoryTool(Tool):
         List directory contents with pagination.
 
         Args:
-            directory_path: Absolute or relative path to target directory
+            directory_path: Absolute or relative path to target directory (must be within /tmp)
             recursive: Enable recursive traversal (true/false)
             max_depth: Maximum directory traversal depth
             start_line: First line to return in paginated results
@@ -164,6 +164,11 @@ class ListDirectoryTool(Tool):
                 directory_path = os.path.expanduser(directory_path)
 
             path = Path(directory_path)
+            abs_path = os.path.abspath(directory_path)
+            
+            # Validate directory is within /tmp
+            if not abs_path.startswith("/tmp"):
+                raise ValueError(f"Security restriction: This tool can only access directories within /tmp. '{abs_path}' is not allowed.")
             
             # Validate directory
             if not path.exists():
@@ -189,18 +194,30 @@ class ListDirectoryTool(Tool):
             # Format output
             lines = self._format_tree(items)
             
-            if not lines:
-                return "==== No files to display ===="
-                
             # Paginate results
             total_lines = len(lines)
+            
+            if not lines:
+                return "SUCCESS: Directory listing complete. No files found in the specified directory."
+                
             paginated_lines = lines[start - 1:end]
             
-            header = f"==== Lines {start}-{min(end, total_lines)} of {total_lines} ===="
-            if end >= total_lines:
-                header += " [LAST BLOCK]"
+            # Create a clear success message with useful information
+            if total_lines == 1:
+                file_count_msg = "1 item"
+            else:
+                file_count_msg = f"{total_lines} items"
                 
-            return f"{header}\n" + "\n".join(paginated_lines) + "\n==== End of Block ===="
+            header = f"SUCCESS: Directory listing complete. Found {file_count_msg} in {directory_path}."
+            
+            # Add pagination info if needed
+            if total_lines > (end - start + 1):
+                showing_msg = f"Showing items {start}-{min(end, total_lines)} of {total_lines}."
+                if end < total_lines:
+                    showing_msg += " Use higher end_line value to see more items."
+                header += f" {showing_msg}"
+                
+            return f"{header}\n" + "\n".join(paginated_lines)
             
         except Exception as e:
             logger.error(f"Error listing directory: {str(e)}")
@@ -209,4 +226,4 @@ class ListDirectoryTool(Tool):
 
 if __name__ == "__main__":
     tool = ListDirectoryTool()
-    print(tool.execute(directory_path=".", recursive="true"))
+    print(tool.execute(directory_path="/tmp", recursive="true"))

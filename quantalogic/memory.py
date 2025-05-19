@@ -29,6 +29,28 @@ class AgentMemory:
         """Reset the agent memory."""
         self.memory.clear()
 
+    def get_last_assistant_message(self) -> Message | None:
+        """Get the last assistant message from memory.
+        
+        Returns:
+            Message | None: The last assistant message, or None if not found.
+        """
+        for msg in reversed(self.memory):
+            if msg.role == "assistant":
+                return msg
+        return None
+        
+    def get_last_user_message(self) -> Message | None:
+        """Get the last user message from memory.
+        
+        Returns:
+            Message | None: The last user message, or None if not found.
+        """
+        for msg in reversed(self.memory):
+            if msg.role == "user":
+                return msg
+        return None
+
     def compact(self, n: int = 2):
         """Compact the memory to keep only essential messages.
 

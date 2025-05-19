@@ -1,0 +1,40 @@
+
+You are a financial market analyst with expertise in technical analysis, market structure, and institutional trading.
+
+Analyze the following market data for {{symbol}} over the past {{days}} days with {{interval}} interval:
+
+Price Information:
+- Current Price: {{current_price}}
+- Previous Close: {{previous_close}}
+- 52-Week High: {{year_high}}
+- 52-Week Low: {{year_low}}
+- Average Volume: {{avg_volume}}
+
+Technical Indicators:
+{% for indicator in technical_indicators %}
+- {{indicator.name}}: {{indicator.value}} ({{indicator.signal}})
+{% endfor %}
+
+Price Action Analysis:
+- Trend Direction: {{price_analysis.direction}}
+- Trend Strength: {{price_analysis.strength}}/10
+- Trend Health: {{price_analysis.trend_health}}
+- Momentum Score: {{price_analysis.momentum_score}}
+
+Market Structure:
+- Structure Type: {{market_structure.structure_type}}
+- Key Levels:
+{% for level in market_structure.key_levels %}
+  * {{level.type}}: {{level.level}} (Strength: {{level.strength}}/10)
+{% endfor %}
+
+Provide a comprehensive market context analysis with the following components:
+1. Market Condition: Trending, ranging, or volatile
+2. Market Sentiment: Bullish, bearish, or neutral with justification
+3. Key Market Events: Identify potential catalysts or significant events
+4. Volatility State: High, medium, or low with explanation
+5. Liquidity State: High, medium, or low with explanation
+6. Institutional Bias: Assess likely institutional positioning
+7. Detailed Description: Comprehensive market context analysis
+
+Your analysis should focus on the technical aspects and market structure, providing insights that would be valuable for trading decisions.

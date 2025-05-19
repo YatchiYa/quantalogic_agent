@@ -1,0 +1,154 @@
+# 📈 INSTITUTIONAL SCALP TRADING RECOMMENDATIONS REQUEST
+
+## 📊 MARKET SNAPSHOT
+
+{% for timeframe, collection in multi_timeframe_data.items() %}
+### ⏱️ {{ timeframe }} TIMEFRAME
+
+{% for series in collection.series %}
+#### 💹 {{ series.symbol }} ({{ series.name }})
+
+**📊 CURRENT METRICS:**
+- 💰 Current Price: **${{ series.data[-1].close }}**
+- 📊 Range: **${{ get_price_range(series.data)[0] }}** to **${{ get_price_range(series.data)[1] }}**
+- 📉 Volatility: **{{ ((get_price_range(series.data)[1] - get_price_range(series.data)[0]) / series.data[-1].close * 100) | round(2) }}%**
+- 📊 ATR Equivalent: **${{ (get_price_range(series.data)[1] - get_price_range(series.data)[0])/5 | round(2) }}**
+
+**📊 KEY PRICE LEVELS:**
+| Level Type | Price | Significance |
+|------------|-------|-------------|
+| Current Price | ${{ series.data[-1].close }} | Active trading level |
+| Previous Close | ${{ series.data[-2].close }} | Recent reference |
+| Session High | ${{ get_price_range(series.data)[1] }} | Resistance/Liquidity |
+| Session Low | ${{ get_price_range(series.data)[0] }} | Support/Liquidity |
+| 1% Risk Stop Range | ${{ series.data[-1].close - (series.data[-1].close * 0.01) | round(2) }} | Typical stop distance |
+
+**📊 RECENT PRICE ACTION CHARACTERISTICS:**
+- Body-to-Wick Ratio: **{{ ((series.data[-1].close - series.data[-1].open) / (series.data[-1].high - series.data[-1].low) * 100) | round(2) }}%**
+- Closing Location: **{{ ((series.data[-1].close - series.data[-1].low) / (series.data[-1].high - series.data[-1].low) * 100) | round(2) }}%** of range
+- Volume Profile: **{{ series.data[-1].volume }}** vs 5-candle avg of **{{ (series.data[-5:] | map(attribute='volume') | sum / 5) | round(0) }}**
+
+{% endfor %}
+{% endfor %}
+
+## 📊 MARKET STRUCTURE ANALYSIS
+
+{{ financial_analysis.market_structure_analysis }}
+
+## 📊 MULTI-TIMEFRAME CONTEXT
+
+{{ financial_analysis.multi_timeframe_analysis }}
+
+## 🎯 TRADING RECOMMENDATIONS REQUIREMENTS
+
+### 1️⃣ PRECISION ENTRY STRATEGY
+
+Provide a detailed entry strategy with these specific components:
+
+**🎯 EXACT ENTRY SPECIFICATIONS:**
+- Provide primary entry price to 2 decimal places (not a range)
+- Specify exact entry triggers (price action, indicator signals)
+- Include alternative entry scenarios with precise levels
+- Explain the institutional logic behind each entry point
+
+**📊 ENTRY EXECUTION FRAMEWORK:**
+- Detail specific order types to use (limit, market, stop)
+- Explain how to layer entries if scaling in
+- Provide exact entry filters to avoid false signals
+- Specify optimal entry timing (time of day, volatility conditions)
+
+**🔄 MULTI-TIMEFRAME CONFIRMATION:**
+- Detail which timeframes to monitor before entry
+- Explain specific alignment conditions across timeframes
+- Provide exact indicator readings that confirm entry
+- Detail how higher timeframe context validates entry
+
+### 2️⃣ RISK MANAGEMENT PROTOCOL
+
+**🛡️ STOP-LOSS PLACEMENT:**
+- Specify exact stop-loss price to 2 decimal places
+- Explain the technical reasoning behind stop placement
+- Detail how to adjust stop for different volatility conditions
+- Explain how institutional traders place stops at these levels
+
+**💰 POSITION SIZING CALCULATION:**
+- Provide exact formula for 1% account risk calculation
+- Show step-by-step position size calculation example
+- Explain how to adjust size based on setup quality
+- Detail maximum position size limits for correlated assets
+
+**📊 RISK METRICS:**
+- Calculate exact risk in pips/points and dollar value
+- Specify maximum drawdown expectations
+- Detail portfolio heat considerations
+- Explain how to implement tiered risk reduction rules
+
+### 3️⃣ EXIT STRATEGY FRAMEWORK
+
+**🎯 TAKE-PROFIT TARGETS:**
+- Define 3 specific take-profit prices to 2 decimal places
+- Calculate exact risk:reward ratio for each target
+- For each target, provide a text rationale explaining the technical justification
+- Detail how to implement a scale-out strategy
+
+**IMPORTANT FORMAT NOTE:** For each take-profit level, include both the price (as a number) and the rationale (as text). For example:
+```
+{
+  "price": 150.25,
+  "rationale": "This level represents the previous swing high and a key resistance zone"
+}
+```
+
+**⏰ TIME-BASED EXIT CRITERIA:**
+- Specify maximum hold time for the trade
+- Detail specific time-of-day exit considerations
+- Explain when to exit regardless of price action
+- Provide session-based exit parameters
+
+**📊 DYNAMIC EXIT ADJUSTMENTS:**
+- Detail when to move stop to breakeven (exact conditions)
+- Explain trailing stop methodology with specific parameters
+- Provide volatility-based exit adjustments
+- Detail how to handle unexpected news events
+
+### 4️⃣ TRADE MANAGEMENT GUIDELINES
+
+**📊 MONITORING PROTOCOL:**
+- Detail which specific indicators to monitor during the trade
+- Explain which timeframes to watch while in position
+- Specify key price levels to watch for reaction
+- Detail warning signs that the trade is failing
+
+**📊 POSITION ADJUSTMENT TACTICS:**
+- Explain when to add to winning positions (if applicable)
+- Detail how to pyramid with exact criteria
+- Specify maximum position size after all additions
+- Explain when adding is prohibited
+
+**📊 CONTINGENCY PLANNING:**
+- Detail exact re-entry plan if stopped out
+- Provide alternative scenarios if price action changes
+- Explain how to handle unexpected volatility
+- Detail specific criteria for trade invalidation
+
+### 5️⃣ EDUCATIONAL BREAKDOWN
+
+**🧠 CONCEPT EXPLANATIONS:**
+- Explain WHY each recommendation is made in simple terms
+- Detail HOW institutional traders approach these setups
+- Clarify WHEN these strategies work best (and when they don't)
+- Explain WHO typically drives price at these levels
+
+**📊 VISUAL LEARNING AIDS:**
+- Use tables to organize key levels and parameters
+- Include emojis for visual organization and emphasis
+- Format price levels in bold for easy reference
+- Use step-by-step numbered instructions for complex concepts
+
+**💡 PRO TIPS:**
+- Include 3-5 professional insights not obvious to beginners
+- Explain common mistakes to avoid in this specific setup
+- Detail psychological challenges to expect during the trade
+- Provide specific focus points for trade journaling
+
+Remember that I'm a beginner, so please explain all concepts clearly with specific examples from the current data. Include exact "how-to" instructions for executing and managing each trade.

@@ -1,0 +1,40 @@
+Compile a comprehensive market analysis report for {{ symbol }} based on the following components:
+
+Market Context:
+{{ market_context.description }}
+- Market Phase: {{ market_context.market_phase }}
+- Sentiment: {{ market_context.sentiment }}
+- Key Events: {{ market_context.key_events }}
+
+Smart Money Analysis:
+- Order Blocks: {{ smart_money_analysis.order_blocks }}
+- Liquidity Levels: {{ smart_money_analysis.liquidity_levels }}
+- Market Structure: {{ smart_money_analysis.market_structure }}
+
+Advanced Patterns:
+{% for pattern in advanced_patterns %}
+- {{ pattern.name }}: {{ pattern.description }}
+  * Reliability: {{ pattern.reliability }}/10
+  * Entry: {{ pattern.entry_points }}
+  * Targets: {{ pattern.targets }}
+  * Stop Loss: {{ pattern.stop_loss }}
+{% endfor %}
+
+Trading Plan:
+- Entry Strategy: {{ trading_plan.entry_strategy }}
+- Exit Strategy: {{ trading_plan.exit_strategy }}
+- Risk Management: {{ trading_plan.risk_management }}
+- Position Sizing: {{ trading_plan.position_sizing }}
+
+Plots:
+{% for plot in plots %}
+- {{ plot }}
+{% endfor %}
+
+Generate a detailed analysis report including:
+1. Executive summary
+2. Market context and conditions
+3. Technical and smart money analysis
+4. Pattern recognition and setups
+5. Trading strategies and risk management
+6. Final recommendations and risk assessment

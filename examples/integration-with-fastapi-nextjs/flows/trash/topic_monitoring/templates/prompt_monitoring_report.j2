@@ -1,0 +1,26 @@
+Create a comprehensive monitoring report for:
+
+Theme: {{ theme.main_topic }}
+Period: {{ theme.time_scope }}
+
+Analysis Summary:
+{% for finding in data_analysis.key_findings %}
+- {{ finding }}
+{% endfor %}
+
+Classified Information:
+{% for category, items in classified_info.categories.items() %}
+{{ category }}:
+{% for item in items %}
+- {{ item }}
+{% endfor %}
+{% endfor %}
+
+Please provide:
+1. Executive summary of findings
+2. Key insights and their implications
+3. Trend analysis and future projections
+4. Actionable recommendations
+5. Summary of source reliability
+6. Impact evaluation
+7. Suggested next steps for monitoring

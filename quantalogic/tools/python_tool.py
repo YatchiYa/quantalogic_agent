@@ -43,7 +43,7 @@ class PythonTool(Tool):
         "print('Hello, World!')  # ✓ Valid\n"
         "plt.show()             # ✗ Invalid\n"
     )
-    need_validation: bool = True
+    need_validation: bool = False
     arguments: list[ToolArgument] = [
         ToolArgument(
             name="install_commands",
@@ -153,10 +153,6 @@ class PythonTool(Tool):
             # Write the script to a file
             script_path = os.path.join(temp_dir, "script.py")
             self._write_script(script_path, script)
-
-            # Ensure the host directory exists
-            if host_dir:
-                self._ensure_directory_exists(host_dir)
 
             # Prepare pip install commands
             pip_install_cmd = self._prepare_install_commands(install_commands)
@@ -420,15 +416,6 @@ class PythonTool(Tool):
             env_vars[key] = value
         logger.debug(f"Parsed environment variables: {env_vars}")
         return env_vars
-
-    def _ensure_directory_exists(self, directory_path: str) -> None:
-        """Ensures the specified directory exists, creating it if it does not.
-
-        Args:
-            directory_path (str): The path to the directory to ensure.
-        """
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path)
 
 
 if __name__ == "__main__":

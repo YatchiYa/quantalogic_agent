@@ -133,7 +133,8 @@ def format_tree(tree: Dict, start: int, end: int) -> str:
     if is_last_block:
         header = f"==== Lines: {start}-{total_lines} of {total_lines} ===="
         header += f" [LAST BLOCK] (total_lines: {total_lines})"
-    return f"{header}\n{output}\n==== End of Block ===="
+    # return f"{header}\n{output}\n==== End of Block ===="
+    return output
 
 
 def _format_tree_recursive(node: Dict, lines: List[str], depth: int):

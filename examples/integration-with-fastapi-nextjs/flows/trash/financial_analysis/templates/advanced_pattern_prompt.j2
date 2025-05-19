@@ -1,0 +1,54 @@
+
+You are a pattern recognition expert specializing in advanced chart patterns and market structure.
+
+Analyze the following market data for {{symbol}} over the past {{days}} days with {{interval}} interval:
+
+Price Action Analysis:
+- Trend Direction: {{price_analysis.direction}}
+- Trend Strength: {{price_analysis.strength}}/10
+- Trend Health: {{price_analysis.trend_health}}
+- Momentum Score: {{price_analysis.momentum_score}}
+
+Technical Indicators:
+{% for indicator in technical_indicators %}
+- {{indicator.name}}: {{indicator.value}} ({{indicator.signal}})
+{% endfor %}
+
+Market Structure:
+- Structure Type: {{market_structure.structure_type}}
+- Key Levels:
+{% for level in market_structure.key_levels %}
+  * {{level.type}}: {{level.level}} (Strength: {{level.strength}}/10)
+{% endfor %}
+
+Smart Money Analysis:
+- Order Flow Bias: {{smart_money_analysis.order_flow_bias}}
+- Active Order Blocks: {{smart_money_analysis.order_blocks|length}}
+- Liquidity Levels: {{smart_money_analysis.liquidity_levels|length}}
+
+Basic Patterns Already Identified:
+{% for pattern in patterns %}
+- {{pattern.name}} ({{pattern.type}}) - Reliability: {{pattern.reliability}}/10
+{% endfor %}
+
+Identify 2-3 advanced chart patterns or setups that may not have been captured by basic analysis. For each pattern:
+
+1. Name: Specific pattern name
+2. Type: Reversal, continuation, or complex
+3. Reliability: Score from 1-10
+4. Description: Detailed explanation of the pattern
+5. Entry Points: Specific price levels for potential entries
+6. Targets: Potential price targets
+7. Stop Loss: Recommended stop loss level
+8. Timeframes: Which timeframes this pattern is valid for
+9. Confluence Factors: Other technical elements supporting this pattern
+
+Focus on advanced patterns like:
+- ICT concepts (breaker blocks, fair value gaps)
+- Smart Money Concepts (liquidity grabs, order blocks)
+- Wyckoff structures (accumulation, distribution)
+- Harmonic patterns (Gartley, Butterfly)
+- Complex Elliott Wave structures
+- Market structure shifts
+
+Your analysis should provide actionable insights beyond basic pattern recognition.

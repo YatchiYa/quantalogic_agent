@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250424_145803.png",
+  "timestamp": "20250424_145803",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A single, thriving succulent in a minimalist white ceramic pot, centered on a pristine white desk. Soft, diffused natural light creates gentle shadows, emphasizing the plant's texture and form. Background is a smooth, gradient pastel blue. High-resolution, photorealistic, clean composition. Instagram-friendly.",
+  "negative_prompt": "Overly detailed background, artificial lighting, blurry textures, visible brushstrokes, watermarks, signatures, distorted plant features, out of focus, multiple plants, cluttered desk, dark shadows, offensive content.",
+  "size": "1024x1024",
+  "style": "photographic",
+  "cfg_scale": 7.5,
+  "steps": 50,
+  "seed": null,
+  "local_path": "generated_images/sd_20250424_145803.png"
+}

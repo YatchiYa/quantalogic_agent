@@ -1,0 +1,99 @@
+You are a master financial market storyteller with 20+ years of experience analyzing price action narratives for hedge funds and investment banks.
+
+Your task is to analyze the market data for {{ symbol }} and construct a compelling narrative that explains the "story" behind the price movements. Focus on interpreting what the price action is telling us about market psychology and institutional behavior.
+
+MARKET DATA:
+{{ market_data | tojson(indent=2) }}
+
+TECHNICAL INDICATORS:
+{{ technical_indicators | tojson(indent=2) }}
+
+FUNDAMENTAL ANALYSIS:
+{{ fundamental_analysis }}
+
+Develop a comprehensive market narrative that addresses the following aspects:
+
+1. PRICE ACTION STORYTELLING (at least 300 words)
+   Interpret the "story" that price action is telling. What narrative is unfolding in this market? Identify key turning points, acceleration phases, consolidation periods, and what each suggests about underlying market psychology.
+
+2. NARRATIVE SHIFTS (at least 200 words)
+   Identify moments where the market narrative shifted. What caused these shifts? How did market participants likely interpret these events? How did these narrative shifts manifest in price action?
+
+3. INSTITUTIONAL FOOTPRINTS (at least 200 words)
+   Analyze where institutional players have likely been active. Identify signs of accumulation, distribution, stop hunts, or liquidity grabs. What story does institutional activity tell about their outlook?
+
+4. RETAIL PSYCHOLOGY (at least 200 words)
+   Interpret how retail traders are likely perceiving and reacting to this market. Where are they likely getting trapped? Where are they likely to be positioned wrong? How might their behavior be influencing price?
+
+5. NARRATIVE EVOLUTION (at least 200 words)
+   How has the market narrative evolved over the analyzed period? Is there a coherent story arc? Are we in the early, middle, or late stages of a particular narrative?
+
+6. COMPETING NARRATIVES (at least 200 words)
+   What competing narratives might exist in this market? How are different timeframes or perspectives telling different stories? Which narrative appears dominant and why?
+
+7. FUTURE NARRATIVE DEVELOPMENT (at least 200 words)
+   Based on the current narrative, how might the story develop from here? What are the most likely next chapters? What catalysts might shift the narrative in a different direction?
+
+8. NARRATIVE CONFIDENCE (at least 100 words)
+   How confident are you in this narrative interpretation? What alternative narratives should be considered? What would invalidate your primary narrative?
+
+Provide your analysis in JSON format with the following structure:
+{
+  "narrative": "A comprehensive, cohesive story that explains the price action (at least 1000 words)",
+  "key_points": [
+    {
+      "title": "Brief title for this key point",
+      "description": "Detailed explanation of this narrative element (at least 100 words)",
+      "evidence": "Specific evidence from the price action or indicators that supports this point (at least 50 words)",
+      "implications": "What this suggests about future price action (at least 50 words)"
+    }
+    // Include at least 5-7 key narrative points
+  ],
+  "narrative_shifts": [
+    {
+      "timestamp": "Approximate date/time of the shift",
+      "from": "Brief description of previous narrative",
+      "to": "Brief description of new narrative",
+      "catalyst": "What appears to have caused this shift",
+      "price_impact": "How this manifested in price action"
+    }
+    // Include all significant narrative shifts
+  ],
+  "institutional_activity": [
+    {
+      "type": "Type of institutional activity (accumulation, distribution, etc.)",
+      "price_range": [61000, 62000],
+      "evidence": "Evidence for this interpretation (at least 50 words)",
+      "significance": "Why this matters to the overall narrative (at least 50 words)"
+    }
+    // Include at least 3-5 instances of institutional activity
+  ],
+  "retail_psychology": {
+    "current_sentiment": "Current retail sentiment (bullish, bearish, mixed, etc.)",
+    "likely_positioning": "Where retail traders are likely positioned",
+    "potential_traps": "Potential traps for retail traders",
+    "analysis": "Detailed analysis of retail psychology (at least 200 words)"
+  },
+  "competing_narratives": [
+    {
+      "narrative": "Brief description of a competing narrative",
+      "strength": 0.7, // Relative strength of this narrative (0.0 to 1.0)
+      "supporting_evidence": "Evidence supporting this narrative (at least 50 words)",
+      "contradicting_evidence": "Evidence contradicting this narrative (at least 50 words)"
+    }
+    // Include at least 2-3 competing narratives
+  ],
+  "future_scenarios": [
+    {
+      "scenario": "Brief description of a potential future scenario",
+      "probability": 0.6, // Estimated probability (0.0 to 1.0)
+      "triggers": "Events that would trigger this scenario",
+      "price_implications": "How this would likely impact price",
+      "narrative_development": "How the narrative would develop in this scenario (at least 100 words)"
+    }
+    // Include at least 3 future scenarios
+  ],
+  "confidence": 0.8 // Your confidence in this narrative interpretation (0.0 to 1.0)
+}
+
+Your analysis should be deeply insightful, avoiding surface-level observations. Focus on the psychology and motivations driving the market, not just technical descriptions of what happened. Your narrative should tell a coherent story that explains why the market moved as it did and provides context for understanding future movements.

@@ -1,0 +1,132 @@
+# 🔍 INSTITUTIONAL SCALP TRADING ANALYSIS REQUEST
+
+## 📊 MARKET DATA SNAPSHOT
+
+{% for timeframe, collection in multi_timeframe_data.items() %}
+### ⏱️ TIMEFRAME: {{ timeframe }} 
+
+{% for series in collection.series %}
+#### 💹 {{ series.symbol }} ({{ series.name }})
+
+**📈 PRICE METRICS:**
+- 💰 Current Price: **${{ series.data[-1].close }}**
+- 📅 Data Range: {{ series.start_date }} to {{ series.end_date }}
+- 📊 Change: **{{ ((series.data[-1].close - series.data[0].close) / series.data[0].close * 100) | round(2) }}%**
+- 📏 Range: **${{ get_price_range(series.data)[0] }}** to **${{ get_price_range(series.data)[1] }}**
+- 📊 ATR Equivalent: **${{ (get_price_range(series.data)[1] - get_price_range(series.data)[0])/5 | round(2) }}**
+
+**📋 PRICE ACTION TABLE (Last 5 Candles):**
+| Timestamp | Open | High | Low | Close | Volume | Body % | Spread % |
+|-----------|------|------|-----|-------|--------|--------|----------|
+{% for point in series.data[-5:] %}
+| {{ point.timestamp }} | ${{ point.open }} | ${{ point.high }} | ${{ point.low }} | ${{ point.close }} | {{ point.volume }} | {{ ((point.close - point.open) / point.open * 100) | round(2) }}% | {{ ((point.high - point.low) / point.low * 100) | round(2) }}% |
+{% endfor %}
+
+{% endfor %}
+{% endfor %}
+
+## 📉 TECHNICAL INDICATORS ANALYSIS
+
+{% for timeframe, analysis in multi_timeframe_technical_analysis.items() %}
+### ⏱️ {{ timeframe }} TIMEFRAME INDICATORS
+
+{% for indicator in analysis.indicators %}
+#### 📊 {{ indicator.symbol }} INDICATORS:
+
+**🔄 MOVING AVERAGES:**
+```
+{% for ma_name, ma_value in indicator.moving_averages.items() %}
+{{ ma_name }}: ${{ ma_value }}{% if not loop.last %} | {% endif %}
+{% endfor %}
+```
+
+**📈 EXPONENTIAL MAs:**
+```
+{% for ema_name, ema_value in indicator.exponential_mas.items() %}
+{{ ema_name }}: ${{ ema_value }}{% if not loop.last %} | {% endif %}
+{% endfor %}
+```
+
+**📊 MOMENTUM & VOLATILITY:**
+- 🔋 RSI (14): **{% if indicator.rsi %}{{ indicator.rsi }}{% else %}N/A{% endif %}**
+- 📊 MACD: {% if indicator.macd %}**Line: {{ indicator.macd.macd_line }}** | **Signal: {{ indicator.macd.signal_line }}** | **Histogram: {{ indicator.macd.histogram }}**{% else %}N/A{% endif %}
+- 📏 Bollinger Bands: {% if indicator.bollinger_bands %}**Upper: ${{ indicator.bollinger_bands.upper_band }}** | **Middle: ${{ indicator.bollinger_bands.middle_band }}** | **Lower: ${{ indicator.bollinger_bands.lower_band }}**{% else %}N/A{% endif %}
+- 📊 ATR: **{% if indicator.atr %}{{ indicator.atr }}{% else %}N/A{% endif %}**
+
+{% if indicator.volume_analysis %}
+**📊 VOLUME SIGNATURE:**
+- 📈 Average Volume: **{{ indicator.volume_analysis.average_volume }}**
+- 📊 Volume Trend: **{{ indicator.volume_analysis.volume_trend }}**
+- 🔍 Volume Spikes: {% if indicator.volume_analysis.volume_spikes %}**{{ indicator.volume_analysis.volume_spikes|join(', ') }}**{% else %}None{% endif %}
+- ⚠️ Volume/Price Divergence: **{% if indicator.volume_analysis.volume_divergence %}Yes (ALERT){% else %}No{% endif %}**
+{% endif %}
+
+{% endfor %}
+{% endfor %}
+
+## 🎯 ANALYSIS REQUIREMENTS
+
+### 1️⃣ MARKET STRUCTURE MASTERY
+
+Provide a detailed breakdown of the current market structure with these specific components:
+
+**🔍 WYCKOFF PHASE IDENTIFICATION:**
+- Identify the current Wyckoff phase (Accumulation, Distribution, Mark-Up, Mark-Down)
+- Pinpoint specific Wyckoff events (Spring, Upthrust, Secondary Test) with exact price levels
+- Explain WHO is in control (smart money vs. retail) based on Wyckoff principles
+
+**📊 ICT/SMC FRAMEWORK APPLICATION:**
+- Identify all Order Blocks with EXACT price ranges (not broad zones)
+- Locate Fair Value Gaps with precise measurements
+- Map Breaker Blocks and their significance to current price action
+- Explain HOW these structures reveal institutional intent
+
+**🔄 MULTI-TIMEFRAME CONFLUENCE:**
+- Show how higher timeframe structures impact lower timeframe opportunities
+- Identify which timeframe currently has dominant control
+- Explain WHEN timeframe alignment creates high-probability setups
+- Detail HOW to use multiple timeframes for entry/exit precision
+
+### 2️⃣ PRECISION ENTRY FRAMEWORK
+
+**🎯 ENTRY ZONE SPECIFICATION:**
+- Provide EXACT entry prices (not ranges) for both long and short scenarios
+- Detail specific triggers that confirm entry validity
+- Explain WHY these entry points offer asymmetric risk/reward
+- Specify WHEN these entries are most likely to be valid (time windows)
+
+**⚡ EXECUTION TACTICS:**
+- Explain HOW to execute entries (limit vs. market, order types)
+- Detail optimal position sizing based on account risk parameters
+- Provide specific entry filters to avoid false signals
+- Explain WHO typically drives price at these entry points
+
+### 3️⃣ RISK MANAGEMENT PROTOCOL
+
+**🛡️ STOP-LOSS PLACEMENT:**
+- Specify EXACT stop-loss prices with clear rationale
+- Explain HOW these stops avoid market noise while protecting capital
+- Calculate precise risk per trade in both pips/points and percentage
+- Detail WHERE institutional stops are likely placed
+
+**💰 POSITION SIZING FORMULA:**
+- Provide exact position sizing calculations based on 1% account risk
+- Show HOW to adjust position size based on volatility
+- Explain WHEN to scale in/out of positions
+- Detail optimal risk:reward ratios for this specific market condition
+
+### 4️⃣ EDUCATIONAL COMPONENTS
+
+**🧠 CONCEPT EXPLANATIONS:**
+- Break down complex concepts into beginner-friendly explanations
+- Use specific examples from current price action to illustrate concepts
+- Explain WHY certain patterns are significant for scalp traders
+- Detail HOW institutional traders interpret these same patterns
+
+**💡 PRO TIPS:**
+- Include 3-5 professional insights that aren't obvious to beginners
+- Explain common mistakes to avoid in this specific market condition
+- Detail HOW professional traders would approach this exact setup
+- Provide specific psychological guidance for maintaining discipline
+
+Remember to use tables, emojis, and clear formatting to make this analysis both educational and immediately actionable. Focus on precision, clarity, and practical application.

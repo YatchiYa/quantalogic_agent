@@ -7,7 +7,7 @@ from quantalogic.agent_config import (
     DuckDuckGoSearchTool,
     NodeJsTool,
     PythonTool,
-    SearchDefinitionNamesTool,
+    SearchDefinitionNames,
     TaskCompleteTool,
     WikipediaSearchTool,
     create_basic_agent,
@@ -46,6 +46,20 @@ class AgentRegistry:
     def list_agents(cls) -> Dict[str, str]:
         """List all registered agents."""
         return {name: type(agent).__name__ for name, agent in cls._agents.items()}
+
+    @classmethod
+    def unregister_agent(cls, name: str) -> None:
+        """Remove an agent from the registry.
+        
+        Args:
+            name: Name of the agent to remove
+            
+        Raises:
+            KeyError: If agent with given name doesn't exist
+        """
+        if name not in cls._agents:
+            raise KeyError(f"Agent with name {name} does not exist")
+        del cls._agents[name]
 
 
 """Agent factory module for creating different types of agents."""
@@ -107,7 +121,7 @@ def create_agent_for_mode(
             if tool_mode == "search":
                 tools.extend([DuckDuckGoSearchTool(), WikipediaSearchTool()])
             elif tool_mode == "code":
-                tools.extend([PythonTool(), NodeJsTool(), SearchDefinitionNamesTool()])
+                tools.extend([PythonTool(), NodeJsTool(), SearchDefinitionNames()])
             elif tool_mode in [t.name for t in tools]:  # Specific tool name
                 tools = [t for t in tools if t.name == tool_mode or isinstance(t, TaskCompleteTool)]
             else:

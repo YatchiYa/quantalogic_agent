@@ -162,7 +162,7 @@ class SQLQueryToolAdvanced(Tool):
             remaining = total_rows - actual_end
             markdown.append(f"\n*Showing first {actual_end} rows - {remaining} more row{'s' if remaining > 1 else ''} available*")
 
-        return "\n".join(markdown)
+        return "Request executed successfully:\n\n" + "Result for query \"" + query + "\":\n\n" + "\n".join(markdown)
 
     def _execute_modification(
         self,

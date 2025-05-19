@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250424_162550.png",
+  "timestamp": "20250424_162550",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A hellish version of: The scene depicts an inviting coastal view framed by an open set of double doors. The doors, painted white, are adorned with glass panes that allow a full view of the picturesque landscape outside. \n\nIn the foreground, there is a wooden floor that appears warm and sunlit, suggesting a cozy interior space. To the left, a bookshelf filled with numerous books adds a touch of homeliness and intellectual charm.\n\nBeyond the doors, a breathtaking expanse of blue ocean stretches out towards the horizon, dotted with small rocky islands and gentle waves. The water shimmers under bright sunlight, enhancing its vibrant color. \n\nThe sky above is a brilliant shade of blue, filled with fluffy white clouds that add depth and character to the atmosphere. In the distance, a small sailboat glides smoothly across the water, contributing to the serene and tranquil vibe of the scene.\n\nOn the right, a potted plant adds a splash of greenery, harmonizing with the natural elements outside. Overall, the scene evokes a sense of peace and relaxation, inviting one to step out and enjoy the beautiful seaside.. Lava, fire, and demons.",
+  "negative_prompt": "ugly, deformed, noisy, blurry, distorted, low quality, duplicate, morbid, mutilated, poorly drawn face",
+  "size": "1024x1024",
+  "style": "digital-art",
+  "cfg_scale": 7.0,
+  "steps": 50,
+  "seed": 42,
+  "local_path": "generated_images/sd_20250424_162550.png"
+}

@@ -1,0 +1,31 @@
+Analyze the following market data for {{ symbol }}:
+
+Price Analysis:
+{{ price_analysis.model_dump() | tojson }}
+
+Technical Indicators:
+[
+{% for indicator in technical_indicators %}
+    {
+        "name": "{{ indicator.name }}",
+        "value": {{ indicator.value }},
+        "signal": "{{ indicator.signal }}",
+        "description": "{{ indicator.description }}"
+    }{% if not loop.last %},{% endif %}
+{% endfor %}
+]
+
+Market Structure:
+{{ market_structure.model_dump() | tojson }}
+
+Key Performance Metrics:
+{{ kpis | tojson }}
+
+Based on this data, provide a structured analysis including:
+1. Overall market sentiment and confidence level
+2. Technical analysis with key levels and patterns
+3. Specific trade recommendations with entry/exit points
+4. Risk assessment and management guidelines
+5. A concise summary of your findings
+
+Focus on actionable insights and clear justification for your recommendations.

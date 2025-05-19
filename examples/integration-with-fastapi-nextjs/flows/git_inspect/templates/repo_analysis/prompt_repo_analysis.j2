@@ -1,0 +1,46 @@
+# Repository Analysis Request
+
+## Repository Information
+Repository Name: {{ repo_name }}
+
+## File Statistics
+Total Files: {{ file_stats.total_files }}
+Code Files: {{ file_stats.code_files_count }}
+Documentation Files: {{ file_stats.documentation_files_count }}
+Config Files: {{ file_stats.config_files_count }}
+
+File Types:
+{% for file_type, count in file_stats.file_types.items() %}
+- {{ file_type }}: {{ count }}
+{% endfor %}
+
+## Directory Structure
+Top-level directories:
+{% for dir in directory_structure.top_level_dirs %}
+- {{ dir }}
+{% endfor %}
+
+Directory depth: {{ directory_structure.depth }}
+Directory with most files: {{ directory_structure.most_files_dir }}
+
+## Code Metrics
+Language breakdown:
+{% for lang, percentage in code_metrics.language_breakdown.items() %}
+- {{ lang }}: {{ percentage }}%
+{% endfor %}
+
+Estimated lines of code: {{ code_metrics.estimated_loc }}
+
+## File Samples
+{% if file_samples %}
+Here are samples of key files from the repository:
+
+{% for file in file_samples %}
+### {{ file.path }}
+```
+{{ file.content }}
+```
+{% endfor %}
+{% endif %}
+
+Based on this information, please provide a comprehensive analysis of the repository.

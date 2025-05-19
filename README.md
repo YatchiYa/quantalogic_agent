@@ -1,412 +1,843 @@
-# QuantaLogic: Unleash AI for Coding, Automation, and Conversations
 
-**QuantaLogic** is your all-in-one AI framework for building smart agents that code, automate workflows, and chat like pros. Powered by large language models (LLMs) and a versatile toolset, it offers three killer modes: **ReAct** for tackling tough tasks, **Flow** for streamlined processes, and **Chat** for natural, tool-savvy conversations. Whether you’re a coder, a business innovator, or an AI enthusiast, QuantaLogic delivers fast, flexible, and fun solutions. Let’s blast off!
+[![Documentation](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://quantalogic.github.io/quantalogic/)
 
-> **New: CodeAct**
->
-> QuantaLogic CodeAct is a powerful, modular extension for creating AI agents that not only reason and act (ReAct) but also use **executable code as their primary action language**. Inspired by the latest research, CodeAct enables agents to solve complex, multi-step tasks by generating, running, and iterating on Python code, all while maintaining context and leveraging a robust tool system. This makes it ideal for advanced automation, mathematical problem-solving, and user-friendly conversational interfaces.
+Hey there, welcome to **QuantaLogic**—your cosmic toolkit for crafting AI agents and workflows that shine! Whether you’re coding up a storm, automating a business process, chatting with a clever assistant, or dreaming up something wild, QuantaLogic is here to make it happen. We’re talking **large language models (LLMs)** fused with a stellar toolset, featuring three powerhouse approaches: the **ReAct framework** for dynamic problem-solving, the dazzling new **Flow module** for structured brilliance, and a shiny **Chat mode** for conversational magic with tool-calling capabilities.
 
-[📖 Full Docs](https://quantalogic.github.io/quantalogic/) | [⚡ Quick Guide](./docs/howto/howto.md)
+Picture this: a CLI that’s as easy as a snap, a Python API that’s pure magic, and a framework that scales from quick hacks to galactic enterprises. Ready to launch? Let’s blast off! 
 
-![Demo GIF](./examples/generated_tutorials/python/quantalogic_8s.gif)
+[ Full Docs](https://quantalogic.github.io/quantalogic/) | [ How-To Guide](./docs/howto/howto.md)
+
+![Video Demo](./examples/generated_tutorials/python/quantalogic_8s.gif)
+
+---
+[Chinese Version](./README_CN.md)
+[French Version](./README_FR.md)
+[German Version](./README_DE.md)
+
+## Why QuantaLogic? 
+
+At [QuantaLogic](https://www.quantalogic.app), we spotted a black hole: amazing AI models from OpenAI, Anthropic, and DeepSeek weren’t fully lighting up real-world tasks. Our mission? Ignite that spark! We’re here to make generative AI a breeze for developers, businesses, and dreamers alike—turning ideas into action, one brilliant solution at a time, whether through task-solving, structured workflows, or natural conversation.
+
+> "AI should be your co-pilot, not a puzzle. QuantaLogic makes it happen—fast, fun, and fearless!"
 
 ---
 
-## Why QuantaLogic?
+##  Key Features
 
-**Why pick QuantaLogic?** It turns the complexity of LLMs into practical magic, making AI work for *you*. From coding scripts to automating business tasks or chatting about the universe, QuantaLogic is your creative sidekick, saving time and unlocking possibilities.
-
-- **Versatile Power**: Code, automate, or converse—handle any task.
-- **Your Rules**: Customize agents and tools to match your needs.
-- **Scales Big**: From CLI hacks to enterprise workflows.
-- **Free & Open**: Apache 2.0 license—use it, tweak it, share it.
-
-> *“AI should spark joy, not stress. QuantaLogic makes it happen!”*
-
----
-
-## What is QuantaLogic?
-
-**What’s the vibe?** QuantaLogic is a Python framework that harnesses LLMs (like GPT-4o, Claude, or DeepSeek) to create AI agents. These agents wield tools for coding, searching, file ops, and more, all accessible via a slick CLI or Python API. With **ReAct**, **Flow**, and **Chat** modes, it adapts to any challenge—dynamic tasks, structured pipelines, or friendly chats.
-
-### Core Features
-- **ReAct Mode**: Solve problems with LLM reasoning + tool actions.
-- **Flow Mode**: Craft structured workflows with nodes and transitions.
-- **Chat Mode**: Converse naturally with tool-calling smarts.
-- **LLM Integration**: Supports OpenAI, Anthropic, DeepSeek via LiteLLM.
-- **Toolset**: Code execution, web search, file management, and custom tools.
-- **Smart Memory**: Keeps context lean for long tasks or chats.
-- **Real-Time Insights**: Track progress with events and logs.
-- **Safe Execution**: Docker-based tool isolation.
+- **ReAct Framework**: Reasoning + action = unstoppable agents! 
+- **Flow Module**: Structured workflows that flow like a river. 
+- **Chat Mode**: Conversational brilliance with tool-calling powers.
+- **LLM Galaxy**: Tap into OpenAI, DeepSeek, and more via LiteLLM. 
+- **Secure Tools**: Docker-powered safety for code and files. 
+- **Live Monitoring**: Watch it unfold with a web interface and SSE. 
+- **Memory Magic**: Smart context keeps things snappy. 
+- **Enterprise-Ready**: Logs, error handling, and validation—rock solid. 
 
 ---
 
-## CodeAct vs ReAct: What's the Difference?
+##  Table of Contents
 
-QuantaLogic supports both the classic **ReAct** paradigm and its advanced extension, **CodeAct**:
-
-- **ReAct** (Reason + Act):
-  - Based on the [ReAct paper](https://arxiv.org/abs/2210.03629), this approach lets agents *reason* (think step-by-step) and *act* (use tools or code) in a loop. It's great for tasks where language models need to plan, use tools, and adapt to feedback.
-
-- **CodeAct**:
-  - Builds on ReAct by making **executable Python code** the main language for agent actions. Instead of just calling tools or outputting text, the agent writes and runs code, observes the results (including errors), and iterates until the task is solved.
-  - This approach is inspired by recent research ([Yang et al., 2024](https://arxiv.org/html/2402.01030v4)) showing that executable code actions enable more capable and reliable LLM agents.
-  - CodeAct is ideal for complex, multi-step tasks, advanced automation, and scenarios where precise, verifiable actions are needed.
-
-**Summary**:
-- Use **ReAct** for flexible reasoning with tool use.
-- Use **CodeAct** for tasks where generating and executing code is the best way to solve a problem or automate a workflow.
-
-Here’s how it flows:
-
-```mermaid
-graph TD
-    A[User] -->|Input| B[QuantaLogic]
-    B --> C1[Pure ReAct]
-    B --> C2[CodeAct]
-    B --> D[Flow: Automate]
-    B --> E[Chat: Converse]
-    C1 --> F1[LLM + Tools]
-    C2 --> F2[LLM + Code Actions]
-    D --> G[Nodes + Engine]
-    E --> H[Persona + Tools]
-    F1 --> I[Output]
-    F2 --> I
-    G --> I
-    H --> I
-    I --> A
-    style A fill:#ffe5b4,stroke:#555
-    style B fill:#cfe0e8,stroke:#555
-    style C1 fill:#e6e6fa,stroke:#555
-    style C2 fill:#ffd1dc,stroke:#555
-    style D fill:#c8e6c9,stroke:#555
-    style E fill:#fff9c4,stroke:#555
-    style F1 fill:#f0f0f0,stroke:#555
-    style F2 fill:#f0f0f0,stroke:#555
-    style G fill:#d0f0c0,stroke:#555
-    style H fill:#ffefdb,stroke:#555
-    style I fill:#cfe0e8,stroke:#555
-```
-
-For detailed CodeAct documentation, see [CodeAct Module](quantalogic_codeact/README.md).
+- [Why QuantaLogic?](#why-quantalogic)
+- [Key Features](#key-features)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [ReAct Framework: Dynamic Agents](#react-framework-dynamic-agents)
+- [Flow Module: Structured Workflows](#flow-module-structured-workflows)
+  - 📘 **[Workflow YAML DSL Specification](./quantalogic/flow/flow_yaml.md)**: Comprehensive guide to defining powerful, structured workflows using our Domain-Specific Language
+  - 📚 **[Flow YAML Documentation](./quantalogic/flow/flow_yaml)**: Dive into the official documentation for a deeper understanding of Flow YAML and its applications
+- [Chat Mode: Conversational Power](#chat-mode-conversational-power)
+- [ReAct vs. Flow vs. Chat: Pick Your Power](#react-vs-flow-vs-chat-pick-your-power)
+- [Using the CLI](#using-the-cli)
+- [Examples That Spark Joy](#examples-that-spark-joy)
+- [Core Components](#core-components)
+- [Developing with QuantaLogic](#developing-with-quantalogic)
+- [Contributing](#contributing)
+- [License](#license)
+- [Project Growth](#project-growth)
+- [API Keys and Environment Configuration](#api-keys-and-environment-configuration)
 
 ---
 
-## How to Get Started
+## Installation 
 
-**How do you dive in?** Install it, set it up, and start creating. We’ll guide you through setup, examples, and pro tips to master QuantaLogic in minutes.
+Let’s get QuantaLogic orbiting your system—it’s as easy as 1-2-3!
 
-### Installation & Setup
+### What You’ll Need
+- **Python 3.12+**: The fuel for our rocket. 
+- **Docker** (optional): Locks down code execution in a safe pod. 
 
-#### Prerequisites
-- Python >= 3.10+ (required)
-- Docker (optional; sandboxed execution)
-- Poetry (optional; for source builds)
-
-#### Installation
-Install the core CLI and (optionally) CodeAct extension:
+### Option 1: pip—Fast and Simple
 ```bash
 pip install quantalogic
-pip install quantalogic-codeact
-```
-Or with pipx:
-```bash
-pipx install quantalogic
-pipx install quantalogic-codeact
 ```
 
-#### Developer Build (optional)
+### Option 2: pipx—Isolated Stardust
+```bash
+pipx install quantalogic
+```
+
+### Option 3: Source—For Space Explorers
 ```bash
 git clone https://github.com/quantalogic/quantalogic.git
 cd quantalogic
 python -m venv .venv
-# macOS/Linux
-source .venv/bin/activate
-# Windows
-.venv\\Scripts\\activate
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 poetry install
 ```
-
-#### Verify Installation
-```bash
-quantalogic --help
-quantalogic_codeact --help
-```
-
-#### Configure API Keys
-```bash
-cat <<EOF > .env
-OPENAI_API_KEY=sk-your-key
-DEEPSEEK_API_KEY=ds-your-key
-EOF
-```
-> For advanced settings, see [docs/config.md](./docs/config.md)
+> **Tip**: No Poetry? Grab it with `pip install poetry` and join the crew!
 
 ---
 
-### Quick Start Examples
+## Quick Start 
 
-Let’s see QuantaLogic shine with these quick demos.
+Ready to see the magic? Here’s your launchpad:
 
-#### CLI: Solve a Task
+### CLI: Instant Action
 ```bash
-quantalogic task "Write a Python script to reverse a string"
+quantalogic task "Write a Python function for Fibonacci numbers"
 ```
-**Output**: A clean, working string-reversal script!
+> Boom! ReAct whips up a solution in seconds.
 
-#### CLI: Chat It Up
+### CLI: Chat Mode
 ```bash
-quantalogic chat --persona "You’re a cosmic guide" "What’s the tallest mountain?"
+quantalogic chat --persona "You are a witty space explorer" "Tell me about Mars with a search"
 ```
-**Output**: A lively response, possibly with search results!
+> Chat mode engages, uses tools if needed, and delivers a conversational response!
 
-#### CLI: CodeAct Shell
-```bash
-quantalogic_codeact shell
-```
-
-#### CLI: CodeAct Task
-```bash
-quantalogic_codeact task "Solve 2 + 2" --model deepseek/deepseek-chat --timeout 60 --streaming
-```
-
-#### Python: ReAct Agent
+### Python: ReAct Agent
 ```python
 from quantalogic import Agent
 
 agent = Agent(model_name="deepseek/deepseek-chat")
-result = agent.solve_task("Write a Python function to reverse a string")
+result = agent.solve_task("Code a Fibonacci function")
 print(result)
-# Output: "def reverse_string(s): return s[::-1]"
+# Output: "def fib(n): return [0, 1] if n <= 2 else fib(n-1) + [fib(n-1)[-1] + fib(n-1)[-2]]"
 ```
 
-#### Python: Chat Mode
-```python
-from quantalogic import Agent, DuckDuckGoSearchTool
-
-agent = Agent(
-    model_name="gpt-4o-mini",
-    chat_system_prompt="You’re a curious explorer",
-    tools=[DuckDuckGoSearchTool()]
-)
-response = agent.chat("What’s new in quantum computing?")
-print(response)
-# Output: "I checked the latest news! Here’s a breakthrough in quantum computing: [details]."
-```
-
----
-
-### The Three Modes: Your Superpowers
-
-#### 1. ReAct Framework: Dynamic Task-Solving
-**Why**: Tackle open-ended tasks like coding or research with creative flair.  
-**What**: Combines LLM reasoning with tools to iterate toward solutions.  
-**How**: The agent thinks, acts, and loops until the task is complete.
-
-**Example**: Debug some code.
-```bash
-quantalogic task "Debug this Python code: def add(a, b): return a - b"
-```
-**Flow**:
-```mermaid
-sequenceDiagram
-    User->>Agent: "Debug code"
-    Agent->>LLM: "Analyze error"
-    LLM-->>Agent: "Subtraction should be addition"
-    Agent->>PythonTool: "Fix code"
-    PythonTool-->>Agent: "def add(a, b): return a + b"
-    Agent-->>User: "Fixed code!"
-```
-
-**Memorization Trick**: ReAct = **R**eason + **A**ct, like a detective solving a mystery step-by-step.
-
-#### 2. Flow Module: Structured Automation
-**Why**: Perfect for repeatable processes like data pipelines or content creation.  
-**What**: A system of nodes (tasks) connected by transitions, run by an engine.  
-**How**: Define nodes, link them, and let the workflow hum.
-
-**Example**: Process text.
-```python
-from quantalogic.flow import Workflow, Nodes
-
-@Nodes.define(output="processed")
-def uppercase(text: str) -> str:
-    return text.upper()
-
-workflow = Workflow("uppercase").build()
-result = await workflow.run({"text": "hello world"})
-print(result["processed"])  # "HELLO WORLD"
-```
-
-**Diagram**:
-```mermaid
-graph LR
-    A[Start] --> B[Uppercase Node]
-    B --> C[End]
-    A -->|Observer| D[Log: NODE_START]
-    B -->|Observer| E[Log: NODE_END]
-    style A fill:#dfd,stroke:#333
-    style C fill:#dfd,stroke:#333
-```
-
-**Memorization Trick**: Flow = a recipe—nodes are ingredients, transitions are steps, and the engine is the chef.
-
-**Learn More**: Explore the [Flow YAML DSL Specification](./quantalogic/flow/flow_yaml.md) for advanced workflows.
-
-#### 3. Chat Mode: Natural Conversations
-**Why**: Ideal for interactive Q&A or quick info with a touch of tool power.  
-**What**: A conversational AI that calls tools when needed, keeping chats smooth.  
-**How**: Engages naturally, using tools via ReAct’s XML system.
-
-**Example**: Check the weather.
+### Python: Chat Mode
 ```python
 from quantalogic import Agent
 
-agent = Agent(model_name="gpt-4o", chat_system_prompt="You’re a travel guide")
-response = agent.chat("What’s the weather in Paris?")
+agent = Agent(model_name="gpt-4o", chat_system_prompt="You are a friendly guide")
+response = agent.chat("What's the weather like in Tokyo?")
 print(response)
-# Output: "I’ll look it up! Paris is sunny, 20°C today."
+# Engages in conversation, potentially calling a weather tool if configured
 ```
 
-**Memorization Trick**: Chat = your AI bestie—talks, listens, and grabs tools like a search engine when curious.
-
----
-
-### Which Mode to Pick?
-
-| Mode       | Best For                     | Style               | Tools              |
-|------------|------------------------------|---------------------|--------------------|
-| **ReAct**  | Coding, research, Q&A        | Iterative, adaptive | Dynamic, on-demand |
-| **Flow**   | Pipelines, automation        | Structured, orderly | Node-specific      |
-| **Chat**   | Conversations, quick queries  | Free-flowing        | Contextual         |
-
-**Pro Tip**: Combine modes! Use Chat for user input, Flow for backend automation, and ReAct for complex tasks.
-
----
-
-### CLI Mastery
-
-The QuantaLogic CLI is your mission control. Here’s the scoop:
-
-```bash
-quantalogic [COMMAND] [OPTIONS]
-```
-
-#### Commands
-- **task**: Run a task.
-  ```bash
-  quantalogic task "Calculate 5 + 3" --model-name gpt-4o-mini
-  ```
-- **chat**: Start a conversation.
-  ```bash
-  quantalogic chat --persona "AI expert" "What’s the latest in machine learning?"
-  ```
-- **list-models**: List LLMs.
-  ```bash
-  quantalogic list-models --search claude
-  ```
-
-#### Key Options
-- `--model-name`: Select your LLM (e.g., `anthropic/claude-3.5-sonnet`).
-- `--mode`: Choose ReAct, Flow, or Chat.
-- `--tool-mode`: Prioritize tools in Chat (e.g., `code`).
-- `--verbose`: See detailed logs.
-
-**Insider Secret**: Add `--no-stream` for cleaner output on slow terminals!
-
----
-
-### Advanced Tricks
-
-#### Build Custom Tools
-Create your own tools for unique tasks:
+### Synchronous Agent Example 
 ```python
-from quantalogic.tools import Tool
+from quantalogic import Agent
 
-class TimeTool(Tool):
-    name = "time_tool"
-    def execute(self) -> str:
-        from datetime import datetime
-        return f"Current time: {datetime.now()}"
-
+# Create a synchronous agent
 agent = Agent(model_name="gpt-4o")
-agent.add_tool(TimeTool())
+
+# Solve a task synchronously
+result = agent.solve_task(
+    task="Write a Python function to calculate Fibonacci numbers",
+    max_iterations=10  # Optional: limit iterations
+)
+
+print(result)
 ```
 
-#### Go Async
-Boost performance with async:
+### Async Agent Example 🌊
 ```python
 import asyncio
 from quantalogic import Agent
 
 async def main():
+    # Create an async agent
     agent = Agent(model_name="gpt-4o")
-    result = await agent.async_chat("Tell me a joke", streaming=True)
+    
+    # Solve a task asynchronously with streaming
+    result = await agent.async_solve_task(
+        task="Write a Python script to scrape top GitHub repositories",
+        max_iterations=15,  # Optional: limit iterations
+        streaming=True      # Optional: stream the response
+    )
+    
     print(result)
 
+# Run the async function
 asyncio.run(main())
 ```
 
-#### Monitor Events
-Track every step:
+### Event Monitoring Examples 🔍
+
+#### Synchronous Event Monitoring with Finance Tools
 ```python
-from quantalogic import Agent, console_print_events
+from quantalogic import Agent
+from quantalogic.console_print_events import console_print_events
+from quantalogic.console_print_token import console_print_token
+from quantalogic.tools import (
+    DuckDuckGoSearchTool, 
+    TechnicalAnalysisTool, 
+    YFinanceTool
+)
 
-agent = Agent(model_name="gpt-4o")
-agent.event_emitter.on(["task_start", "tool_execution_start"], console_print_events)
-result = agent.solve_task("Write a poem")
+# Create an agent with finance-related tools
+agent = Agent(
+    model_name="gpt-4o",
+    tools=[
+        DuckDuckGoSearchTool(),  # Web search tool
+        TechnicalAnalysisTool(),  # Stock technical analysis
+        YFinanceTool()            # Stock data retrieval
+    ]
+)
+
+# Set up comprehensive event listeners
+agent.event_emitter.on(
+    event=[
+        "task_complete",
+        "task_think_start", 
+        "task_think_end", 
+        "tool_execution_start", 
+        "tool_execution_end",
+        "error_max_iterations_reached",
+        "memory_full",
+        "memory_compacted"
+    ],
+    listener=console_print_events
+)
+
+# Optional: Monitor streaming tokens
+agent.event_emitter.on(
+    event=["stream_chunk"], 
+    listener=console_print_token
+)
+
+# Execute a multi-step financial analysis task
+result = agent.solve_task(
+    "1. Find the top 3 tech stocks for Q3 2024 "
+    "2. Retrieve historical stock data for each "
+    "3. Calculate 50-day and 200-day moving averages "
+    "4. Provide a brief investment recommendation",
+    streaming=True  # Enable streaming for detailed output
+)
+print(result)
+```
+
+#### Async Event Monitoring with Finance Tools
+```python
+import asyncio
+from quantalogic import Agent
+from quantalogic.console_print_events import console_print_events
+from quantalogic.console_print_token import console_print_token
+from quantalogic.tools import (
+    DuckDuckGoSearchTool, 
+    TechnicalAnalysisTool, 
+    YFinanceTool
+)
+
+async def main():
+    # Create an async agent with finance-related tools
+    agent = Agent(
+        model_name="gpt-4o",
+        tools=[
+            DuckDuckGoSearchTool(),  # Web search tool
+            TechnicalAnalysisTool(),  # Stock technical analysis
+            YFinanceTool()            # Stock data retrieval
+        ]
+    )
+
+    # Set up comprehensive event listeners
+    agent.event_emitter.on(
+        event=[
+            "task_complete",
+            "task_think_start", 
+            "task_think_end", 
+            "tool_execution_start", 
+            "tool_execution_end",
+            "error_max_iterations_reached",
+            "memory_full",
+            "memory_compacted"
+        ],
+        listener=console_print_events
+    )
+
+    # Optional: Monitor streaming tokens
+    agent.event_emitter.on(
+        event=["stream_chunk"], 
+        listener=console_print_token
+    )
+
+    # Execute a multi-step financial analysis task asynchronously
+    result = await agent.async_solve_task(
+        "1. Find emerging AI technology startups "
+        "2. Analyze their recent funding rounds "
+        "3. Compare market potential and growth indicators "
+        "4. Provide an investment trend report",
+        streaming=True  # Enable streaming for detailed output
+    )
+    print(result)
+
+# Run the async function
+asyncio.run(main())
+```
+
+### Python: Flow Workflow
+```python
+from quantalogic.flow import Workflow, Nodes
+
+@Nodes.define(output="greeting")
+def greet(name: str) -> str:
+    return f"Hello, {name}!"
+
+workflow = Workflow("greet").build()
+result = await workflow.run({"name": "Luna"})
+print(result["greeting"])  # "Hello, Luna!"
 ```
 
 ---
 
-### Memorization Hacks
-- **Modes as Jobs**: ReAct = Freelancer (flexible tasks), Flow = Engineer (structured builds), Chat = Barista (serves up chats).
-- **Tools as Toys**: `PythonTool` = LEGO for coding, `SearchTool` = binoculars for info.
-- **Workflows as Maps**: Nodes = destinations, transitions = roads, engine = GPS.
+## ReAct Framework: Dynamic Agents 
 
----
+The **ReAct** framework is your AI sidekick—think fast, act smart. It pairs LLM reasoning with tool-powered action, perfect for tasks that need a bit of improvisation.
 
-### Simplified Concepts
+### How It Rolls
+1. **You Say**: "Write me a script."
+2. **It Thinks**: LLM plots the course.
+3. **It Acts**: Tools like `PythonTool` get to work.
+4. **It Loops**: Keeps going until it’s done.
 
-**Tools 101**: Picture QuantaLogic as a handyman. You ask for a fix (task). It grabs tools—a hammer (`WriteFileTool`) or screwdriver (`SearchTool`)—to get the job done right.
+Check this out:
 
-**Memory Magic**: Imagine a sticky note board. As tasks or chats grow, QuantaLogic condenses old notes to keep space for new ones—efficient and clutter-free.
+```mermaid
+graph TD
+    A[You: 'Write a script'] --> B[ReAct Agent]
+    B --> C{Reason with LLM}
+    C --> D[Call Tools]
+    D --> E[Get Results]
+    E --> F{Task Done?}
+    F -->|No| C
+    F -->|Yes| G[Deliver Answer]
+    G --> H[You: Happy!]
+    style A fill:#f9f,stroke:#333
+    style H fill:#bbf,stroke:#333
+```
 
-
-### Contributing
-
-**Why**: Make AI better for everyone!  
-**What**: Add features, squash bugs, or suggest ideas.  
-**How**: Fork, branch, code, and PR. Check [CONTRIBUTING.md](./CONTRIBUTING.md).
-
----
-
-### License
-
-QuantaLogic is **Apache 2.0**—free to use, modify, and distribute. Built with ❤️ by Raphaël MANSUY at [QuantaLogic](https://www.quantalogic.app).
-
----
-
-### API Keys & Models
-
-Power up with LLM API keys in a `.env` file:
+### Example: Code Generator
 ```bash
-OPENAI_API_KEY=sk-your-key
-ANTHROPIC_API_KEY=your-key
-DEEPSEEK_API_KEY=ds-your-key
+quantalogic task "Create a Python script to sort a list"
 ```
+> ReAct figures it out, writes the code, and hands it over—smooth as silk!
 
-**Top Models**:
-- `openai/gpt-4o-mini`: Speedy and budget-friendly.
-- `anthropic/claude-3.5-sonnet`: Razor-sharp reasoning.
-- `deepseek/deepseek-reasoner`: Deep problem-solving.
-
-**Insider Secret**: Set `LM_STUDIO_API_BASE` for local LLMs—great for offline work!
+### Why It’s Cool
+Perfect for coding, debugging, or answering wild questions on the fly.
 
 ---
 
-### Let’s Build the Future
+## Flow Module: Structured Workflows 
 
-QuantaLogic is your launchpad for AI awesomeness. Install it, try the examples, and create something epic—code, workflows, or chats. Star the repo, join the community, and let’s make AI unstoppable!
+The **Flow module** is your architect—building workflows that hum with precision. It's all about nodes, transitions, and a steady rhythm, ideal for repeatable missions.
 
-[![Star History](https://api.star-history.com/svg?repos=quantalogic/quantalogic&type=Date)](https://star-history.com/#quantalogic/quantalogic?Date)
+🔍 **Want to dive deeper?** Check out our comprehensive [Workflow YAML DSL Specification](./quantalogic/flow/flow_yaml.md), a detailed guide that walks you through defining powerful, structured workflows. From basic node configurations to complex transition logic, this documentation is your roadmap to mastering workflow design with QuantaLogic.
+
+📚 **For a deeper understanding of Flow YAML and its applications, please refer to the official [Flow YAML Documentation](https://quantalogic.github.io/quantalogic/flow/flow_yaml).**
+
+The Flow YAML documentation provides a comprehensive overview of the Flow YAML language, including its syntax, features, and best practices. It's a valuable resource for anyone looking to create complex workflows with QuantaLogic.
+
+Additionally, the Flow YAML documentation includes a number of examples and tutorials to help you get started with creating your own workflows. These examples cover a range of topics, from simple workflows to more complex scenarios, and are designed to help you understand how to use Flow YAML to create powerful and flexible workflows.
+
+### The Building Blocks
+- **Nodes**: Tasks like functions or LLM calls. 
+- **Transitions**: Paths with optional conditions. 
+- **Engine**: Runs the show with flair. 
+- **Observers**: Peek at progress with events. 
+
+### Example: Story Weaver
+```python
+from quantalogic.flow import Workflow, Nodes
+
+@Nodes.llm_node(model="openai/gpt-4o-mini", output="chapter")
+async def write_chapter(ctx: dict) -> str:
+    return f"Chapter 1: {ctx['theme']}"
+
+workflow = (
+    Workflow("write_chapter")
+    .then("end", condition="lambda ctx: True")
+    .add_observer(lambda e: print(f" {e.event_type}"))
+)
+engine = workflow.build()
+result = await engine.run({"theme": "Cosmic Quest"})
+print(result["chapter"])
+```
+
+### Example: Story Generator Agent
+```python
+from typing import List
+import anyio
+from loguru import logger
+from quantalogic.flow import Nodes, Workflow
+
+# Define node functions with decorators
+@Nodes.validate_node(output="validation_result")
+async def validate_input(genre: str, num_chapters: int) -> str:
+    """Validate input parameters."""
+    if not (1 <= num_chapters <= 20 and genre.lower() in ["science fiction", "fantasy", "mystery", "romance"]):
+        raise ValueError("Invalid input: genre must be one of science fiction, fantasy, mystery, romance")
+    return "Input validated"
+
+@Nodes.llm_node(
+    model="gemini/gemini-2.0-flash",
+    system_prompt="You are a creative writer specializing in story titles.",
+    prompt_template="Generate a creative title for a {{ genre }} story. Output only the title.",
+    output="title",
+)
+async def generate_title(genre: str) -> str:
+    """Generate a title based on the genre (handled by llm_node)."""
+    pass  # Logic handled by llm_node decorator
+
+@Nodes.define(output="manuscript")
+async def compile_book(title: str, outline: str, chapters: List[str]) -> str:
+    """Compile the full manuscript from title, outline, and chapters."""
+    return f"Title: {title}\n\nOutline:\n{outline}\n\n" + "\n\n".join(
+        f"Chapter {i}:\n{chap}" for i, chap in enumerate(chapters, 1)
+    )
+
+# Define the workflow with conditional branching
+workflow = (
+    Workflow("validate_input")
+    .then("generate_title")
+    .then("generate_outline")
+    .then("generate_chapter")
+    .then("update_chapter_progress")
+    .then("generate_chapter", condition=lambda ctx: ctx["completed_chapters"] < ctx["num_chapters"])
+    .then("compile_book", condition=lambda ctx: ctx["completed_chapters"] >= ctx["num_chapters"])
+    .then("quality_check")
+    .then("end")
+)
+
+# Run the workflow
+async def main():
+    initial_context = {
+        "genre": "science fiction",
+        "num_chapters": 3,
+        "chapters": [],
+        "completed_chapters": 0,
+    }
+    engine = workflow.build()
+    result = await engine.run(initial_context)
+```
+
+This example demonstrates:
+- Input validation with `@Nodes.validate_node`
+- LLM integration with `@Nodes.llm_node`
+- Custom processing with `@Nodes.define`
+- Conditional branching for iterative chapter generation
+- Context management for tracking progress
+
+The full example is available at [examples/flow/story_generator/story_generator_agent.py](./examples/flow/story_generator/story_generator_agent.py).
+
+### Flow Visualized
+```mermaid
+graph LR
+    A[Start] --> B[WriteChapter]
+    B -->|Condition: True| C[End]
+    subgraph WriteChapter
+        D[Call LLM] --> E[Save Chapter]
+    end
+    A -->|Observer| F[Log: NODE_STARTED]
+    B -->|Observer| G[Log: NODE_COMPLETED]
+    style A fill:#dfd,stroke:#333
+    style C fill:#dfd,stroke:#333
+    style B fill:#ffb,stroke:#333
+```
+
+### Example: Data Pipeline
+```python
+@Nodes.define(output="processed")
+def clean_data(data: str) -> str:
+    return data.strip().upper()
+
+workflow = Workflow("clean_data").build()
+result = await workflow.run({"data": " hello "})
+print(result["processed"])  # "HELLO"
+```
+
+### Why It Rocks
+Think content pipelines, automation flows, or any multi-step task that needs order.
+
+---
+
+## Chat Mode: Conversational Power 
+
+The **Chat mode** is your conversational companion—engaging, flexible, and tool-savvy. Built on the same robust ReAct foundation, it lets you chat naturally with an AI persona while seamlessly integrating tool calls when needed. Perfect for interactive dialogues or quick queries with a dash of utility.
+
+### How It Works
+1. **You Chat**: "What’s the weather like today?"
+2. **It Responds**: Engages conversationally, deciding if a tool (like a weather lookup) is needed.
+3. **Tool Magic**: If required, it calls tools using the same XML-based system as ReAct, then weaves the results into the conversation.
+4. **Keeps Going**: Maintains context for a smooth, flowing chat.
+
+### Example: CLI Chat with Tool Call
+```bash
+quantalogic chat --persona "You are a helpful travel guide" "Find me flights to Paris"
+```
+> The agent chats back: "Looking up flights to Paris… Here are some options from a search tool: [flight details]. Anything else I can help with?"
+
+### Example: Python Chat with Tool Call
+```python
+from quantalogic import Agent
+from quantalogic.tools import DuckDuckGoSearchTool
+
+agent = Agent(
+    model_name="gpt-4o",
+    chat_system_prompt="You are a curious explorer",
+    tools=[DuckDuckGoSearchTool()]
+)
+response = agent.chat("Tell me about the tallest mountain")
+print(response)
+# Might output: "I’ll look that up! The tallest mountain is Mount Everest, standing at 8,848 meters, according to a quick search."
+```
+
+### Tool Integration
+Chat mode uses the same tool-calling mechanism as ReAct:
+```xml
+<action>
+<duckduckgo_tool>
+  <query>tallest mountain</query>
+  <max_results>5</max_results>
+</duckduckgo_tool>
+</action>
+```
+- Tools are auto-executed (configurable with `--auto-tool-call`) and results are formatted naturally.
+- Prioritize specific tools with `--tool-mode` (e.g., `search` or `code`).
+
+### Why It’s Awesome
+Ideal for casual chats, quick info lookups, or interactive assistance with tool-powered precision—without the rigid task-solving structure of ReAct.
+
+---
+
+## ReAct vs. Flow vs. Chat: Pick Your Power 
+
+All three modes are stellar, but here’s the scoop:
+
+| Feature             | ReAct Framework          | Flow Module              | Chat Mode                |
+|---------------------|--------------------------|--------------------------|--------------------------|
+| **Vibe**           | Free-spirited, adaptive  | Organized, predictable   | Conversational, flexible |
+| **Flow**           | Loops ‘til it’s solved   | Follows a roadmap        | Flows with the chat      |
+| **Sweet Spot**     | Creative chaos (coding, Q&A) | Steady workflows (pipelines) | Casual chats, quick queries |
+| **State**          | Memory keeps it loose    | Nodes lock it down       | Context keeps it flowing |
+| **Tools**          | Grabbed as needed        | Baked into nodes         | Called when relevant     |
+| **Watch It**       | Events like `task_complete` | Observers like `NODE_STARTED` | Events like `chat_response` |
+
+### When to Choose
+- **ReAct**: Code on-the-fly, explore answers, debug like a pro.
+- **Flow**: Build a pipeline, automate a process, keep it tight.
+- **Chat**: Converse naturally, get quick answers, use tools on demand.
+
+---
+
+## Using the CLI 
+
+The CLI is your command center—fast, flexible, and fun!
+
+### Syntax
+```bash
+quantalogic [OPTIONS] COMMAND [ARGS]...
+```
+
+### Description
+QuantaLogic AI Assistant - A powerful AI tool for various tasks.
+
+### Environment Variables
+- **OpenAI**: Set `OPENAI_API_KEY` to your OpenAI API key
+- **Anthropic**: Set `ANTHROPIC_API_KEY` to your Anthropic API key
+- **DeepSeek**: Set `DEEPSEEK_API_KEY` to your DeepSeek API key
+
+Use a `.env` file or export these variables in your shell for seamless integration.
+
+### Commands
+- **`task`**: Kick off a mission.
+  ```bash
+  quantalogic task "Summarize this file" --file notes.txt
+  ```
+- **`chat`**: Start a conversation.
+  ```bash
+  quantalogic chat --persona "You are a tech guru" "What’s new in AI?"
+  ```
+- **`list-models`**: List supported LiteLLM models with optional fuzzy search.
+  ```bash
+  quantalogic list-models --search "gpt"
+  ```
+
+### Options
+- **`--model-name TEXT`**: Specify the model to use (litellm format). Examples:
+  - `openai/gpt-4o-mini`
+  - `openai/gpt-4o`
+  - `anthropic/claude-3.5-sonnet`
+  - `deepseek/deepseek-chat`
+  - `deepseek/deepseek-reasoner`
+  - `openrouter/deepseek/deepseek-r1`
+  - `openrouter/openai/gpt-4o`
+- **`--mode [code|basic|interpreter|full|code-basic|search|search-full|chat]`**: Agent mode
+- **`--vision-model-name TEXT`**: Specify the vision model to use (litellm format)
+- **`--log [info|debug|warning]`**: Set logging level
+- **`--verbose`**: Enable verbose output
+- **`--max-iterations INTEGER`**: Maximum number of iterations (default: 30, task mode only)
+- **`--max-tokens-working-memory INTEGER`**: Set the maximum tokens allowed in working memory
+- **`--compact-every-n-iteration INTEGER`**: Set the frequency of memory compaction
+- **`--thinking-model TEXT`**: The thinking model to use
+- **`--persona TEXT`**: Set the chat persona (chat mode only)
+- **`--tool-mode TEXT`**: Prioritize a tool or toolset (chat mode only)
+- **`--auto-tool-call`**: Enable/disable auto tool execution (chat mode only, default: True)
+- **`--version`**: Show version information
+
+> **Tip**: Run `quantalogic --help` for the complete command reference!
+
+---
+
+## Examples That Spark Joy 
+
+Explore our collection of examples to see QuantaLogic in action:
+
+- [Flow Examples](./examples/flow/README.md): Discover practical workflows showcasing Quantalogic Flow capabilities
+- [Agent Examples](./examples/agent/README.md): See dynamic agents in action with the ReAct framework
+- [Tool Examples](./examples/tools/README.md): Explore our powerful tool integrations
+
+Each example comes with detailed documentation and ready-to-run code.
+
+### Video Magic
+[![Tutorial Demo](./examples/generated_tutorials/python/quantalogic_long.mp4)](./examples/generated_tutorials/python/quantalogic_long.mp4)
+
+### Hands-On Examples
+| Name              | What’s It Do?                       | File                                       |
+|-------------------|------------------------------------|--------------------------------------------|
+| Simple Agent      | Basic ReAct agent demo             | [01-simple-agent.py](./examples/01-simple-agent.py) |
+| Event Monitoring  | Agent with event tracking          | [02-agent-with-event-monitoring.py](./examples/02-agent-with-event-monitoring.py) |
+| Interpreter Mode  | Agent with interpreter             | [03-agent-with-interpreter.py](./examples/03-agent-with-interpreter.py) |
+| Agent Summary     | Task summary generation            | [04-agent-summary-task.py](./examples/04-agent-summary-task.py) |
+| Code Generation   | Basic code generation              | [05-code.py](./examples/05-code.py) |
+| Code Screen       | Advanced code generation           | [06-code-screen.py](./examples/06-code-screen.py) |
+| Tutorial Writer   | Write technical tutorials          | [07-write-tutorial.py](./examples/07-write-tutorial.py) |
+| PRD Writer        | Product Requirements Document      | [08-prd-writer.py](./examples/08-prd-writer.py) |
+| Story Generator   | Flow-based story creation          | [story_generator_agent.py](./examples/flow/story_generator/story_generator_agent.py) |
+| SQL Query         | Database query generation          | [09-sql-query.py](./examples/09-sql-query.py) |
+| Finance Agent     | Financial analysis and tasks       | [10-finance-agent.py](./examples/10-finance-agent.py) |
+| Textual Interface | Agent with textual UI               | [11-textual-agent-interface.py](./examples/11-textual-agent-interface.py) |
+| Composio Test     | Composio integration demo           | [12-composio-test.py](./examples/12-composio-test.py) |
+| Synchronous Agent | Synchronous agent demo             | [13-synchronous-agent.py](./examples/13-synchronous-agent.py) |
+| Async Agent       | Async agent demo                   | [14-async-agent.py](./examples/14-async-agent.py) |
+
+### Bonus: Math Whiz
+```bash
+quantalogic task "Solve 2x + 5 = 15"
+```
+> Output: "Let’s solve it! 2x + 5 = 15 → 2x = 10 → x = 5. Done!"
+
+### Bonus: Chat Query
+```bash
+quantalogic chat "Search for the latest AI breakthroughs"
+```
+> Output: "I’ll dig into that! Here’s what I found with a search: [latest AI news]. Pretty cool, right?"
+
+---
+
+## Core Components 
+
+### ReAct Agents
+- **Brain**: LLMs power the thinking.
+- **Hands**: Tools like `PythonTool` do the work.
+- **Memory**: Ties it all together.
+
+### Flow Workflows
+- **Nodes**: Your task blocks.
+- **Engine**: The maestro of execution.
+
+### Chat Mode
+- **Persona**: Customizable conversational style.
+- **Tools**: Integrated seamlessly via ReAct’s system.
+- **Context**: Keeps the conversation flowing.
+
+### Tools Arsenal
+- **Code**: `PythonTool`, `NodeJsTool`.
+- **Files**: `ReadFileTool`, `WriteFileTool`.
+- More in [REFERENCE_TOOLS.md](./REFERENCE_TOOLS.md).
+
+---
+
+## Developing with QuantaLogic 
+
+### Setup Your Lab
+```bash
+git clone https://github.com/quantalogic/quantalogic.git
+cd quantalogic
+python -m venv venv
+source venv/bin/activate
+poetry install
+```
+
+### Test the Cosmos
+```bash
+pytest --cov=quantalogic
+```
+
+### Polish It Up
+```bash
+ruff format  # Shine that code
+mypy quantalogic  # Check types
+ruff check quantalogic  # Lint it
+```
+
+### Create Custom Tools
+The `create_tool()` function transforms any Python function into a reusable Tool:
+
+```python
+from quantalogic.tools import create_tool
+
+def weather_lookup(city: str, country: str = "US") -> dict:
+    """Retrieve current weather for a given location.
+    
+    Args:
+        city: Name of the city to look up
+        country: Two-letter country code (default: US)
+    
+    Returns:
+        Dictionary with weather information
+    """
+    # Implement weather lookup logic here
+    return {"temperature": 22, "condition": "Sunny"}
+
+# Convert the function to a Tool
+weather_tool = create_tool(weather_lookup)
+
+# Now you can use it as a Tool
+print(weather_tool.to_markdown())  # Generate tool documentation
+result = weather_tool.execute(city="New York")  # Execute as a tool
+```
+
+#### Using Custom Tools with ReAct Agent
+```python
+from quantalogic import Agent
+from quantalogic.tools import create_tool, PythonTool
+
+# Create a custom stock price lookup tool
+def get_stock_price(symbol: str) -> str:
+    """Get the current price of a stock by its ticker symbol.
+    
+    Args:
+        symbol: Stock ticker symbol (e.g., AAPL, MSFT)
+    
+    Returns:
+        Current stock price information
+    """
+    # In a real implementation, you would fetch from an API
+    prices = {"AAPL": 185.92, "MSFT": 425.27, "GOOGL": 175.43}
+    if symbol in prices:
+        return f"{symbol} is currently trading at ${prices[symbol]}"
+    return f"Could not find price for {symbol}"
+
+# Create an agent with standard and custom tools
+agent = Agent(
+    model_name="gpt-4o",
+    tools=[
+        PythonTool(),  # Standard Python execution tool
+        create_tool(get_stock_price)  # Custom stock price tool
+    ]
+)
+
+# The agent can now use both tools to solve tasks
+result = agent.solve_task(
+    "Write a Python function to calculate investment growth, "  
+    "then analyze Apple stock's current price"
+)
+
+print(result)
+```
+
+#### Using Custom Tools in Chat Mode
+```python
+from quantalogic import Agent
+from quantalogic.tools import create_tool
+
+# Reuse the stock price tool
+stock_tool = create_tool(get_stock_price)
+
+# Create a chat agent
+agent = Agent(
+    model_name="gpt-4o",
+    chat_system_prompt="You are a financial advisor",
+    tools=[stock_tool]
+)
+
+# Chat with tool usage
+response = agent.chat("What’s the price of Microsoft stock?")
+print(response)
+# Might output: "Let me check that for you! MSFT is currently trading at $425.27."
+```
+
+Key features of `create_tool()`:
+- 🔧 Automatically converts functions to Tools
+- 📝 Extracts metadata from function signature and docstring
+- 🔍 Supports both synchronous and asynchronous functions
+- 🛠️ Generates tool documentation and validation
+
+---
+
+## Contributing 
+
+Join the QuantaLogic galaxy!
+1. Fork it.
+2. Branch: `git checkout -b feature/epic-thing`.
+3. Code + test.
+4. PR it!
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full scoop.
+
+---
+
+## License 
+
+ 2024 QuantaLogic Contributors. **Apache 2.0**—free and open. Check [LICENSE](./LICENSE).
+
+Dreamed up by Raphaël MANSUY, founder of [QuantaLogic](https://www.quantalogic.app).
+
+---
+
+## Project Growth 
+[![Star History Chart](https://api.star-history.com/svg?repos=quantalogic/quantalogic&type=Date)](https://star-history.com/#quantalogic/quantalogic&Date)
+
+---
+
+## API Keys and Environment Configuration 
+
+QuantaLogic links to LLMs via API keys—here’s your guide to unlocking the universe!
+
+### Setting Up Keys
+Store keys in a `.env` file or export them:
+```bash
+echo "OPENAI_API_KEY=sk-your-openai-key" > .env
+echo "DEEPSEEK_API_KEY=ds-your-deepseek-key" >> .env
+source .env
+```
+
+### The Key Vault: Supported Models
+| Model Name                              | Key Variable             | What’s It Good For?                           |
+|-----------------------------------------|--------------------------|-----------------------------------------------|
+| `openai/gpt-4o-mini`                   | `OPENAI_API_KEY`         | Speedy, budget-friendly tasks                 |
+| `openai/gpt-4o`                        | `OPENAI_API_KEY`         | Heavy-duty reasoning                          |
+| `anthropic/claude-3.5-sonnet`          | `ANTHROPIC_API_KEY`      | Balanced brilliance                           |
+| `deepseek/deepseek-chat`               | `DEEPSEEK_API_KEY`       | Chatty and versatile                          |
+| `deepseek/deepseek-reasoner`           | `DEEPSEEK_API_KEY`       | Deep problem-solving                          |
+| `openrouter/deepseek/deepseek-r1`      | `OPENROUTER_API_KEY`     | Research-grade via OpenRouter                 |
+| `mistral/mistral-large-2407`           | `MISTRAL_API_KEY`        | Multilingual mastery                          |
+| `dashscope/qwen-max`                   | `DASHSCOPE_API_KEY`      | Alibaba’s power player                        |
+| `lm_studio/mistral-small-24b-instruct-2501` | `LM_STUDIO_API_KEY` | Local LLM action                           |
+
+### Local Setup (e.g., LM Studio)
+```bash
+export LM_STUDIO_API_BASE="http://localhost:1234/v1"
+export LM_STUDIO_API_KEY="lm-your-key"
+```
+
+### Pro Tips
+- **Security**: Keep keys in `.env`, not code!
+- **Extras**: Add `OPENROUTER_REFERRER` for OpenRouter flair.
+- **More**: Dig into [LiteLLM Docs](https://docs.litellm.ai/docs/).
+
+---
+
+## Final Boost 
+
+QuantaLogic is your ticket to AI awesomeness. Install it, play with it—whether solving tasks, crafting workflows, or chatting up a storm—and let’s build something unforgettable together! 

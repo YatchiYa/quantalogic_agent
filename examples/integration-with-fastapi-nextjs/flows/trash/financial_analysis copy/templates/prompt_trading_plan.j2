@@ -1,0 +1,28 @@
+Generate a comprehensive trading plan for {{ symbol }} based on the following analysis:
+
+Market Context:
+{{ market_context.description }}
+- Market Phase: {{ market_context.market_phase }}
+- Sentiment: {{ market_context.sentiment }}
+- Key Events: {{ market_context.key_events }}
+
+Smart Money Analysis:
+- Order Blocks: {{ smart_money_analysis.order_blocks }}
+- Liquidity Levels: {{ smart_money_analysis.liquidity_levels }}
+- Market Structure: {{ smart_money_analysis.market_structure }}
+
+Advanced Patterns:
+{% for pattern in advanced_patterns %}
+- {{ pattern.name }}: {{ pattern.description }}
+  * Reliability: {{ pattern.reliability }}/10
+  * Entry: {{ pattern.entry_points }}
+  * Targets: {{ pattern.targets }}
+  * Stop Loss: {{ pattern.stop_loss }}
+{% endfor %}
+
+Generate a detailed trading plan including:
+1. Entry and exit strategies
+2. Risk management rules
+3. Position sizing guidelines
+4. Trade management instructions
+5. Contingency plans for different scenarios

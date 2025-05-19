@@ -1,0 +1,18 @@
+Analyze the market context for {{ symbol }} based on the following data:
+
+Price Data Summary:
+- Current Price: {{ market_data['current_price'] }}
+- Daily Range: {{ market_data['daily_range'] }}
+- Volume: {{ market_data['volume'] }}
+
+Recent Market Events:
+{% for event in market_data['events'] %}
+- {{ event }}
+{% endfor %}
+
+Provide a comprehensive market context analysis considering:
+1. Current market conditions and phase
+2. Overall market sentiment
+3. Key events affecting the market
+4. Volatility and liquidity state
+5. Institutional bias and positioning

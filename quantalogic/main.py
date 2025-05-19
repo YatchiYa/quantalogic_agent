@@ -18,11 +18,6 @@ load_dotenv()
 
 # Configure logger
 logger.remove()
-logger.add(
-    sys.stderr,
-    level="ERROR",  # Changed from WARNING to ERROR
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
-)
 
 from rich.console import Console  # noqa: E402
 from rich.panel import Panel  # noqa: E402
@@ -103,9 +98,9 @@ def restore_terminal(old_settings):
 )
 @click.option(
     "--log",
-    type=click.Choice(["info", "debug", "warning", "error"]),
+    type=click.Choice(["info", "debug", "warning"]),
     default="info",
-    help="Set logging level (info/debug/warning/error).",
+    help="Set logging level (info/debug/warning).",
 )
 @click.option("--verbose", is_flag=True, help="Enable verbose output.")
 @click.option("--mode", type=click.Choice(AGENT_MODES), default="basic", help="Agent mode (code/search/full/chat).")
@@ -201,9 +196,9 @@ def cli(
 @click.option("--mode", type=click.Choice(AGENT_MODES), default="basic", help="Agent mode (code/search/full/chat).")
 @click.option(
     "--log",
-    type=click.Choice(["info", "debug", "warning", "error"]),
+    type=click.Choice(["info", "debug", "warning"]),
     default="info",
-    help="Set logging level (info/debug/warning/error).",
+    help="Set logging level (info/debug/warning).",
 )
 @click.option(
     "--vision-model-name",
@@ -323,9 +318,9 @@ def list_models(search: Optional[str] = None):
 )
 @click.option(
     "--log",
-    type=click.Choice(["info", "debug", "warning", "error"]),
+    type=click.Choice(["info", "debug", "warning"]),
     default="info",
-    help="Set logging level (info/debug/warning/error).",
+    help="Set logging level (info/debug/warning).",
 )
 @click.option("--verbose", is_flag=True, help="Enable verbose output.")
 @click.option(

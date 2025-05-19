@@ -10,20 +10,21 @@ MAX_LINES = 3000
 
 
 class ReadFileTool(Tool):
-    """Tool for reading a file or HTTP content and returning its content."""
+    """Tool for reading a file from /tmp directory or HTTP content and returning its content."""
 
     name: str = "read_file_tool"
     description: str = (
-        f"Reads a local file content and returns its content."
+        f"Reads a local file content from /tmp directory and returns its content. "
         f"Cut to {MAX_LINES} first lines.\n"
-        "Don't use on HTML files and large files."
-        "Prefer to use read file block tool to don't fill the memory."
+        "Don't use on HTML files and large files. "
+        "Prefer to use read file block tool to don't fill the memory. "
+        "THE FILE PATH MUST BE WITHIN /tmp DIRECTORY."
     )
     arguments: list = [
         ToolArgument(
             name="file_path",
             arg_type="string",
-            description="The path to the file to read.",
+            description="The path to the file to read (must be within /tmp directory).",
             required=True,
             example="/path/to/file.txt",
         ),
@@ -66,6 +67,12 @@ class ReadFileTool(Tool):
         else:
             # Handle local file
             try:
+                # Validate file path is within /tmp
+                import os
+                abs_path = os.path.abspath(file_path)
+                if not abs_path.startswith("/tmp"):
+                    return f"Security restriction: This tool can only read files within /tmp. '{abs_path}' is not allowed."
+                
                 content = read_file(file_path)
                 truncated_content = self._truncate_content(content)
                 result = f"{truncated_content}"
@@ -76,4 +83,6 @@ class ReadFileTool(Tool):
 
 if __name__ == "__main__":
     tool = ReadFileTool()
+    # Example usage with a file in /tmp
+    # print(tool.execute("/tmp/example.txt"))
     print(tool.to_markdown())

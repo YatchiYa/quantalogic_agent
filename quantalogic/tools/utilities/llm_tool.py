@@ -12,7 +12,7 @@ from quantalogic.generative_model import GenerativeModel, Message
 from quantalogic.tools.tool import Tool, ToolArgument
 
 
-class OrientedLLMTool(Tool):
+class LegalLLMTool(Tool):
     """Advanced LLM tool specialized for legal analysis and response generation."""
 
     model_config = ConfigDict(arbitrary_types_allowed=True, extra="allow")

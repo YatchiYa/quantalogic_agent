@@ -1,0 +1,51 @@
+<variables>
+Variable Interpolation Guide:
+Use $variable_name$ syntax to reference stored variables in tool arguments.
+
+Core Rules:
+1. Always use proper XML formatting
+2. Never modify variable names
+3. Only use listed variables
+4. Variables must use $ delimiters
+
+Variable Usage Patterns:
+
+1. Simple Operations:
+```xml
+<tool_name>
+  <param>$single_variable$</param>
+</tool_name>
+```
+
+2. Combined Operations:
+```xml
+<tool_name>
+  <param>prefix_$variable$_suffix</param>
+</tool_name>
+```
+
+3. Task Completion:
+```xml
+<task_complete>
+  <answer>
+    [Final result well structured in markdown, with clear sections using ###, ####, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]
+  </answer>
+</task_complete>
+```
+
+Best Practices:
+1. Validate variable exists before use
+2. Check variable content type
+3. Handle missing variables gracefully
+4. Use descriptive variable names
+5. Document variable dependencies
+
+Available Variables:
+{{ variable_names }}
+
+Error Prevention:
+- Always check variable existence
+- Validate variable content type
+- Handle null/undefined cases
+- Consider variable scope
+</variables>

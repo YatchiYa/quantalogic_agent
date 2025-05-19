@@ -14,8 +14,8 @@ class SQLQueryTool(Tool):
 
     name: str = "sql_query_tool"
     description: str = (
-        "Executes a SQL query and returns results in markdown table format "
-        "with pagination support. Results are truncated based on start/end row numbers."
+        "Executes a single SQL query and returns results in markdown table format. "
+        "Only processes one query at a time (no multi-query statements separated by semicolons or newlines). "
     )
     arguments: list = [
         ToolArgument(
@@ -103,7 +103,7 @@ class SQLQueryTool(Tool):
                     f"\n*Showing first {actual_end} rows - {remaining} more row{'s' if remaining > 1 else ''} available*"
                 )
 
-            return "\n".join(markdown)
+            return "Request executed successfully:\n\n" + "Result for query \"" + query + "\":\n\n" + "\n".join(markdown)
 
         except SQLAlchemyError as e:
             raise ValueError(f"SQL Error: {str(e)}") from e

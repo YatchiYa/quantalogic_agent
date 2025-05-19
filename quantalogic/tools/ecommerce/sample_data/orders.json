@@ -1,0 +1,64 @@
+{
+  "orders": [
+    {
+      "order_id": "ORD-12345678",
+      "status": "completed",
+      "items": [
+        {
+          "id": "PROD-001",
+          "name": "Premium Wireless Headphones",
+          "price": "129.99",
+          "quantity": 1,
+          "options": {
+            "color": "black",
+            "warranty": "1 year"
+          }
+        }
+      ],
+      "total": 129.99,
+      "customer_id": "CUST-001",
+      "shipping_address": {
+        "street": "123 Main St",
+        "city": "Anytown",
+        "state": "CA",
+        "zip": "12345"
+      },
+      "payment_method": "credit_card",
+      "created_at": "2025-04-20T10:30:00Z"
+    },
+    {
+      "order_id": "ORD-87654321",
+      "status": "processing",
+      "items": [
+        {
+          "id": "PROD-002",
+          "name": "Smart Fitness Tracker",
+          "price": "89.99",
+          "quantity": 1,
+          "options": {
+            "color": "silver",
+            "size": "medium"
+          }
+        },
+        {
+          "id": "PROD-007",
+          "name": "Wireless Charging Pad",
+          "price": "29.99",
+          "quantity": 2,
+          "options": {}
+        }
+      ],
+      "total": 149.97,
+      "customer_id": "CUST-002",
+      "shipping_address": {
+        "street": "456 Oak Ave",
+        "city": "Somewhere",
+        "state": "NY",
+        "zip": "67890"
+      },
+      "payment_method": "paypal",
+      "created_at": "2025-04-22T15:45:00Z"
+    }
+  ],
+  "last_updated": "2025-04-23T12:00:00Z"
+}

@@ -1,0 +1,90 @@
+# 🔬 INSTITUTIONAL-GRADE MARKET ANALYSIS REQUEST
+
+As a master trader with 20+ years of experience, conduct a DEEP DIVE ANALYSIS of the following market data. Reveal your complete thought process as if explaining to another institutional trader.
+
+## 📊 MARKET DATA SNAPSHOT
+{% for series in financial_data_collection.series %}
+### 🏦 {{ series.symbol }} ({{ series.name }})
+{% if series.data|length > 0 %}
+• 📈 **Current Price**: {{ series.data[-1].close }}{% if series.data|length > 1 %} ({{ ((series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100)|round(2) }}% 24h){% endif %}
+• ⏱️ **Timeframe**: {{ series.interval }} from {{ series.start_date }} to {{ series.end_date }}
+• 📉 **Sample Size**: {{ series.data_points }} data points
+• 📊 **Volume**: {{ series.data[-1].volume }} units
+{% if series.currency %}• 💱 **Currency**: {{ series.currency }}{% endif %}
+{% if series.exchange %}• 🏢 **Exchange**: {{ series.exchange }}{% endif %}
+{% if series.sector %}• 🔍 **Sector**: {{ series.sector }}{% endif %}
+{% if series.industry %}• 🏭 **Industry**: {{ series.industry }}{% endif %}
+
+#### 📋 RECENT PRICE ACTION (Last 5 Periods)
+{% for point in series.data[-5:] %}
+• {{ point.timestamp }}: O: {{ point.open }} | H: {{ point.high }} | L: {{ point.low }} | C: {{ point.close }} | V: {{ point.volume }}
+{% endfor %}
+{% else %}
+• ⚠️ **NO DATA AVAILABLE**: No price data found for this symbol and timeframe
+• ⏱️ **Requested Timeframe**: {{ series.interval }} for {{ series.range_type }}
+{% endif %}
+{% endfor %}
+
+## 📐 TECHNICAL INDICATORS
+{% for indicator in technical_analysis.indicators %}
+### 📏 {{ indicator.symbol }} METRICS
+{% if indicator.moving_averages %}
+• 📉 **Moving Averages**: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% else %}
+• 📉 **Moving Averages**: No data available
+{% endif %}
+{% if indicator.rsi %}• 🔄 **RSI**: {{ indicator.rsi }} ({% if indicator.rsi > 70 %}OVERBOUGHT ⚠️{% elif indicator.rsi < 30 %}OVERSOLD ⚠️{% else %}NEUTRAL ✓{% endif %}){% else %}• 🔄 **RSI**: No data available{% endif %}
+{% endfor %}
+
+## 🧠 INSTITUTIONAL ANALYSIS FRAMEWORK
+
+I'll analyze this market through the lens of a professional institutional trader, revealing exactly how I process this information to identify high-probability setups.
+
+### 1️⃣ 🏛️ MARKET STRUCTURE ANALYSIS
+- Identify precise higher highs/lows or lower highs/lows with exact price points
+- Locate any breaks of structure (BOS) or change of character (CHoCH) with timestamps
+- Map the current market phase (accumulation, distribution, markup, markdown)
+- Expose any liquidity sweeps (stop hunts) or engineered price movements
+- Determine if smart money is currently accumulating or distributing
+
+### 2️⃣ 💹 SMC & ICT CONCEPTS
+- Identify key order blocks (OB) with exact price ranges
+- Map all fair value gaps (FVG) that need mitigation
+- Locate institutional supply and demand zones with precision
+- Identify any breaker blocks or mitigation points
+- Analyze market inefficiencies and imbalances that create opportunities
+- Determine if price is trading at premium or discount to fair value
+
+### 3️⃣ 📏 FIBONACCI PRECISION ANALYSIS
+- Calculate key Fibonacci retracement levels from swing highs/lows
+- Identify Fibonacci extension targets for potential profit zones
+- Detect any harmonic patterns forming (Gartley, Butterfly, Bat, etc.)
+- Assess Fibonacci time relationships and potential reversal dates
+- Find confluence between multiple Fibonacci levels across timeframes
+
+### 4️⃣ 📊 VOLUME PROFILE MASTERY
+- Map the high volume nodes (HVN) and low volume nodes (LVN)
+- Identify the volume point of control (VPOC) and its significance
+- Analyze volume delta (buying vs. selling pressure) trends
+- Spot any volume divergences from price action
+- Determine if current price is supported by genuine volume
+
+### 5️⃣ 📉 WYCKOFF METHOD APPLICATION
+- Identify current Wyckoff phase with supporting evidence
+- Detect any spring/upthrust actions that indicate manipulation
+- Analyze signs of effort vs. result to gauge strength
+- Assess tests of supply/demand and their outcomes
+- Determine if smart money footprints align with Wyckoff expectations
+
+## 🎯 DELIVERABLES
+
+Based on this institutional-level analysis, I will provide:
+
+1. 🔭 **MARKET OVERVIEW**: A comprehensive synthesis integrating all analysis frameworks
+2. 💡 **KEY INSIGHTS**: 5-7 critical observations that most retail traders would miss
+3. 📊 **PRICE ACTION NARRATIVE**: Detailed story of what price is telling us about institutional intent
+4. 📈 **VOLUME ANALYSIS**: Advanced interpretation of volume patterns and what they reveal
+5. 🔮 **TECHNICAL OUTLOOK**: Forward-looking analysis incorporating SMC, ICT, and Wyckoff concepts
+6. 🎯 **PRECISE MARKET TRENDS**: For each symbol - trend direction, strength (1-10), and EXACT support/resistance levels
+
+I will structure my response according to the FinancialAnalysis model, ensuring institutional-grade depth and precision that reflects my 20+ years of professional trading experience.

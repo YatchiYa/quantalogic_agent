@@ -1,0 +1,26 @@
+<variables>
+Variable Interpolation Guide:
+Use $variable_name$ syntax to reference stored variables in tool arguments.
+
+Rules:
+1. Always use proper XML formatting
+2. Never modify variable names
+3. Only use variables from the list below
+4. Variables must be enclosed in $ symbols
+
+Common Usage Examples:
+
+- File Operations:
+<write_file>
+  <file_path>/tmp/file.txt</file_path>
+  <content>$file_content$</content>
+</write_file>
+
+- Task Completion:
+<task_complete>
+  <answer>$final_output$</answer>
+</task_complete>
+
+Currently Available Variables:
+{{ variable_names }}
+</variables>

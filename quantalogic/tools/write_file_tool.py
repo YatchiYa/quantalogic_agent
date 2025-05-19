@@ -4,56 +4,50 @@ import os
 from pathlib import Path
 
 from loguru import logger
-from pydantic import Field
-
 from quantalogic.tools.tool import Tool, ToolArgument
 
 
 class WriteFileTool(Tool):
-    """Tool for writing a text file to a specified path."""
+    """Tool for writing a text file in /tmp directory."""
 
     name: str = "write_file_tool"
-    description: str = "Writes a file to the specified path. The tool will fail if the file already exists when not used in append mode."
-    need_validation: bool = True
-
-    disable_ensure_tmp_path: bool = Field(default=False)
-
-    arguments: list = Field(
-        default=[
-            ToolArgument(
-                name="file_path",
-                arg_type="string",
-                description="The path to the file to write. By default, paths will be forced to /tmp directory unless disable_ensure_tmp_path is enabled. Can include subdirectories.",
-                required=True,
-                example="/tmp/myfile.txt or ./myfile.txt",
-            ),
-            ToolArgument(
-                name="content",
-                arg_type="string",
-                description="""The content to write to the file. Use CDATA to escape special characters.
-                Don't add newlines at the beginning or end of the content.
-                """,
-                required=True,
-                example="Hello, world!",
-            ),
-            ToolArgument(
-                name="append_mode",
-                arg_type="string",
-                description="""Append mode. If true, the content will be appended to the end of the file.
-                """,
-                required=False,
-                example="False",
-            ),
-            ToolArgument(
-                name="overwrite",
-                arg_type="string",
-                description="Overwrite mode. If true, existing files can be overwritten. Defaults to False.",
-                required=False,
-                example="False",
-                default="False",
-            ),
-        ],
-    )
+    description: str = "Writes a file with the given content in /tmp directory. If the file already exists, use overwrite=True to replace it or append_mode=True to add to it. Otherwise, the operation will fail. THE FILE PATH MUST BE WITHIN /tmp DIRECTORY."
+    need_validation: bool = False
+    arguments: list = [
+        ToolArgument(
+            name="file_path",
+            arg_type="string",
+            description="The name of the file to write in /tmp directory. Can include subdirectories within /tmp.",
+            required=True,
+            example="/tmp/myfile.txt or myfile.txt",
+        ),
+        ToolArgument(
+            name="content",
+            arg_type="string",
+            description="""
+            The content to write to the file. Use CDATA to escape special characters.
+            Don't add newlines at the beginning or end of the content.
+            """,
+            required=True,
+            example="Hello, world!",
+        ),
+        ToolArgument(
+            name="append_mode",
+            arg_type="string",
+            description="""Append mode. If true, the content will be appended to the end of the file.
+            """,
+            required=False,
+            example="False",
+        ),
+        ToolArgument(
+            name="overwrite",
+            arg_type="string",
+            description="Overwrite mode. If true, existing files can be overwritten. Defaults to False.",
+            required=False,
+            example="False",
+            default="False",
+        ),
+    ]
 
     def _ensure_tmp_path(self, file_path: str) -> str:
         """Ensures the file path is within /tmp directory.
@@ -96,8 +90,8 @@ class WriteFileTool(Tool):
             str: Status message with file path and size.
 
         Raises:
-            FileExistsError: If the file already exists and append_mode is False and overwrite is False.
             ValueError: If attempting to write outside /tmp or if /tmp is not accessible.
+            Exception: For other unexpected errors with detailed error message.
         """
         try:
             # Convert mode strings to booleans
@@ -105,34 +99,48 @@ class WriteFileTool(Tool):
             overwrite_bool = overwrite.lower() in ["true", "1", "yes"]
 
             # Ensure path is in /tmp and normalize it
-            if not self.disable_ensure_tmp_path:
-                file_path = self._ensure_tmp_path(file_path)
-                if not file_path.startswith('/tmp/'):
-                    raise ValueError('File path must be under /tmp when disable_ensure_tmp_path is False')
+            file_path = self._ensure_tmp_path(file_path)
 
-            # Determine file write mode based on append_mode
-            mode = "a" if append_mode_bool else "w"
+            # Ensure parent directory exists (only within /tmp)
+            parent_dir = os.path.dirname(file_path)
+            if parent_dir.startswith("/tmp/"):
+                os.makedirs(parent_dir, exist_ok=True)
 
-            # Check if file already exists and not in append mode and not in overwrite mode
-            if os.path.exists(file_path) and not append_mode_bool and not overwrite_bool:
-                raise FileExistsError(
-                    f"File {file_path} already exists. Set append_mode=True to append or overwrite=True to overwrite."
-                )
-
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-
-            with open(file_path, mode, encoding="utf-8") as f:
-                f.write(content)
+            # Check if file exists first
+            file_exists = os.path.exists(file_path)
             
-            file_size = os.path.getsize(file_path)
-            return f"File {file_path} {'appended to' if append_mode_bool else 'written'} successfully. Size: {file_size} bytes."
+            # Handle based on file existence and specified modes
+            if file_exists:
+                if overwrite_bool:
+                    # Overwrite existing file
+                    with open(file_path, 'w', encoding="utf-8") as f:
+                        f.write(content)
+                    file_size = os.path.getsize(file_path)
+                    return f"File {file_path} overwritten successfully. Size: {file_size} bytes."
+                elif append_mode_bool:
+                    # Append to existing file
+                    with open(file_path, 'a', encoding="utf-8") as f:
+                        f.write(content)
+                    file_size = os.path.getsize(file_path)
+                    return f"File {file_path} appended to successfully. Size: {file_size} bytes."
+                else:
+                    # File exists but neither overwrite nor append mode specified
+                    return f"Error: File {file_path} already exists. Use overwrite=True to replace it or append_mode=True to add to it."
+            else:
+                # File doesn't exist, create it
+                with open(file_path, 'w', encoding="utf-8") as f:
+                    f.write(content)
+                file_size = os.path.getsize(file_path)
+                return f"File {file_path} created successfully. Size: {file_size} bytes."
 
-        except (ValueError, FileExistsError) as e:
-            logger.error(f"Write file error: {str(e)}")
-            raise
+        except ValueError as e:
+            error_msg = f"Write file error: {str(e)}"
+            logger.error(error_msg)
+            raise ValueError(error_msg)
         except Exception as e:
-            logger.error(f"Unexpected error writing file: {str(e)}")
-            raise ValueError(f"Failed to write file: {str(e)}")
+            error_msg = f"Unexpected error writing file: {str(e)}"
+            logger.error(error_msg)
+            raise Exception(f"Failed to write file: {str(e)}")
 
 
 if __name__ == "__main__":

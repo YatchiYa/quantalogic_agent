@@ -1,0 +1,608 @@
+{
+  "products": [
+    {
+      "id": "PROD-001",
+      "name": "SonicWave Pro Wireless Headphones",
+      "category": "electronics",
+      "price": "249.99",
+      "description": "Experience unparalleled audio quality with the SonicWave Pro Wireless Headphones. Featuring advanced active noise cancellation technology that blocks out 99.8% of ambient noise, 40mm custom-tuned drivers for rich bass and crystal-clear highs, and a comfortable over-ear design with memory foam ear cushions. Enjoy up to 30 hours of battery life on a single charge, with quick-charge capability providing 5 hours of playback from just 10 minutes of charging. Compatible with Bluetooth 5.2 and includes a built-in microphone with voice assistant support.",
+      "options": [
+        {
+          "name": "color",
+          "values": [
+            "Midnight Black",
+            "Arctic White",
+            "Ocean Blue",
+            "Graphite Gray",
+            "Rose Gold"
+          ]
+        },
+        {
+          "name": "warranty",
+          "values": [
+            "Standard 1-year",
+            "Extended 2-year (+€29.99)",
+            "Premium 3-year (+€49.99)"
+          ]
+        },
+        {
+          "name": "accessories",
+          "values": [
+            "None",
+            "Carrying Case (+€19.99)",
+            "Charging Stand (+€29.99)",
+            "Premium Bundle: Case + Stand (+€39.99)"
+          ]
+        }
+      ],
+      "specifications": {
+        "driver_size": "40mm",
+        "frequency_response": "4Hz-40kHz",
+        "impedance": "32 ohms",
+        "battery_life": "30 hours",
+        "charging_port": "USB-C",
+        "weight": "280g"
+      },
+      "image_url": "https://example.com/images/sonicwave_pro_headphones.jpg",
+      "rating": 4.8,
+      "reviews_count": 1243,
+      "in_stock": true,
+      "tags": ["noise-cancellation", "wireless", "premium", "high-fidelity"]
+    },
+    {
+      "id": "PROD-002",
+      "name": "VitalTrack Fitness Smartwatch",
+      "category": "wearables",
+      "price": "179.99",
+      "description": "Take control of your health and fitness with the VitalTrack Fitness Smartwatch. This advanced wearable features continuous heart rate monitoring, blood oxygen level tracking, sleep analysis, and over 120 workout modes. The vibrant 1.4-inch AMOLED display offers always-on functionality and is protected by Gorilla Glass. With built-in GPS, you can track your routes without carrying your phone. The watch is water-resistant up to 50 meters, making it perfect for swimming. Enjoy up to 14 days of battery life in normal mode and 30 hours in GPS mode. Seamlessly sync with the VitalTrack app to access detailed health insights and personalized coaching.",
+      "options": [
+        {
+          "name": "color",
+          "values": [
+            "Obsidian Black",
+            "Silver Frost",
+            "Rose Gold",
+            "Forest Green",
+            "Navy Blue"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "Small (125-165mm wrist)",
+            "Medium (145-185mm wrist)",
+            "Large (165-210mm wrist)"
+          ]
+        },
+        {
+          "name": "band_material",
+          "values": [
+            "Silicone Sport",
+            "Woven Nylon (+€15.99)",
+            "Leather (+€29.99)",
+            "Metal Link (+€39.99)"
+          ]
+        },
+        {
+          "name": "connectivity",
+          "values": [
+            "Bluetooth Only",
+            "Bluetooth + Cellular (+€50.00)"
+          ]
+        }
+      ],
+      "specifications": {
+        "display": "1.4-inch AMOLED",
+        "resolution": "454 x 454 pixels",
+        "sensors": "Heart rate, SpO2, accelerometer, gyroscope, altimeter",
+        "water_resistance": "5 ATM (50 meters)",
+        "battery_capacity": "420mAh",
+        "charging_time": "2 hours"
+      },
+      "image_url": "https://example.com/images/vitaltrack_smartwatch.jpg",
+      "rating": 4.7,
+      "reviews_count": 892,
+      "in_stock": true,
+      "tags": ["fitness", "health-tracking", "gps", "waterproof"]
+    },
+    {
+      "id": "PROD-003",
+      "name": "UltraSlim X15 Laptop",
+      "category": "electronics",
+      "price": "1299.99",
+      "description": "The UltraSlim X15 redefines portable computing with its exceptional blend of power and elegance. At just 13.9mm thin and weighing only 1.2kg, this premium laptop features a stunning 15.6-inch 4K OLED display with 100% DCI-P3 color accuracy, perfect for creative professionals. Powered by the latest 12th Gen Intel Core i7 processor and NVIDIA RTX 3060 graphics, it handles demanding tasks with ease. The backlit keyboard with 1.5mm key travel provides a comfortable typing experience, while the precision glass trackpad offers smooth navigation. With up to 16 hours of battery life and rapid charging technology, you can stay productive all day. The laptop includes Thunderbolt 4, USB-C, HDMI, and a microSD card reader for versatile connectivity options.",
+      "options": [
+        {
+          "name": "processor",
+          "values": [
+            "Intel Core i5-12500H",
+            "Intel Core i7-12700H (+€200)",
+            "Intel Core i9-12900H (+€400)"
+          ]
+        },
+        {
+          "name": "memory",
+          "values": [
+            "16GB DDR5",
+            "32GB DDR5 (+€150)",
+            "64GB DDR5 (+€300)"
+          ]
+        },
+        {
+          "name": "storage",
+          "values": [
+            "512GB NVMe SSD",
+            "1TB NVMe SSD (+€100)",
+            "2TB NVMe SSD (+€250)"
+          ]
+        },
+        {
+          "name": "display",
+          "values": [
+            "15.6-inch 4K OLED",
+            "15.6-inch 4K OLED Touch (+€150)"
+          ]
+        },
+        {
+          "name": "color",
+          "values": [
+            "Graphite Gray",
+            "Platinum Silver",
+            "Midnight Blue"
+          ]
+        },
+        {
+          "name": "warranty",
+          "values": [
+            "Standard 1-year",
+            "Extended 3-year (+€199)",
+            "Premium 3-year with Accidental Damage Protection (+€299)"
+          ]
+        }
+      ],
+      "specifications": {
+        "processor": "12th Gen Intel Core i7",
+        "graphics": "NVIDIA RTX 3060 6GB",
+        "memory": "16GB DDR5",
+        "storage": "512GB NVMe SSD",
+        "display": "15.6-inch 4K OLED",
+        "battery": "80Wh",
+        "ports": "2x Thunderbolt 4, 1x USB-C, 1x HDMI, microSD card reader",
+        "dimensions": "355.7 x 248.3 x 13.9mm",
+        "weight": "1.2kg"
+      },
+      "image_url": "https://example.com/images/ultraslim_x15_laptop.jpg",
+      "rating": 4.9,
+      "reviews_count": 578,
+      "in_stock": true,
+      "tags": ["ultrabook", "premium", "4k", "gaming", "productivity"]
+    },
+    {
+      "id": "PROD-004",
+      "name": "ProChef Ceramic Cookware Set",
+      "category": "kitchen",
+      "price": "349.99",
+      "description": "Elevate your culinary experience with the ProChef Ceramic Cookware Set. This comprehensive 12-piece collection features premium ceramic-coated cookware that combines exceptional non-stick performance with durability. The innovative ceramic coating is PFOA and PTFE-free, ensuring your cooking remains healthy and eco-friendly. Each piece is constructed with a heavy-gauge aluminum core for rapid, even heating and features ergonomic stainless steel handles that stay cool during stovetop use. The tempered glass lids allow you to monitor cooking progress without releasing heat or moisture. Compatible with all cooktop surfaces including induction, gas, electric, and ceramic. Oven-safe up to 450°F (230°C) and dishwasher-safe for easy cleanup.",
+      "options": [
+        {
+          "name": "color",
+          "values": [
+            "Classic White",
+            "Midnight Black",
+            "Terracotta Red",
+            "Sage Green"
+          ]
+        },
+        {
+          "name": "set_configuration",
+          "values": [
+            "Essential 8-piece Set (€249.99)",
+            "Standard 12-piece Set (€349.99)",
+            "Professional 16-piece Set (€449.99)"
+          ]
+        },
+        {
+          "name": "add_ons",
+          "values": [
+            "None",
+            "Utensil Set (+€39.99)",
+            "Knife Block Set (+€89.99)",
+            "Complete Kitchen Bundle: Utensils + Knives (+€119.99)"
+          ]
+        }
+      ],
+      "specifications": {
+        "material": "Ceramic-coated aluminum",
+        "includes": "10-inch fry pan, 12-inch fry pan with lid, 1.5-quart saucepan with lid, 2.5-quart saucepan with lid, 3-quart saute pan with lid, 8-quart stockpot with lid",
+        "compatibility": "All cooktops including induction",
+        "oven_safe": "Up to 450°F (230°C)",
+        "dishwasher_safe": "Yes",
+        "warranty": "Limited lifetime"
+      },
+      "image_url": "https://example.com/images/prochef_cookware_set.jpg",
+      "rating": 4.7,
+      "reviews_count": 1056,
+      "in_stock": true,
+      "tags": ["ceramic", "non-stick", "eco-friendly", "induction-compatible"]
+    },
+    {
+      "id": "PROD-005",
+      "name": "AeroGlide Pro Electric Scooter",
+      "category": "sports",
+      "price": "699.99",
+      "description": "Revolutionize your urban commute with the AeroGlide Pro Electric Scooter. Engineered for the modern city dweller, this premium e-scooter combines power, range, and safety in a sleek, foldable design. The brushless 500W motor delivers speeds up to 25 mph (40 km/h) and easily tackles inclines of up to 20 degrees. The high-capacity 48V lithium battery provides an impressive range of up to 40 miles (65 km) on a single charge. Featuring 10-inch pneumatic tires with built-in shock absorption, the AeroGlide Pro ensures a smooth ride even on uneven surfaces. The dual braking system (electronic + disc) offers reliable stopping power, while the integrated LED lighting system with headlight, taillight, and side strips ensures visibility in low-light conditions. The intuitive LED dashboard displays speed, battery level, and riding mode, with Bluetooth connectivity allowing you to customize settings through the companion app.",
+      "options": [
+        {
+          "name": "color",
+          "values": [
+            "Stealth Black",
+            "Urban Gray",
+            "Electric Blue"
+          ]
+        },
+        {
+          "name": "battery",
+          "values": [
+            "Standard Range (40 miles)",
+            "Extended Range (60 miles) (+€200)"
+          ]
+        },
+        {
+          "name": "accessories",
+          "values": [
+            "None",
+            "Phone Mount (+€29.99)",
+            "Security Lock (+€39.99)",
+            "Carrying Bag (+€49.99)",
+            "Commuter Bundle: Mount + Lock + Bag (+€99.99)"
+          ]
+        },
+        {
+          "name": "warranty",
+          "values": [
+            "Standard 1-year",
+            "Extended 2-year (+€79.99)"
+          ]
+        }
+      ],
+      "specifications": {
+        "motor": "500W brushless",
+        "max_speed": "25 mph (40 km/h)",
+        "range": "40 miles (65 km)",
+        "battery": "48V 15Ah lithium",
+        "charging_time": "6 hours",
+        "max_load": "265 lbs (120 kg)",
+        "tires": "10-inch pneumatic",
+        "weight": "42 lbs (19 kg)",
+        "folded_dimensions": "45 x 17 x 19 inches"
+      },
+      "image_url": "https://example.com/images/aeroglide_pro_scooter.jpg",
+      "rating": 4.8,
+      "reviews_count": 723,
+      "in_stock": true,
+      "tags": ["electric", "commuting", "foldable", "eco-friendly"]
+    },
+    {
+      "id": "PROD-006",
+      "name": "LuxeComfort Ergonomic Office Chair",
+      "category": "home",
+      "price": "399.99",
+      "description": "Transform your workspace with the LuxeComfort Ergonomic Office Chair, designed to provide exceptional comfort and support during long work sessions. The chair features a dynamic lumbar support system that automatically adjusts to your movements, maintaining proper spinal alignment throughout the day. The breathable mesh backrest promotes airflow to keep you cool, while the contoured memory foam seat cushion distributes weight evenly to eliminate pressure points. With 4D adjustable armrests, you can customize the height, width, depth, and angle to find your perfect position. The synchronized tilt mechanism with tension control allows you to recline smoothly, with five lockable positions. The chair's aluminum base and premium casters ensure stability and smooth movement on any surface. Certified by ergonomists and backed by a 10-year warranty, the LuxeComfort chair is an investment in your productivity and well-being.",
+      "options": [
+        {
+          "name": "color",
+          "values": [
+            "Classic Black",
+            "Platinum Gray",
+            "Navy Blue",
+            "Burgundy"
+          ]
+        },
+        {
+          "name": "headrest",
+          "values": [
+            "Without Headrest",
+            "With Adjustable Headrest (+€50)"
+          ]
+        },
+        {
+          "name": "base",
+          "values": [
+            "Standard Aluminum",
+            "Polished Aluminum (+€30)",
+            "Matte Black Aluminum (+€30)"
+          ]
+        },
+        {
+          "name": "casters",
+          "values": [
+            "Standard (Carpet)",
+            "Soft (Hard Floors) (+€15)",
+            "Locking (+€20)"
+          ]
+        }
+      ],
+      "specifications": {
+        "weight_capacity": "300 lbs (136 kg)",
+        "seat_height": "17-21 inches (adjustable)",
+        "backrest_height": "30 inches",
+        "seat_dimensions": "20 x 19 inches",
+        "armrest_adjustment": "4D (height, width, depth, angle)",
+        "materials": "Mesh back, memory foam seat, aluminum base",
+        "warranty": "10-year limited"
+      },
+      "image_url": "https://example.com/images/luxecomfort_chair.jpg",
+      "rating": 4.7,
+      "reviews_count": 1289,
+      "in_stock": true,
+      "tags": ["ergonomic", "office", "lumbar-support", "adjustable"]
+    },
+    {
+      "id": "PROD-007",
+      "name": "ArtisanBlend Specialty Coffee Sampler",
+      "category": "food",
+      "price": "49.99",
+      "description": "Embark on a global coffee journey with the ArtisanBlend Specialty Coffee Sampler. This curated collection features six premium single-origin coffees from renowned growing regions around the world. Each coffee is ethically sourced directly from small-scale farmers and roasted in small batches to highlight its unique flavor profile. The sampler includes detailed tasting notes, brewing recommendations, and the story behind each origin. From the bright, fruity notes of Ethiopian Yirgacheffe to the chocolate and caramel undertones of Colombian Supremo, this collection offers coffee enthusiasts an opportunity to explore the diverse world of specialty coffee. All beans are roasted within 48 hours of shipping to ensure maximum freshness and are packaged in resealable bags with one-way degassing valves to preserve flavor. Perfect as a gift for coffee lovers or as a treat for yourself.",
+      "options": [
+        {
+          "name": "size",
+          "values": [
+            "Discovery (6 x 100g)",
+            "Enthusiast (6 x 250g) (+€30)",
+            "Connoisseur (6 x 500g) (+€70)"
+          ]
+        },
+        {
+          "name": "roast_level",
+          "values": [
+            "Light",
+            "Medium",
+            "Dark",
+            "Mixed Selection"
+          ]
+        },
+        {
+          "name": "grind",
+          "values": [
+            "Whole Bean",
+            "Espresso",
+            "Pour Over",
+            "French Press",
+            "Drip"
+          ]
+        },
+        {
+          "name": "subscription",
+          "values": [
+            "One-time Purchase",
+            "Monthly Subscription (Save 10%)",
+            "Bi-monthly Subscription (Save 8%)"
+          ]
+        }
+      ],
+      "specifications": {
+        "origins": "Ethiopia, Colombia, Guatemala, Costa Rica, Sumatra, Kenya",
+        "certifications": "Fair Trade, Organic, Rainforest Alliance",
+        "roast_date": "Within 48 hours of shipping",
+        "packaging": "Resealable bags with degassing valves",
+        "shelf_life": "Best within 6 weeks of roast date",
+        "includes": "Tasting notes, brewing guide, origin stories"
+      },
+      "image_url": "https://example.com/images/artisanblend_coffee.jpg",
+      "rating": 4.9,
+      "reviews_count": 842,
+      "in_stock": true,
+      "tags": ["coffee", "specialty", "single-origin", "gift", "organic"]
+    },
+    {
+      "id": "PROD-008",
+      "name": "TechGlow Smart LED Light Strip",
+      "category": "electronics",
+      "price": "59.99",
+      "description": "Transform your living space with the TechGlow Smart LED Light Strip, the ultimate lighting solution for creating personalized ambiance. This versatile 5-meter strip features millions of colors and multiple white temperature options, allowing you to perfectly match any mood or decor. The advanced RGBIC technology enables multiple color segments on a single strip, creating dynamic effects impossible with standard RGB strips. Control your lighting through the intuitive smartphone app, voice commands (compatible with Alexa, Google Assistant, and HomeKit), or the included remote control. Create custom scenes, sync with music for pulsating light shows, or set schedules for automated lighting throughout the day. The strip is easily installed with the strong 3M adhesive backing and can be cut at marked intervals to fit your space perfectly. With a lifespan of over 50,000 hours and energy-efficient LEDs, the TechGlow strip provides long-lasting, economical illumination for your home.",
+      "options": [
+        {
+          "name": "length",
+          "values": [
+            "5 meters (16.4 ft)",
+            "10 meters (32.8 ft) (+€40)",
+            "15 meters (49.2 ft) (+€80)"
+          ]
+        },
+        {
+          "name": "power_adapter",
+          "values": [
+            "Standard (EU)",
+            "UK (+€5)",
+            "US (+€5)"
+          ]
+        },
+        {
+          "name": "controller",
+          "values": [
+            "Standard Wi-Fi Controller",
+            "Premium Controller with Mic (+€15)"
+          ]
+        },
+        {
+          "name": "accessories",
+          "values": [
+            "None",
+            "Corner Connectors Set (+€9.99)",
+            "Extension Cables (+€12.99)",
+            "Installation Kit: Clips, Connectors, Extensions (+€19.99)"
+          ]
+        }
+      ],
+      "specifications": {
+        "technology": "RGBIC (Independent Color Control)",
+        "colors": "16 million+ colors, 2700K-6500K whites",
+        "brightness": "800 lumens per meter",
+        "connectivity": "Wi-Fi 2.4GHz, Bluetooth",
+        "compatibility": "Alexa, Google Assistant, HomeKit",
+        "power_consumption": "24W for 5m strip",
+        "waterproof_rating": "IP65 (suitable for bathrooms, kitchens)",
+        "lifespan": "50,000+ hours"
+      },
+      "image_url": "https://example.com/images/techglow_light_strip.jpg",
+      "rating": 4.6,
+      "reviews_count": 1567,
+      "in_stock": true,
+      "tags": ["smart-home", "lighting", "customizable", "voice-control"]
+    },
+    {
+      "id": "PROD-009",
+      "name": "NatureEssence Organic Skincare Collection",
+      "category": "lifestyle",
+      "price": "129.99",
+      "description": "Indulge in the luxury of nature with the NatureEssence Organic Skincare Collection, a comprehensive set of premium skincare products formulated with certified organic ingredients. Each product in this collection is carefully crafted to nourish, rejuvenate, and protect your skin using the power of botanical extracts, essential oils, and antioxidant-rich superfoods. Free from parabens, sulfates, synthetic fragrances, and artificial colors, these gentle yet effective formulations are suitable for all skin types, including sensitive skin. The collection features a cleanser, toner, serum, moisturizer, and eye cream, providing a complete skincare routine in one elegant package. All products are cruelty-free, vegan, and packaged in eco-friendly materials, reflecting our commitment to both your skin's health and the environment. Experience the transformative benefits of organic skincare and reveal your natural radiance with NatureEssence.",
+      "options": [
+        {
+          "name": "skin_type",
+          "values": [
+            "Normal/Combination",
+            "Dry/Sensitive",
+            "Oily/Acne-Prone",
+            "Mature/Anti-Aging"
+          ]
+        },
+        {
+          "name": "size",
+          "values": [
+            "Standard Size",
+            "Travel Size Set (€79.99)",
+            "Deluxe Size (+€50)"
+          ]
+        },
+        {
+          "name": "add_ons",
+          "values": [
+            "None",
+            "Exfoliating Mask (+€24.99)",
+            "Hydrating Face Mist (+€19.99)",
+            "Lip Treatment (+€14.99)",
+            "Complete Add-on Set: Mask, Mist, Lip Treatment (+€49.99)"
+          ]
+        },
+        {
+          "name": "subscription",
+          "values": [
+            "One-time Purchase",
+            "Quarterly Subscription (Save 15%)",
+            "Monthly Subscription (Save 20%)"
+          ]
+        }
+      ],
+      "specifications": {
+        "includes": "Gentle Cleansing Milk (120ml), Balancing Facial Toner (120ml), Revitalizing Serum (30ml), Nourishing Day/Night Cream (50ml), Rejuvenating Eye Cream (15ml)",
+        "key_ingredients": "Aloe vera, jojoba oil, hyaluronic acid, vitamin C, rosehip oil, green tea extract",
+        "certifications": "USDA Organic, Ecocert, Cruelty-Free, Vegan",
+        "shelf_life": "12 months unopened, 6 months after opening",
+        "packaging": "Recyclable glass bottles, biodegradable boxes",
+        "made_in": "Small-batch production in France"
+      },
+      "image_url": "https://example.com/images/natureessence_skincare.jpg",
+      "rating": 4.8,
+      "reviews_count": 976,
+      "in_stock": true,
+      "tags": ["organic", "skincare", "vegan", "cruelty-free", "eco-friendly"]
+    },
+    {
+      "id": "PROD-010",
+      "name": "PowerCore Portable Solar Generator",
+      "category": "electronics",
+      "price": "799.99",
+      "description": "Embrace energy independence with the PowerCore Portable Solar Generator, your reliable power solution for outdoor adventures, emergency backup, and off-grid living. This compact yet powerful generator features a high-capacity 1000Wh lithium battery that can be recharged via solar panels, wall outlet, or car charger. With multiple output options including AC outlets (pure sine wave), USB-A, USB-C with Power Delivery, and 12V DC ports, it can power everything from smartphones and laptops to small appliances and medical devices. The intuitive LCD display shows real-time power input/output, battery level, and estimated runtime. The PowerCore's Battery Management System provides comprehensive protection against overcharging, over-discharging, short-circuit, and temperature extremes, ensuring safe operation in any environment. Weighing just 22 pounds with a sturdy handle, this generator combines portability with impressive power capacity. Whether you're camping in the wilderness, preparing for emergencies, or reducing your carbon footprint, the PowerCore delivers clean, reliable energy wherever you need it.",
+      "options": [
+        {
+          "name": "capacity",
+          "values": [
+            "500Wh (€499.99)",
+            "1000Wh (€799.99)",
+            "1500Wh (+€300)"
+          ]
+        },
+        {
+          "name": "solar_panel",
+          "values": [
+            "Without Solar Panel",
+            "With 100W Foldable Solar Panel (+€249.99)",
+            "With 200W Foldable Solar Panel (+€399.99)"
+          ]
+        },
+        {
+          "name": "accessories",
+          "values": [
+            "None",
+            "Car Charging Cable (+€29.99)",
+            "AC Fast Charger (+€49.99)",
+            "Extension Cable Set (+€39.99)",
+            "Complete Accessory Kit (+€99.99)"
+          ]
+        },
+        {
+          "name": "warranty",
+          "values": [
+            "Standard 2-year",
+            "Extended 5-year (+€99.99)"
+          ]
+        }
+      ],
+      "specifications": {
+        "battery_capacity": "1000Wh (270,270mAh, 3.7V)",
+        "battery_type": "Lithium-ion NMC",
+        "ac_output": "2x 110V AC, 1000W (2000W surge)",
+        "usb_output": "2x USB-A (5V/2.4A), 2x USB-C PD (60W)",
+        "dc_output": "1x car port (12V/10A), 2x DC5521 (12V/3A)",
+        "recharge_time": "Wall: 6-7 hours, Solar (200W): 5-6 hours (optimal conditions)",
+        "lifecycle": "800+ cycles to 80% capacity",
+        "dimensions": "11.8 x 8.3 x 8.6 inches",
+        "weight": "22 lbs (10 kg)",
+        "operating_temperature": "14-104°F (-10-40°C)"
+      },
+      "image_url": "https://example.com/images/powercore_generator.jpg",
+      "rating": 4.7,
+      "reviews_count": 683,
+      "in_stock": true,
+      "tags": ["solar", "portable-power", "emergency", "off-grid", "camping"]
+    }
+  ],
+  "categories": [
+    {
+      "id": "electronics",
+      "name": "Electronics",
+      "description": "Cutting-edge electronic devices including audio equipment, computers, smart home devices, and power solutions."
+    },
+    {
+      "id": "wearables",
+      "name": "Wearables",
+      "description": "Smart devices designed to be worn, including fitness trackers, smartwatches, and health monitoring devices."
+    },
+    {
+      "id": "food",
+      "name": "Food & Beverages",
+      "description": "Premium food products including specialty coffee, teas, gourmet ingredients, and culinary collections."
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen & Dining",
+      "description": "High-quality cookware, kitchen appliances, and dining essentials for the modern home chef."
+    },
+    {
+      "id": "home",
+      "name": "Home & Office",
+      "description": "Furniture, decor, and accessories designed to enhance comfort and productivity in home and work environments."
+    },
+    {
+      "id": "sports",
+      "name": "Sports & Outdoors",
+      "description": "Equipment and accessories for sports, fitness, and outdoor activities, from urban commuting to wilderness adventures."
+    },
+    {
+      "id": "lifestyle",
+      "name": "Lifestyle & Wellness",
+      "description": "Products that enhance personal wellbeing, including skincare, aromatherapy, and self-care collections."
+    }
+  ],
+  "last_updated": "2025-05-06T14:30:00Z"
+}

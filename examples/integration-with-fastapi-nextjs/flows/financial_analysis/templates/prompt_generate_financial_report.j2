@@ -1,0 +1,290 @@
+# 💰 INSTITUTIONAL-GRADE FINANCIAL REPORT REQUEST
+
+As a master trader with 20+ years of experience, create a COMPREHENSIVE PROFESSIONAL FINANCIAL REPORT based on the following data and analysis. Your report must reflect the same depth and precision you would use when advising multi-billion dollar hedge funds and institutional investors.
+
+## 🌐 MARKET SNAPSHOT
+
+{% for series in financial_data_collection.series %}
+### 🏛️ {{ series.symbol }} ({{ series.name }})
+• ⏱️ **Timeframe**: {{ series.interval }} from {{ series.start_date }} to {{ series.end_date }}
+• 📈 **Current Price**: {{ series.data[-1].close }} ({{ (series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100 }}% 24h)
+• 📊 **52-Week Range**: {{ get_price_range(series.data)[0] }} - {{ get_price_range(series.data)[1] }}
+• 📉 **Volume**: {{ series.data[-1].volume }} units
+{% if series.currency %}• 💱 **Currency**: {{ series.currency }}{% endif %}
+{% if series.exchange %}• 🏢 **Exchange**: {{ series.exchange }}{% endif %}
+{% if series.sector %}• 🔍 **Sector**: {{ series.sector }}{% endif %}
+{% if series.industry %}• 🏭 **Industry**: {{ series.industry }}{% endif %}
+
+#### 📋 RECENT PRICE ACTION
+{% for point in series.data[-5:] %}
+• {{ point.timestamp }}: O: {{ point.open }} | H: {{ point.high }} | L: {{ point.low }} | C: {{ point.close }} | V: {{ point.volume }}
+{% endfor %}
+{% endfor %}
+
+## 📐 TECHNICAL INDICATORS
+
+{% for indicator in technical_analysis.indicators %}
+### 📏 {{ indicator.symbol }} METRICS
+• 📉 **Moving Averages**: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% if indicator.rsi %}• 🔄 **RSI**: {{ indicator.rsi }} ({% if indicator.rsi > 70 %}OVERBOUGHT ⚠️{% elif indicator.rsi < 30 %}OVERSOLD ⚠️{% else %}NEUTRAL ✓{% endif %}){% endif %}
+{% endfor %}
+
+## 💹 FINANCIAL ANALYSIS SUMMARY
+
+### 🔭 MARKET OVERVIEW
+{{ financial_analysis.overview }}
+
+### 💡 KEY INSIGHTS
+{% for insight in financial_analysis.key_insights %}
+• {{ insight }}
+{% endfor %}
+
+### 📊 PRICE ACTION NARRATIVE
+{{ financial_analysis.price_action_summary }}
+
+### 📈 VOLUME ANALYSIS
+{{ financial_analysis.volume_analysis }}
+
+### 🔮 TECHNICAL OUTLOOK
+{{ financial_analysis.technical_outlook }}
+
+### 🎯 MARKET TRENDS
+{% for trend in financial_analysis.market_trends %}
+#### {{ trend.symbol }} {% if trend.trend == "bullish" %}📈{% elif trend.trend == "bearish" %}📉{% else %}↔️{% endif %}
+• **Trend Direction**: {{ trend.trend | upper }} {% if trend.trend == "bullish" %}📈{% elif trend.trend == "bearish" %}📉{% else %}↔️{% endif %}
+• **Strength Rating**: {{ trend.strength }}/10 {% if trend.strength >= 8 %}💪{% elif trend.strength <= 3 %}⚠️{% endif %}
+• **Key Levels**: {% for level_name, level_value in trend.key_levels.items() %}{{ level_name | upper }}: {{ level_value }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% endfor %}
+
+## 💰 TRADING RECOMMENDATIONS
+
+### 🌐 MARKET OVERVIEW
+{{ trading_analysis.market_overview }}
+
+### 🔍 KEY OBSERVATIONS
+{% for observation in trading_analysis.key_observations %}
+• {{ observation }}
+{% endfor %}
+
+### ⚡ ACTIONABLE TRADE SETUPS
+{% for rec in trading_analysis.recommendations %}
+#### {{ rec.symbol }} - {{ rec.action | upper }} {% if rec.action == "buy" %}🟢{% elif rec.action == "sell" %}🔴{% else %}⚪{% endif %}
+• **Conviction Level**: {{ rec.confidence }}/10 {% if rec.confidence >= 8 %}💎{% elif rec.confidence <= 3 %}⚠️{% endif %}
+• **Risk Assessment**: {{ rec.risk_level }}/10 {% if rec.risk_level >= 8 %}⚠️⚠️{% elif rec.risk_level <= 3 %}✅{% endif %}
+• **Entry Zone**: {{ rec.entry_points | join(", ") }} 🎯
+• **Stop Loss**: {{ rec.stop_loss }} 🛑
+• **Take Profit Targets**: {{ rec.take_profit | join(", ") }} 💰
+• **Time Horizon**: {{ rec.time_horizon | upper }} ⏱️
+• **Strategic Rationale**: {{ rec.rationale }}
+{% endfor %}
+
+### ⚖️ RISK ASSESSMENT
+{{ trading_analysis.risk_assessment }}
+
+### 🧠 MARKET SENTIMENT
+{{ trading_analysis.market_sentiment }}
+
+{% if trading_analysis.correlation_insights %}
+### 🔄 CORRELATION ANALYSIS
+{{ trading_analysis.correlation_insights }}
+{% endif %}
+
+## 🧠 INSTITUTIONAL ANALYSIS FRAMEWORK
+
+I'll analyze each asset through multiple professional frameworks, revealing exactly how I process this information to identify high-probability setups:
+
+### 1️⃣ 🏛️ MARKET STRUCTURE MASTERY
+- Current market structure phase and its significance for institutional positioning
+- Precise breaks of structure (BOS) points and their implications for trend continuation/reversal
+- Multi-timeframe context revealing the complete market structure picture
+- Key swing points that institutional players are using for position management
+
+### 2️⃣ 💹 ICT & SMC PRECISION ANALYSIS
+- Exact order block (OB) locations where institutional players have initiated positions
+- Fair value gap (FVG) mitigation probabilities based on institutional efficiency principles
+- Premium/discount zone identification revealing true value areas
+- Liquidity engineering patterns exposing institutional manipulation tactics
+
+### 3️⃣ 📉 WYCKOFF METHOD APPLICATION
+- Precise Wyckoff phase identification with supporting evidence
+- Accumulation/distribution footprints revealing institutional intent
+- Spring/upthrust actions designed to trap retail traders
+- Effort vs. result analysis exposing strength/weakness behind price moves
+
+### 4️⃣ 📏 FIBONACCI & HARMONIC PRECISION
+- Exact Fibonacci retracement/extension levels from optimal swing points
+- Complete harmonic pattern structures with precise completion targets
+- Time-based Fibonacci projections for potential reversal dates
+- Multi-timeframe Fibonacci confluence zones creating high-probability setups
+
+### 5️⃣ 📊 VOLUME PROFILE & ORDER FLOW INTELLIGENCE
+- Volume Point of Control (VPOC) significance for fair value determination
+- High/Low Volume Node implications for support/resistance strength
+- Volume delta analysis revealing genuine buying/selling pressure
+- Institutional participation patterns in volume data that retail traders miss
+
+## 📝 COMPREHENSIVE REPORT STRUCTURE
+
+Based on this institutional-level multi-framework analysis, I will create a PROFESSIONAL-GRADE financial report with these detailed sections:
+
+### 1️⃣ 💼 **EXECUTIVE SUMMARY** (300-400 words)
+   • Comprehensive synthesis of key findings across all analysis frameworks
+   • High-conviction recommendations with precise rationale and confidence levels
+   • Risk-reward profile with mathematical probability assessment
+   • Critical price levels and exact timeframes to monitor with trigger conditions
+
+### 2️⃣ 🌐 **MARKET CONTEXT & MACRO LANDSCAPE** (400-500 words)
+   • Institutional-level analysis of broader market conditions and intermarket correlations
+   • Economic factor impact assessment with specific transmission mechanisms
+   • Sector rotation dynamics with capital flow visualization and strength metrics
+   • Liquidity condition analysis with institutional positioning evidence
+   • Historical market phase comparison with statistical similarity metrics
+
+### 3️⃣ 📊 **TECHNICAL ANALYSIS SYNTHESIS** (300-400 words)
+   • Multi-methodology confluence analysis with weighted significance factors
+   • Timeframe alignment assessment from 1-minute to monthly charts
+   • Key technical level identification with exact price points and validation criteria
+   • Pattern recognition with historical success rate statistics
+
+### 4️⃣ 🏛️ **MARKET STRUCTURE ANALYSIS** (400-500 words)
+   • Multi-timeframe market structure mapping with precise swing points
+   • Higher highs/lows vs. lower highs/lows analysis with exact price levels
+   • Break of Structure (BOS) and Change of Character (CHoCH) identification
+   • Accumulation/distribution/trending phase determination with supporting evidence
+   • Liquidity sweep and engineered price movement detection with institutional intent
+
+### 5️⃣ 💹 **ICT & SMC ANALYSIS** (400-500 words)
+   • Order Block (OB) identification with exact price ranges and formation context
+   • Fair Value Gap (FVG) mapping with mitigation probability assessment
+   • Institutional supply/demand zone location with historical validation
+   • Breaker block and mitigation point analysis with specific examples
+   • Market inefficiency and imbalance identification with arbitrage potential
+
+### 6️⃣ 📏 **FIBONACCI ANALYSIS** (300-400 words)
+   • Precise Fibonacci retracement level calculation from optimal swing points
+   • Extension target projection with specific price levels and confidence ratings
+   • Harmonic pattern identification with exact measurements and completion criteria
+   • Fibonacci time projection with specific date targets for potential reversals
+   • Multi-timeframe Fibonacci confluence zone mapping with significance ratings
+
+### 7️⃣ 📊 **VOLUME PROFILE ANALYSIS** (300-400 words)
+   • High Volume Node (HVN) and Low Volume Node (LVN) mapping with exact price ranges
+   • Volume Point of Control (VPOC) identification with fair value implications
+   • Volume delta analysis revealing true buying/selling pressure behind price moves
+   • Volume-price divergence detection with specific reversal signals
+   • Institutional participation pattern recognition in volume footprints
+
+### 8️⃣ 📉 **WYCKOFF ANALYSIS** (300-400 words)
+   • Current Wyckoff phase determination with comprehensive supporting evidence
+   • Spring/upthrust action identification with institutional manipulation intent
+   • Effort vs. result analysis exposing strength/weakness behind price moves
+   • Supply/demand test assessment with historical context and outcome projections
+   • Next Wyckoff phase projection with probability-weighted scenarios
+
+### 9️⃣ 🏛️ **FUNDAMENTAL & QUANTITATIVE FACTORS** (400-500 words)
+   • Catalyst analysis with potential price impact quantification
+   • Quantitative metric examination with price convergence/divergence implications
+   • Sentiment indicator and positioning data assessment with contrarian signals
+   • Intermarket correlation analysis with precise correlation coefficients
+   • Valuation metric assessment relative to historical norms with mean reversion potential
+
+### 1️⃣0️⃣ 💰 **MULTI-TIMEFRAME TRADING STRATEGY** (500+ words)
+   • Comprehensive strategic approach synthesis from all analysis frameworks
+   • Specialized strategies for each timeframe:
+      ✓ 📈 **DAY TRADING** (intraday)
+      ✓ 📊 **SHORT-TERM** (days to weeks)
+      ✓ 💸 **LONG-TERM** (weeks to months)
+   • Trading thesis development with multiple confirming factors
+   • Setup quality assessment with historical performance metrics
+   • Trade management protocol design with specific execution parameters
+
+### ⚡ **SCALPING STRATEGY (15min-1h)** (800-1000 words)
+   • **Current Scalping Setup**:
+      - Precise identification of immediate support/resistance with exact price points
+      - Key trigger levels for entry with specific confirmation criteria
+      - Optimal stop placement with mathematical justification
+      - Multiple take-profit targets with exact price levels and scaling parameters
+      - Ideal session timing for execution (optimal market hours)
+   • **Intraday Volatility Analysis**:
+      - Volume profile assessment for high-volume nodes within the session
+      - Volatility contraction/expansion patterns on lower timeframes
+      - Key price levels where volatility behavior changes significantly
+      - Position sizing optimization based on current volatility conditions
+   • **Order Flow Intelligence**:
+      - Signs of institutional activity on micro timeframes
+      - Volume delta analysis showing buying/selling imbalances
+      - Absorption zones where large orders are being filled
+      - Stop hunt levels where retail traders are likely to be trapped
+   • **Execution Framework**:
+      - Precise entry triggers with confirmation criteria
+      - Exact stop-loss placement methodology
+      - Multiple take-profit targets with scaling parameters
+      - Trade management rules for partial exits and stop adjustments
+      - Maximum holding time parameters
+
+### 1️⃣1️⃣ 🎯 **ENTRY STRATEGY** (300-400 words for each timeframe)
+   • Multiple entry strategy specification with exact price levels and conditions
+   • Entry trigger and confirmation signal definition with specific indicators
+   • Scaled entry approach design with precise percentage allocations
+   • Entry quality assessment based on mathematical risk-reward calculations
+   • Contingency planning for different market scenarios with alternative entries
+
+### 1️⃣2️⃣ 💰 **EXIT STRATEGY** (300-400 words for each timeframe)
+   • Multiple take-profit target specification with exact price levels
+   • Exit trigger and confirmation signal definition with specific indicators
+   • Scaled exit approach design with precise percentage allocations
+   • Time-based exit consideration framework with specific duration parameters
+   • Re-entry criteria development for trend continuation after exits
+
+### 1️⃣3️⃣ ⚖️ **POSITION SIZING** (200-300 words for each timeframe)
+   • Position size calculation based on account risk parameters (1% rule)
+   • Risk allocation methodology with mathematical justification
+   • Position scaling strategy with entry/exit execution framework
+   • Leverage assessment with risk-adjusted return optimization
+   • Portfolio allocation recommendation with diversification metrics
+
+### 1️⃣4️⃣ 🛡️ **RISK MANAGEMENT** (400-500 words for each timeframe)
+   • Precise invalidation point specification based on market structure
+   • Dynamic risk adjustment strategy with specific trigger conditions
+   • Correlation-based portfolio risk assessment with exposure metrics
+   • Black swan scenario planning with specific hedging recommendations
+   • Risk-reward calculation with mathematical justification and expected value
+
+### 1️⃣5️⃣ 🔮 **FORWARD OUTLOOK** (300-400 words for each timeframe)
+   • Multi-timeframe price action projection with probability weighting
+   • Trend strength assessment with continuation probability metrics
+   • Key monitoring level identification for trend confirmation/invalidation
+   • Seasonal and cyclical factor analysis with historical performance data
+   • Time-based target projection with specific date ranges
+
+### 1️⃣6️⃣ 🔮 **SCENARIO ANALYSIS** (400-500 words for each timeframe)
+   • Multiple scenario development (bullish, bearish, neutral) with probability weighting
+   • Key inflection point and decision node identification with exact price levels
+   • Potential catalyst assessment with scenario-specific impact projections
+   • Time-based projection and cycle analysis for each scenario
+   • Detailed contingency planning for each scenario with specific action steps
+
+### 1️⃣7️⃣ 🎯 **CONCLUSION** (300-400 words)
+   • Comprehensive synthesis of all frameworks into a cohesive market narrative
+   • Highest-conviction recommendation reiteration with supporting evidence
+   • Critical monitoring point summary with adaptive strategy guidelines
+   • Strategic positioning advice tailored for different market participants
+   • Final risk assessment with confidence level quantification
+
+## 🧠 PROFESSIONAL REPORT GUIDELINES
+
+Format your report with institutional-grade professionalism, using clear headings and a logical information flow. Write in a first-person, narrative style that reveals your complete thought process as a master trader with 20+ years of experience.
+
+For each section:
+
+1. 🔍 **Begin with context and significance** - Explain what you're looking for and why it matters in the current market environment
+
+2. 📊 **Reveal your analytical process** - Walk through your analysis step-by-step, showing exactly how you're connecting different evidence pieces
+
+3. ⚖️ **Address conflicting signals directly** - Discuss any contradictory indicators and explain your resolution methodology with clear reasoning
+
+4. 💪 **Quantify your conviction level** - Explain precisely why you have high/low confidence in specific setups, based on concrete evidence
+
+Use exact price levels, specific dates, and precise numerical values throughout. Your report should serve as both actionable trading intelligence AND an educational resource that reveals the depth of thinking behind professional trading decisions.
+
+The final report must be comprehensive (minimum 5-6 full pages) with institutional-grade depth and precision while remaining accessible to sophisticated investors familiar with advanced concepts.

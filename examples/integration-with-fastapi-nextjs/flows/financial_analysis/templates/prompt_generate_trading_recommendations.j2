@@ -1,0 +1,108 @@
+# 💰 INSTITUTIONAL TRADE PLAN REQUEST
+
+As a master trader with 20+ years of experience, develop ELITE TRADING RECOMMENDATIONS based on the following market data. Your analysis must reflect the same precision and risk management you would use when deploying your own multi-million dollar positions.
+
+## 🌐 MARKET SNAPSHOT
+
+{% for series in financial_data_collection.series %}
+### 🏛️ {{ series.symbol }} ({{ series.name }})
+• 📈 **Current Price**: {{ series.data[-1].close }} ({{ (series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100 }}% 24h)
+• ⏱️ **Timeframe**: {{ series.interval }} from {{ series.start_date }} to {{ series.end_date }}
+• 📊 **52-Week Range**: {{ get_price_range(series.data)[0] }} - {{ get_price_range(series.data)[1] }}
+
+#### 📋 RECENT PRICE ACTION
+{% for point in series.data[-5:] %}
+• {{ point.timestamp }}: O: {{ point.open }} | H: {{ point.high }} | L: {{ point.low }} | C: {{ point.close }} | V: {{ point.volume }}
+{% endfor %}
+{% endfor %}
+
+## 📐 TECHNICAL INDICATORS
+
+{% for indicator in technical_analysis.indicators %}
+### 📏 {{ indicator.symbol }} METRICS
+• 📉 **Moving Averages**: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% if indicator.rsi %}• 🔄 **RSI**: {{ indicator.rsi }} ({% if indicator.rsi > 70 %}OVERBOUGHT ⚠️{% elif indicator.rsi < 30 %}OVERSOLD ⚠️{% else %}NEUTRAL ✓{% endif %}){% endif %}
+{% endfor %}
+
+## 💹 FINANCIAL ANALYSIS SUMMARY
+
+### 🔭 MARKET OVERVIEW
+{{ financial_analysis.overview }}
+
+### 💡 KEY INSIGHTS
+{% for insight in financial_analysis.key_insights %}
+• {{ insight }}
+{% endfor %}
+
+### 🔮 TECHNICAL OUTLOOK
+{{ financial_analysis.technical_outlook }}
+
+### 🎯 MARKET TRENDS
+{% for trend in financial_analysis.market_trends %}
+• {{ trend.symbol }}: {{ trend.trend | upper }} {% if trend.trend == "bullish" %}📈{% elif trend.trend == "bearish" %}📉{% else %}↔️{% endif %} (Strength: {{ trend.strength }}/10)
+• Key Levels: {% for level_name, level_value in trend.key_levels.items() %}{{ level_name | upper }}: {{ level_value }}{% if not loop.last %} | {% endif %}{% endfor %}
+{% endfor %}
+
+## 🧠 INSTITUTIONAL TRADE PLANNING FRAMEWORK
+
+I'll develop high-conviction trade setups using the same methodology I apply when managing institutional capital. For each asset, I'll analyze:
+
+### 1️⃣ 🏛️ MARKET STRUCTURE MASTERY
+- Identify PRECISE market structure (uptrend, downtrend, ranging) with key pivot points
+- Locate SIGNIFICANT breaks of structure (BOS) or change of character (CHoCH) with exact price levels
+- Determine CURRENT Wyckoff phase (distribution, accumulation, markup, markdown) with supporting evidence
+- Identify ENGINEERED liquidity sweeps designed to trap retail traders
+- Map SMART MONEY footprints that reveal institutional intent
+
+### 2️⃣ 💹 ICT & SMC PRECISION SETUPS
+- Locate PREMIUM and DISCOUNT zones with exact price ranges
+- Identify SIGNIFICANT order blocks (OB) and breaker blocks with precise boundaries
+- Map ALL fair value gaps (FVG) and their mitigation potential
+- Analyze RECENT market structure shifts that create asymmetric opportunities
+- Identify OPTIMAL entry zones based on institutional order flow
+
+### 3️⃣ 📏 FIBONACCI TARGETING SYSTEM
+- Calculate PRECISE Fibonacci retracement levels from recent swing highs/lows
+- Identify MULTIPLE extension targets for profit-taking with exact price levels
+- Find CONFLUENCE zones where multiple technical factors align
+- Identify ANY harmonic patterns forming with completion targets
+
+### 4️⃣ 📊 VOLUME & ORDER FLOW INTELLIGENCE
+- Analyze VOLUME PATTERNS at key price levels to confirm institutional participation
+- Identify VOLUME DIVERGENCES that reveal hidden strength/weakness
+- Determine if SMART MONEY is currently accumulating or distributing
+- Assess the GENUINE strength of buying/selling pressure through delta volume
+
+### 5️⃣ ⚖️ PROFESSIONAL RISK MANAGEMENT
+- Calculate OPTIMAL position sizes based on account risk parameters (1% max risk per trade)
+- Determine PRECISE stop loss placement based on market structure, not arbitrary percentages
+- Develop a SCALING strategy for both entries and exits to maximize R:R
+- Establish CONTINGENCY plans for different market scenarios (bullish, bearish, sideways)
+
+## 💰 ELITE TRADE PLAN DELIVERABLES
+
+Based on this institutional-level analysis, I will provide:
+
+1. 🌐 **MARKET OVERVIEW**: A comprehensive assessment from an institutional perspective
+
+2. 🔍 **KEY OBSERVATIONS**: 5-7 critical insights that most retail traders would miss
+
+3. ⚡ **ACTIONABLE TRADE SETUPS**: For each symbol, I'll provide:
+   • 🎯 **PRIMARY ACTION**: Buy/Sell/Hold with specific trade type (trend continuation, reversal, range play)
+   • 💪 **CONVICTION LEVEL**: 1-10 rating with probability assessment
+   • 🎯 **ENTRY PRECISION**: Multiple strategies with EXACT price levels (limit orders, conditional entries, scaled entries)
+   • 🛑 **RISK CONTROL**: Precise stop loss placement with clear rationale
+   • 💸 **PROFIT TARGETING**: Multiple take profit targets with specific exit strategies for each
+   • ⏱️ **TIME HORIZON**: Expected duration with specific market timing considerations
+   • ⚖️ **POSITION SIZING**: Exact recommendations (% of capital, risk per trade)
+   • 📊 **TRADE MANAGEMENT**: Detailed instructions for scaling, trailing stops, re-entry conditions
+   • 🧠 **STRATEGIC RATIONALE**: Comprehensive explanation incorporating ICT/SMC concepts
+   • ⚠️ **RISK ASSESSMENT**: 1-10 risk rating with specific invalidation scenarios
+
+4. ⚖️ **PORTFOLIO RISK ASSESSMENT**: Overall risk management and correlation analysis
+
+5. 🧠 **MARKET SENTIMENT ANALYSIS**: Detailed assessment across multiple timeframes
+
+6. 🔄 **INTERMARKET DYNAMICS**: Correlation insights and sector relationships
+
+My response will follow the TradingAnalysis model structure with institutional-level precision that reflects my 20+ years of professional trading experience.

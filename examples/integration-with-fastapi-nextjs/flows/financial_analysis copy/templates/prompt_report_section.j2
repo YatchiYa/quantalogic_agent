@@ -1,0 +1,96 @@
+Create a detailed, narrative-driven analysis for this specific section of the financial report. Use a chain-of-thought approach to demonstrate your reasoning process and provide exceptionally detailed insights.
+
+## MARKET DATA
+
+{% for series in financial_data_collection.series %}
+### {{ series.symbol }} ({{ series.name }})
+- **Interval**: {{ series.interval }}
+- **Period**: {{ series.start_date }} to {{ series.end_date }}
+- **Latest Price**: {{ series.data[-1].close }}
+- **24h Change**: {{ (series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100 }}%
+- **52-week Range**: {{ get_price_range(series.data)[0] }} - {{ get_price_range(series.data)[1] }}
+- **Latest Volume**: {{ series.data[-1].volume }}
+{% if series.currency %}- **Currency**: {{ series.currency }}{% endif %}
+{% if series.exchange %}- **Exchange**: {{ series.exchange }}{% endif %}
+{% if series.sector %}- **Sector**: {{ series.sector }}{% endif %}
+{% if series.industry %}- **Industry**: {{ series.industry }}{% endif %}
+
+**Recent Price Data**:
+{% for point in series.data[-5:] %}
+- {{ point.timestamp }}: Open: {{ point.open }}, High: {{ point.high }}, Low: {{ point.low }}, Close: {{ point.close }}, Volume: {{ point.volume }}
+{% endfor %}
+{% endfor %}
+
+## TECHNICAL INDICATORS
+
+{% for indicator in technical_analysis.indicators %}
+### {{ indicator.symbol }}
+- **Moving Averages**: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if indicator.rsi %}- **RSI**: {{ indicator.rsi }}{% endif %}
+{% endfor %}
+
+## FINANCIAL ANALYSIS
+
+### Market Overview
+{{ financial_analysis.overview }}
+
+### Key Insights
+{% for insight in financial_analysis.key_insights %}
+- {{ insight }}
+{% endfor %}
+
+### Price Action Summary
+{{ financial_analysis.price_action_summary }}
+
+### Volume Analysis
+{{ financial_analysis.volume_analysis }}
+
+### Technical Outlook
+{{ financial_analysis.technical_outlook }}
+
+### Market Trends
+{% for trend in financial_analysis.market_trends %}
+#### {{ trend.symbol }}
+- **Trend**: {{ trend.trend }} 
+- **Strength**: {{ trend.strength }}/10
+- **Key Levels**: {% for level_name, level_value in trend.key_levels.items() %}{{ level_name }}: {{ level_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endfor %}
+
+## TRADING RECOMMENDATIONS
+
+### Market Overview
+{{ trading_analysis.market_overview }}
+
+### Key Observations
+{% for observation in trading_analysis.key_observations %}
+- {{ observation }}
+{% endfor %}
+
+### Specific Recommendations
+{% for rec in trading_analysis.recommendations %}
+#### {{ rec.symbol }} - {{ rec.action | upper }}
+- **Confidence**: {{ rec.confidence }}/10
+- **Risk Level**: {{ rec.risk_level }}/10
+- **Entry Points**: {{ rec.entry_points | join(", ") }}
+- **Stop Loss**: {{ rec.stop_loss }}
+- **Take Profit Targets**: {{ rec.take_profit | join(", ") }}
+- **Time Horizon**: {{ rec.time_horizon }}
+- **Rationale**: {{ rec.rationale }}
+{% endfor %}
+
+### Risk Assessment
+{{ trading_analysis.risk_assessment }}
+
+### Market Sentiment
+{{ trading_analysis.market_sentiment }}
+
+{% if trading_analysis.correlation_insights %}
+### Correlation Insights
+{{ trading_analysis.correlation_insights }}
+{% endif %}
+
+Write in a first-person, narrative style that reveals your complete thought process. Instead of simply stating conclusions, walk through your reasoning step by step, explaining exactly what you're seeing in the data, how you're interpreting it, and why you're drawing specific conclusions.
+
+Begin by explaining what you're looking for and why it matters, then walk through your analysis in detail, showing how you're connecting different pieces of evidence. Discuss any conflicting signals and how you're resolving them, and explain your level of conviction and the specific evidence supporting it.
+
+Use specific price levels, dates, and numerical values to ground your analysis. The section should be detailed and educational, showing the depth of thinking that goes into professional trading decisions.

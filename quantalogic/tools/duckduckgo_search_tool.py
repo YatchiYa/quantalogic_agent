@@ -195,7 +195,7 @@ def main():
 
         # Test basic search functionality
         print("Testing DuckDuckGoSearchTool with sample query...")
-        results = tool.execute(query="Python programming", max_results=3)
+        results = tool.execute(query="What is Microsoft's 2024 revenue?", max_results=20)
         print(results)
 
         # Test error handling

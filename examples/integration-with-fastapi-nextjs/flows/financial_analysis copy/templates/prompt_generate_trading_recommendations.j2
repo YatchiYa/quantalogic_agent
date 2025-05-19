@@ -1,0 +1,96 @@
+Develop institutional-grade trading recommendations based on the following financial data, technical indicators, and market analysis. Use a chain-of-thought approach to explain your reasoning process and provide exceptionally detailed, high-probability trading setups.
+
+## FINANCIAL DATA
+{% for series in financial_data_collection.series %}
+Symbol: {{ series.symbol }} ({{ series.name }})
+Interval: {{ series.interval }}
+Date Range: {{ series.start_date }} to {{ series.end_date }}
+Latest Price: {{ series.data[-1].close }}
+24h Change: {{ (series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100 }}%
+52-week Range: {{ get_price_range(series.data)[0] }} - {{ get_price_range(series.data)[1] }}
+
+Recent Price Data (last 5 data points):
+{% for point in series.data[-5:] %}
+- {{ point.timestamp }}: Open: {{ point.open }}, High: {{ point.high }}, Low: {{ point.low }}, Close: {{ point.close }}, Volume: {{ point.volume }}
+{% endfor %}
+{% endfor %}
+
+## TECHNICAL INDICATORS
+{% for indicator in technical_analysis.indicators %}
+Symbol: {{ indicator.symbol }}
+Moving Averages: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if indicator.rsi %}RSI: {{ indicator.rsi }}{% endif %}
+{% endfor %}
+
+## FINANCIAL ANALYSIS
+{{ financial_analysis.overview }}
+
+## KEY INSIGHTS
+{% for insight in financial_analysis.key_insights %}
+- {{ insight }}
+{% endfor %}
+
+## TECHNICAL OUTLOOK
+{{ financial_analysis.technical_outlook }}
+
+## MARKET TRENDS
+{% for trend in financial_analysis.market_trends %}
+{{ trend.symbol }}: {{ trend.trend }} (Strength: {{ trend.strength }}/10)
+Key Levels: {% for level_name, level_value in trend.key_levels.items() %}{{ level_name }}: {{ level_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endfor %}
+
+## ADVANCED TRADING STRATEGY DEVELOPMENT
+
+First, think step-by-step about the following components for each asset:
+
+1. **Market Structure Analysis**
+   - Identify the current market structure (uptrend, downtrend, ranging)
+   - Locate any significant breaks of structure (BOS) or change of character (CHoCH)
+   - Determine if the asset is in a distribution, accumulation, markup, or markdown phase
+   - Identify any liquidity sweeps or engineered price movements
+
+2. **ICT & SMC Setup Identification**
+   - Locate premium and discount zones
+   - Identify any significant order blocks (OB) or breaker blocks
+   - Locate fair value gaps (FVG) and their potential for fills
+   - Analyze any significant market structure shifts
+   - Identify optimal entry zones based on institutional concepts
+
+3. **Fibonacci Analysis**
+   - Calculate key Fibonacci retracement levels from recent swings
+   - Identify extension targets for potential take profit levels
+   - Look for confluence between Fibonacci levels and other key zones
+   - Identify any harmonic patterns forming
+
+4. **Volume & Order Flow Analysis**
+   - Analyze volume patterns at key price levels
+   - Identify volume divergences from price action
+   - Determine if smart money is accumulating or distributing
+   - Assess the strength of buying/selling pressure
+
+5. **Risk Management & Position Sizing**
+   - Calculate optimal position sizes based on account risk parameters
+   - Determine precise stop loss placement based on market structure
+   - Develop a scaling strategy (entries and exits)
+   - Establish contingency plans for different market scenarios
+
+Based on this comprehensive analysis, provide:
+
+1. A detailed market overview from an institutional trader's perspective
+2. 5-7 key observations relevant to high-probability trading decisions
+3. Specific trading recommendations for each symbol, including:
+   - Primary action (buy, sell, hold) with specific trade type (trend continuation, reversal, range play)
+   - Confidence level (1-10) with probability assessment
+   - Multiple entry strategies (limit orders at specific levels, conditional entries, scaled entries)
+   - Precise stop loss placement with rationale
+   - Multiple take profit targets with specific exit strategies
+   - Time horizon with expected duration
+   - Position sizing recommendations (% of capital, risk per trade)
+   - Detailed trade management instructions (scaling, trailing stops, re-entry conditions)
+   - Comprehensive rationale incorporating ICT/SMC concepts
+   - Risk level (1-10) with specific invalidation scenarios
+4. Overall portfolio risk assessment and correlation management
+5. Detailed market sentiment analysis across multiple timeframes
+6. Intermarket analysis and correlation insights
+
+Format your response according to the TradingAnalysis model structure, ensuring your recommendations demonstrate institutional-level precision and sophistication.

@@ -1,0 +1,27 @@
+Based on the analysis of the CSV file(s), suggest visualizations that would provide valuable insights.
+
+{% if is_multi_file %}
+Files analyzed:
+{% for file in files %}
+- {{ file.file_name }} ({{ file.row_count }} rows, {{ file.column_count }} columns)
+{% endfor %}
+
+Consider both individual file visualizations and cross-file visualizations where appropriate.
+{% else %}
+File analyzed: {{ analysis.file_name }} ({{ analysis.row_count }} rows, {{ analysis.column_count }} columns)
+
+Columns:
+{% for column in analysis.columns %}
+- {{ column.name }} ({{ column.data_type }}): {{ column.description }}
+{% endfor %}
+
+Correlations:
+{{ correlations }}
+{% endif %}
+
+For each visualization, provide:
+1. A clear title
+2. A description of what insight the visualization aims to provide
+3. The chart type (bar, line, scatter, histogram, heatmap, etc.)
+4. The columns to use
+5. Any specific parameters (e.g., color by, size by, facet by)

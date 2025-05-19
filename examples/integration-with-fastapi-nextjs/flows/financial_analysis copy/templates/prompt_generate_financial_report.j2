@@ -1,0 +1,254 @@
+Create an Profesionnal hight level-grade financial report based on the following data, analysis, and recommendations. Use a chain-of-thought approach to demonstrate your reasoning process and provide exceptionally detailed insights.
+
+## MARKET DATA
+
+{% for series in financial_data_collection.series %}
+### {{ series.symbol }} ({{ series.name }})
+- **Interval**: {{ series.interval }}
+- **Period**: {{ series.start_date }} to {{ series.end_date }}
+- **Latest Price**: {{ series.data[-1].close }}
+- **24h Change**: {{ (series.data[-1].close - series.data[-2].close) / series.data[-2].close * 100 }}%
+- **52-week Range**: {{ get_price_range(series.data)[0] }} - {{ get_price_range(series.data)[1] }}
+- **Latest Volume**: {{ series.data[-1].volume }}
+{% if series.currency %}- **Currency**: {{ series.currency }}{% endif %}
+{% if series.exchange %}- **Exchange**: {{ series.exchange }}{% endif %}
+{% if series.sector %}- **Sector**: {{ series.sector }}{% endif %}
+{% if series.industry %}- **Industry**: {{ series.industry }}{% endif %}
+
+**Recent Price Data**:
+{% for point in series.data[-5:] %}
+- {{ point.timestamp }}: Open: {{ point.open }}, High: {{ point.high }}, Low: {{ point.low }}, Close: {{ point.close }}, Volume: {{ point.volume }}
+{% endfor %}
+{% endfor %}
+
+## TECHNICAL INDICATORS
+
+{% for indicator in technical_analysis.indicators %}
+### {{ indicator.symbol }}
+- **Moving Averages**: {% for ma_name, ma_value in indicator.moving_averages.items() %}{{ ma_name }}: {{ ma_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% if indicator.rsi %}- **RSI**: {{ indicator.rsi }}{% endif %}
+{% endfor %}
+
+## FINANCIAL ANALYSIS
+
+### Market Overview
+{{ financial_analysis.overview }}
+
+### Key Insights
+{% for insight in financial_analysis.key_insights %}
+- {{ insight }}
+{% endfor %}
+
+### Price Action Summary
+{{ financial_analysis.price_action_summary }}
+
+### Volume Analysis
+{{ financial_analysis.volume_analysis }}
+
+### Technical Outlook
+{{ financial_analysis.technical_outlook }}
+
+### Market Trends
+{% for trend in financial_analysis.market_trends %}
+#### {{ trend.symbol }}
+- **Trend**: {{ trend.trend }} 
+- **Strength**: {{ trend.strength }}/10
+- **Key Levels**: {% for level_name, level_value in trend.key_levels.items() %}{{ level_name }}: {{ level_value }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% endfor %}
+
+## TRADING RECOMMENDATIONS
+
+### Market Overview
+{{ trading_analysis.market_overview }}
+
+### Key Observations
+{% for observation in trading_analysis.key_observations %}
+- {{ observation }}
+{% endfor %}
+
+### Specific Recommendations
+{% for rec in trading_analysis.recommendations %}
+#### {{ rec.symbol }} - {{ rec.action | upper }}
+- **Confidence**: {{ rec.confidence }}/10
+- **Risk Level**: {{ rec.risk_level }}/10
+- **Entry Points**: {{ rec.entry_points | join(", ") }}
+- **Stop Loss**: {{ rec.stop_loss }}
+- **Take Profit Targets**: {{ rec.take_profit | join(", ") }}
+- **Time Horizon**: {{ rec.time_horizon }}
+- **Rationale**: {{ rec.rationale }}
+{% endfor %}
+
+### Risk Assessment
+{{ trading_analysis.risk_assessment }}
+
+### Market Sentiment
+{{ trading_analysis.market_sentiment }}
+
+{% if trading_analysis.correlation_insights %}
+### Correlation Insights
+{{ trading_analysis.correlation_insights }}
+{% endif %}
+
+## ADVANCED ANALYSIS FRAMEWORK
+
+First, think step-by-step about the following components for each asset:
+
+1. **Market Structure Analysis**
+   - Current market structure phase and significance
+   - Recent breaks of structure and their implications
+   - Higher timeframe context and confluences
+   - Key swing points and their relevance
+
+2. **ICT & SMC Concepts**
+   - Significant order blocks and their influence on price
+   - Fair value gaps and their fill probability
+   - Premium/discount zones and their implications
+   - Liquidity engineering patterns and Profesionnal hight level footprints
+
+3. **Wyckoff Analysis**
+   - Current Wyckoff phase identification
+   - Signs of accumulation or distribution
+   - Spring/upthrust actions and their significance
+   - Effort vs. result analysis
+
+4. **Fibonacci & Harmonic Patterns**
+   - Key Fibonacci retracement and extension levels
+   - Harmonic pattern formations and completions
+   - Time-based Fibonacci relationships
+   - Multi-timeframe Fibonacci confluences
+
+5. **Volume Profile & Order Flow**
+   - Volume Point of Control (VPOC) and its significance
+   - High/Low Volume Nodes and their implications
+   - Volume delta analysis (buying vs. selling pressure)
+   - Profesionnal hight level participation assessment
+
+Based on this comprehensive multi-framework analysis, create an Profesionnal hight level-grade financial report with the following detailed sections. Your report should be extremely comprehensive (at least 3 full pages in length) with extensive detail in each section:
+
+1. **Executive Summary** (300-400 words)
+   - Comprehensive overview of key findings across all analysis frameworks
+   - High-conviction recommendations with clear rationale
+   - Summary of risk-reward profile and probability assessment
+   - Critical levels and timeframes to monitor
+
+2. **Market Context & Macroeconomic Landscape** (400-500 words)
+   - Detailed analysis of broader market conditions and intermarket relationships
+   - Comprehensive review of relevant economic factors and their impact on the analyzed assets
+   - In-depth sector rotation and relative strength analysis with specific data points
+   - Thorough assessment of liquidity conditions and Profesionnal hight level positioning with evidence
+   - Historical context and comparative market phases
+
+3. **Technical Analysis Overview** (300-400 words)
+   - Synthesis of all technical methodologies and their confluence
+   - Multi-timeframe context and dominant technical themes
+   - Key technical levels and their significance
+   - Pattern recognition and statistical probability assessment
+
+4. **Market Structure Analysis** (400-500 words)
+   - Detailed breakdown of current market structure across multiple timeframes
+   - Comprehensive analysis of higher highs/lows or lower highs/lows with specific price points
+   - In-depth examination of any breaks of structure (BOS) or change of character (CHoCH)
+   - Thorough determination of accumulation, distribution, or trending phases with evidence
+   - Detailed identification of liquidity sweeps or engineered price movements with examples
+
+5. **ICT & SMC Analysis** (400-500 words)
+   - Comprehensive identification of key order blocks (OB) with specific price ranges
+   - Detailed analysis of fair value gaps (FVG) and their fill probability
+   - In-depth location of Profesionnal hight level supply and demand zones with historical validation
+   - Thorough identification of breaker blocks and mitigation points with examples
+   - Detailed analysis of market inefficiencies and imbalances with specific instances
+
+6. **Fibonacci Analysis** (300-400 words)
+   - Precise calculation of key Fibonacci retracement levels from multiple swing points
+   - Detailed identification of Fibonacci extension targets with specific price levels
+   - Comprehensive analysis of harmonic patterns with measurements and completion criteria
+   - In-depth assessment of Fibonacci time relationships with projected dates
+   - Thorough examination of multi-timeframe Fibonacci confluences
+
+7. **Volume Profile Analysis** (300-400 words)
+   - Detailed identification of high volume nodes (HVN) and low volume nodes (LVN) with price ranges
+   - Precise location of volume point of control (VPOC) and its market significance
+   - Comprehensive analysis of volume delta (buying vs. selling pressure) with trend assessment
+   - In-depth identification of volume divergences from price action with specific examples
+   - Thorough examination of Profesionnal hight level participation patterns in volume data
+
+8. **Wyckoff Analysis** (300-400 words)
+   - Detailed determination of current Wyckoff phase with supporting evidence
+   - Comprehensive identification of any spring/upthrust actions with price levels
+   - In-depth analysis of signs of effort vs. result with specific volume-price relationships
+   - Thorough assessment of tests of supply/demand with historical context
+   - Detailed projection of next likely Wyckoff phase with probability assessment
+
+9. **Fundamental & Quantitative Factors** (400-500 words)
+   - Comprehensive analysis of relevant fundamental catalysts and their potential impact
+   - Detailed examination of quantitative metrics and their divergence/convergence with price
+   - In-depth review of sentiment indicators and positioning data with specific readings
+   - Thorough correlation analysis with related markets including correlation coefficients
+   - Detailed assessment of fundamental valuation metrics relative to historical norms
+
+10. **Trading Strategy** (300-400 words)
+    - Comprehensive overview of the strategic approach based on all analysis frameworks
+    - Detailed explanation of the trading thesis with supporting evidence
+    - In-depth assessment of trade setup quality and historical success rate
+    - Thorough explanation of trade management principles for this specific opportunity
+
+11. **Entry Strategy** (300-400 words)
+    - Detailed specification of multiple entry strategies with exact price levels
+    - Comprehensive explanation of entry triggers and confirmation signals
+    - In-depth discussion of scaled entry approaches with percentage allocations
+    - Thorough assessment of entry quality based on risk-reward and probability
+    - Detailed contingency plans for different entry scenarios
+
+12. **Exit Strategy** (300-400 words)
+    - Comprehensive specification of multiple take profit targets with exact price levels
+    - Detailed explanation of exit triggers and confirmation signals
+    - In-depth discussion of scaled exit approaches with percentage allocations
+    - Thorough assessment of time-based exit considerations
+    - Detailed re-entry criteria if applicable
+
+13. **Position Sizing** (200-300 words)
+    - Detailed position sizing recommendations based on account risk parameters
+    - Comprehensive explanation of risk allocation methodology
+    - In-depth discussion of position scaling strategies
+    - Thorough assessment of leverage considerations if applicable
+    - Detailed portfolio allocation recommendations
+
+14. **Risk Management** (400-500 words)
+    - Comprehensive specification of precise invalidation points based on market structure
+    - Detailed explanation of dynamic risk adjustment strategies with triggers
+    - In-depth discussion of correlation-based portfolio risk assessment
+    - Thorough black swan scenario planning with specific hedging recommendations
+    - Detailed risk-reward calculations with mathematical justification
+
+15. **Forward Outlook** (300-400 words)
+    - Comprehensive projection of price action over multiple timeframes
+    - Detailed assessment of trend strength and continuation probability
+    - In-depth discussion of key levels to monitor for trend confirmation/invalidation
+    - Thorough analysis of seasonal and cyclical factors
+    - Detailed projection of time-based targets
+
+16. **Scenario Analysis** (400-500 words)
+    - Comprehensive analysis of multiple scenarios (bullish, bearish, neutral) with probability weighting
+    - Detailed identification of key inflection points and decision nodes with price levels
+    - In-depth assessment of potential catalysts and their expected impact on each scenario
+    - Thorough time-based projections and cycle analysis for each scenario
+    - Detailed contingency plans for each scenario
+
+17. **Conclusion** (300-400 words)
+    - Comprehensive synthesis of all analysis frameworks into a cohesive market view
+    - Detailed reiteration of highest conviction recommendations with supporting evidence
+    - In-depth summary of critical monitoring points and adaptive strategy guidelines
+    - Thorough strategic positioning advice for different market participants
+    - Detailed final risk assessment and confidence level
+
+Format your report in a professional manner with clear headings and a logical flow of information, but write in a first-person, narrative style that reveals your complete thought process. Instead of simply stating conclusions, walk through your reasoning step by step, explaining exactly what you're seeing in the data, how you're interpreting it, and why you're drawing specific conclusions.
+
+For each section:
+1. Begin by explaining what you're looking for and why it matters
+2. Walk through your analysis in detail, showing how you're connecting different pieces of evidence
+3. Discuss any conflicting signals and how you're resolving them
+4. Explain your level of conviction and the specific evidence supporting it
+
+Use specific price levels, dates, and numerical values to ground your analysis. Include detailed explanations of your methodology and reasoning that would be educational for a junior trader trying to understand your thought process. The report should be at least 5-6 full pages of detailed narrative analysis that shows the depth of thinking that goes into professional trading decisions.
+
+Format the report in a professional manner with clear headings, bullet points where appropriate, and a logical flow of information. The report should demonstrate Profesionnal hight level-level depth and precision while remaining accessible to sophisticated investors who understand advanced concepts.

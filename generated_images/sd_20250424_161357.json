@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250424_161357.png",
+  "timestamp": "20250424_161357",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "**Prompt for Image Generation:**\n\nCreate an ultra-realistic image of a 3D figurine set encased in a collector's blister pack. The set, titled \"Starter Pack,\" features two distinct characters: \n\n1. **Female Figurine:**\n   - Appearance: The woman should have strikingly realistic features, with vibrant red hair cascading in soft waves and piercing blue eyes. Her expression should be confident yet approachable, showcasing a natural, lifelike quality.\n   - Outfit: She is dressed in a sleek, form-fitting black outfit that highlights her figure, potentially with subtle textures like leather or satin to add depth and realism. Consider adding fine details such as seams or small accessories like a belt or bracelet.\n\n2. **Male Figurine:**\n   - Appearance: The man is reminiscent of the Hulk, characterized by his large, muscular build and green skin. His expression should be fierce yet composed, with realistic muscle definition and skin texture, including subtle shading and highlights to enhance the lifelike appearance.\n   - Outfit: He wears minimal clothing, akin to the classic Hulk style, with tattered shorts that show signs of wear, adding to the realism.\n\n**Packaging Design:**\n- **Blister Pack:** The packaging should be designed to look professional, with a sturdy plastic front that clearly displays the figurines. The back of the package should have a cardboard insert featuring vibrant, high-resolution graphics.\n- **Title:** Boldly display the title \"Starter Pack\" at the top of the package in an eye-catching font, perhaps metallic or embossed for added effect.\n- **Design Elements:** Include subtle design elements like a dynamic background illustration that complements the figurines, perhaps depicting an urban or fantasy setting. The package should also have small details like branding logos, a barcode, and a brief description or storyline of the characters, enhancing the authenticity of the collector's item.\n\nMake sure the lighting in the image highlights the details of the figurines and packaging, with realistic reflections and shadows to give the impression of a tangible, high-quality product ready for display.",
+  "negative_prompt": "",
+  "size": "1024x1024",
+  "style": "digital-art",
+  "cfg_scale": 7.0,
+  "steps": 50,
+  "seed": 42,
+  "local_path": "generated_images/sd_20250424_161357.png"
+}

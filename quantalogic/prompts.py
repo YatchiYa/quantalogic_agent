@@ -9,12 +9,12 @@ from quantalogic.version import get_version
 
 # Map agent modes to their system prompt templates
 SYSTEM_PROMPTS: Dict[str, str] = {
-    "react": "system_prompt.j2",
+    "react": "react_system_prompt.j2",
     "chat": "chat_prompt.j2",
     "code": "code_system_prompt.j2",
     "code_enhanced": "code_2_system_prompt.j2",
     "legal": "legal_system_prompt.j2",
-    "legal_enhanced": "legal_2_system_prompt.j2",
+    "legal_enhanced": "legal_2_system_prompt.j2", 
     "doc": "doc_system_prompt.j2",
     "default": "system_prompt.j2"  # Fallback template
 }

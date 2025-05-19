@@ -1,0 +1,272 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd"><key id="d8" for="node" attr.name="jo_page" attr.type="string"/>
+<key id="d7" for="node" attr.name="jo_number" attr.type="string"/>
+<key id="d6" for="node" attr.name="jo_year" attr.type="string"/>
+<key id="d5" for="node" attr.name="level" attr.type="long"/>
+<key id="d4" for="node" attr.name="doc_type" attr.type="string"/>
+<key id="d3" for="node" attr.name="color" attr.type="string"/>
+<key id="d2" for="node" attr.name="ministry" attr.type="string"/>
+<key id="d1" for="node" attr.name="title" attr.type="string"/>
+<key id="d0" for="node" attr.name="label" attr.type="string"/>
+<graph edgedefault="directed"><node id="000482">
+  <data key="d0">Arrêté inter. du 17 
+1981
+JO 003/1982</data>
+  <data key="d1">Fixant la liste des mosquées à caractère national.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté inter. du 17</data>
+  <data key="d5">0</data>
+  <data key="d6">1982</data>
+  <data key="d7">003</data>
+  <data key="d8">82</data>
+</node>
+<node id="000484">
+  <data key="d0">Arrêté inter. du 01 
+1981
+JO 003/1982</data>
+  <data key="d1">Portant recrutement des imams et des maitres d'enseignement coranique à titre contractuel.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté inter. du 01</data>
+  <data key="d5">0</data>
+  <data key="d6">1982</data>
+  <data key="d7">003</data>
+  <data key="d8">83</data>
+</node>
+<node id="001048">
+  <data key="d0">Décret n° 80-17 du 02 
+1980
+JO 006/1980</data>
+  <data key="d1">Modifiant et complétant l'ordonnance n° 69-96 du 6 décembre 1969 portant statut du personnel du culte musulman.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Décret n° 80-17 du 02</data>
+  <data key="d5">0</data>
+  <data key="d6">1980</data>
+  <data key="d7">006</data>
+  <data key="d8">100</data>
+</node>
+<node id="001106">
+  <data key="d0">Arrêté du 27 
+1973
+JO 003/1974</data>
+  <data key="d1">Portant nomination du directeur du centre culturel islamique d'Alger.</data>
+  <data key="d2">MINISTERE DE L'ENSEIGNEMENT ORIGINEL ET DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 27</data>
+  <data key="d5">0</data>
+  <data key="d6">1974</data>
+  <data key="d7">003</data>
+  <data key="d8">19</data>
+</node>
+<node id="001256">
+  <data key="d0">Arrêté du 14 
+1982
+JO 007/1982</data>
+  <data key="d1">Portant organisation de vote pour l'élection des représentants du personnel aux commissions paritaires du ministère des affaires religieuses.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 14</data>
+  <data key="d5">0</data>
+  <data key="d6">1982</data>
+  <data key="d7">007</data>
+  <data key="d8">228</data>
+</node>
+<node id="001326">
+  <data key="d0">Décret n° 80-30 du 09 
+1980
+JO 007/1980</data>
+  <data key="d1">Portant attributions du ministre des affaires religieuses et des wakfs.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Décret n° 80-30 du 09</data>
+  <data key="d5">0</data>
+  <data key="d6">1980</data>
+  <data key="d7">007</data>
+  <data key="d8">150</data>
+</node>
+<node id="001330">
+  <data key="d0">Décret n° 80-31 du 09 
+1980
+JO 007/1980</data>
+  <data key="d1">Portant détermination des effectifs de l'administration centrale du ministère des affaires religieuses.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Décret n° 80-31 du 09</data>
+  <data key="d5">0</data>
+  <data key="d6">1980</data>
+  <data key="d7">007</data>
+  <data key="d8">150</data>
+</node>
+<node id="001334">
+  <data key="d0">Décret n° 80-32 du 09 
+1980
+JO 007/1980</data>
+  <data key="d1">Portant création de postes de conseillers techniques et de chargés de mission au ministère des affaires religieuses.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Décret n° 80-32 du 09</data>
+  <data key="d5">0</data>
+  <data key="d6">1980</data>
+  <data key="d7">007</data>
+  <data key="d8">152</data>
+</node>
+<node id="002354">
+  <data key="d0">Arrêté du 02 
+1975
+JO 015/1975</data>
+  <data key="d1">Portant application du décret n° 71-129 du 13 mai 1971 portant création du diplome "El-Ahlya de l'enseignement originel".</data>
+  <data key="d2">MINISTERE DE L'ENSEIGNEMENT ORIGINEL ET DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 02</data>
+  <data key="d5">0</data>
+  <data key="d6">1975</data>
+  <data key="d7">015</data>
+  <data key="d8">203</data>
+</node>
+<node id="002619">
+  <data key="d0">Arrêté du 01 
+1981
+JO 013/1981</data>
+  <data key="d1">Portant ouverture d'un examen professionnel d'intégration exceptionnelle dans le corps des attachés d'administration.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 01</data>
+  <data key="d5">0</data>
+  <data key="d6">1981</data>
+  <data key="d7">013</data>
+  <data key="d8">262</data>
+</node>
+<node id="002622">
+  <data key="d0">Arrêté du 01 
+1981
+JO 013/1981</data>
+  <data key="d1">Portant ouverture d'un examen professionnel d'intégration exceptionnelle dans le corps des secrétaires d'administration.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 01</data>
+  <data key="d5">0</data>
+  <data key="d6">1981</data>
+  <data key="d7">013</data>
+  <data key="d8">263</data>
+</node>
+<node id="002624">
+  <data key="d0">Arrêté du 01 
+1981
+JO 013/1981</data>
+  <data key="d1">Portant ouverture d'un examen professionnel d'intégration exceptionnelle dans le corps des agents d'administration.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 01</data>
+  <data key="d5">0</data>
+  <data key="d6">1981</data>
+  <data key="d7">013</data>
+  <data key="d8">263</data>
+</node>
+<node id="003129">
+  <data key="d0">Arrêté du 07 
+1979
+JO 016/1979</data>
+  <data key="d1">Portant création d'une annexe du centre culturel islamique d'Alger à Tlemcen.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 07</data>
+  <data key="d5">0</data>
+  <data key="d6">1979</data>
+  <data key="d7">016</data>
+  <data key="d8">274</data>
+</node>
+<node id="003301">
+  <data key="d0">Arrêté du 02 
+1975
+JO 021/1975</data>
+  <data key="d1">Portant application du décret n° 71-128 du 13 mai 1971 portant création du baccalauréat de l'enseignement originel.</data>
+  <data key="d2">MINISTERE DE L'ENSEIGNEMENT ORIGINEL ET DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 02</data>
+  <data key="d5">0</data>
+  <data key="d6">1975</data>
+  <data key="d7">021</data>
+  <data key="d8">258</data>
+</node>
+<node id="003674">
+  <data key="d0">Arrêté inter. du 25 
+1976
+JO 020/1977</data>
+  <data key="d1">Portant création de commissions paritaires.</data>
+  <data key="d2">MINISTERE DE L'ENSEIGNEMENT ORIGINEL ET DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté inter. du 25</data>
+  <data key="d5">0</data>
+  <data key="d6">1977</data>
+  <data key="d7">020</data>
+  <data key="d8">296</data>
+</node>
+<node id="003676">
+  <data key="d0">Arrêté du 10 
+1976
+JO 020/1977</data>
+  <data key="d1">Portant désignation des membres des commissions paritaires.</data>
+  <data key="d2">MINISTERE DE L'ENSEIGNEMENT ORIGINEL ET DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 10</data>
+  <data key="d5">0</data>
+  <data key="d6">1977</data>
+  <data key="d7">020</data>
+  <data key="d8">297</data>
+</node>
+<node id="004025">
+  <data key="d0">Décret n° 80-95 du 30 
+1980
+JO 014/1980</data>
+  <data key="d1">Modifiant et complétant le décret n° 80-95 du 30 mars 1980, modifié et &#13;
+complété, portant création d'une commission nationale du pèlerinage.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Décret n° 80-95 du 30</data>
+  <data key="d5">0</data>
+  <data key="d6">1980</data>
+  <data key="d7">014</data>
+  <data key="d8">394</data>
+</node>
+<node id="004648">
+  <data key="d0">Arrêté du 08 
+1979
+JO 022/1979</data>
+  <data key="d1">Mettant fin aux fonctions du directeur du centre culturel islamique d'Alger.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 08</data>
+  <data key="d5">0</data>
+  <data key="d6">1979</data>
+  <data key="d7">022</data>
+  <data key="d8">385</data>
+</node>
+<node id="004652">
+  <data key="d0">Arrêté du 17 
+1979
+JO 022/1979</data>
+  <data key="d1">Portant délégation de signature au directeur des affaires religieuses.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 17</data>
+  <data key="d5">0</data>
+  <data key="d6">1979</data>
+  <data key="d7">022</data>
+  <data key="d8">385</data>
+</node>
+<node id="004656">
+  <data key="d0">Arrêté du 17 
+1979
+JO 022/1979</data>
+  <data key="d1">Portant délégation de signature au directeur de la recherche islamique et des séminaires.</data>
+  <data key="d2">MINISTERE DES AFFAIRES RELIGIEUSES</data>
+  <data key="d3">#78a7b9</data>
+  <data key="d4">Arrêté du 17</data>
+  <data key="d5">0</data>
+  <data key="d6">1979</data>
+  <data key="d7">022</data>
+  <data key="d8">385</data>
+</node>
+</graph></graphml>

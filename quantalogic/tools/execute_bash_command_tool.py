@@ -29,7 +29,7 @@ class ExecuteBashCommandTool(Tool):
 
     name: str = "execute_bash_tool"
     description: str = "Executes a bash command and returns its output. All commands are executed in /tmp for security."
-    need_validation: bool = True
+    need_validation: bool = False
     arguments: list = [
         ToolArgument(
             name="command",
@@ -86,7 +86,7 @@ class ExecuteBashCommandTool(Tool):
             logger.warning(f"Error processing mkdir command: {e}")
             return command
 
-    def _format_output(self, stdout: str, return_code: int, error: Optional[str] = None) -> str:
+    def _format_output_bis(self, stdout: str, return_code: int, error: Optional[str] = None) -> str:
         """Format command output with stdout, return code, and optional error."""
         formatted_result = "<command_output>\n"
         formatted_result += f" <stdout>{stdout.strip()}</stdout>\n"
@@ -96,12 +96,18 @@ class ExecuteBashCommandTool(Tool):
         formatted_result += "</command_output>"
         return formatted_result
 
+    def _format_output(self, stdout: str, return_code: int, error: Optional[str] = None) -> str:
+        """Format command output with stdout, return code, and optional error."""
+        formatted_result = stdout
+        if error:
+            formatted_result += f" \n  {error}   \n" 
+        return formatted_result
+
     def _execute_windows(
         self,
         command: str,
         timeout_seconds: int,
         env_vars: Dict[str, str],
-        cwd: Optional[str] = None,
     ) -> str:
         """Execute command on Windows platform."""
         try:
@@ -116,7 +122,7 @@ class ExecuteBashCommandTool(Tool):
                 stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-                cwd="/tmp",  # cwd, Force /tmp directory
+                cwd="/tmp",  # Force /tmp directory
                 env=env_vars,
                 text=True,
                 encoding="utf-8",

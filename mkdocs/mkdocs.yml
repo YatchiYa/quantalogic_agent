@@ -47,9 +47,8 @@ plugins:
   - git-revision-date-localized:
       enable_creation_date: true
       type: date
-  - tags
-  - autorefs:
-      link_titles: auto
+  - tags:
+      tags_file: tags.md
   - mkdocstrings:
       handlers:
         python:
@@ -101,7 +100,6 @@ nav:
       - Quick Start: quickstart.md
       - Core Concepts: core-concepts.md
       - CLI Reference: cli-reference.md
-  - CodeAct: codeact.md
   - Tutorials: []
   - Examples:
       - Simple Agent: examples/simple-agent.md
@@ -117,9 +115,6 @@ nav:
       - Agent Design: best-practices/agent-design.md
       - Tool Development: best-practices/tool-development.md
       - Error Handling: best-practices/error-handling.md
-  - Workflow Automation:
-      - QuantaLogic Flow: quantalogic-flow.md
-      - Flow Examples: https://github.com/quantalogic/quantalogic/tree/main/quantalogic_flow/examples
   - Development:
       - Contributing: dev/contributing.md
       - Setup: dev/setup.md

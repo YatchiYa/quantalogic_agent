@@ -1,0 +1,26 @@
+Based on the visualizations generated for the CSV file(s), provide insights about the data.
+
+{% if is_multi_file %}
+Files analyzed:
+{% for file in files %}
+- {{ file.file_name }}
+{% endfor %}
+{% else %}
+File analyzed: {{ analysis.file_name }}
+{% endif %}
+
+Visualizations generated:
+{% for viz in visualizations %}
+{{ loop.index }}. {{ viz.title }} ({{ viz.chart_type }})
+   Description: {{ viz.description }}
+   Columns used: {{ viz.columns|join(', ') }}
+{% endfor %}
+
+Please provide:
+1. Key insights from each visualization
+2. Overall patterns or trends observed across multiple visualizations
+3. Surprising or unexpected findings
+4. Recommendations for further analysis or data collection
+{% if is_multi_file %}
+5. Cross-file insights and relationships
+{% endif %}

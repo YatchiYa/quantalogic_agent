@@ -10,6 +10,21 @@ from quantalogic.console_print_token import console_print_token
 from quantalogic.event_emitter import EventEmitter
 from quantalogic.tools.tool import Tool
 
+import sys
+from pathlib import Path
+# Configure loguru logger
+""" logger.remove()  # Remove default handler
+# Add file handler
+project_root = Path(__file__).resolve().parents[3]  # Go up 3 levels to reach project root
+log_file = project_root / "agent_log.log"
+logger.add(
+    log_file,
+    rotation="1 day",  # Create a new file daily
+    retention="7 days",  # Keep logs for 7 days
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} - {message}",
+    level="DEBUG",
+    enqueue=True  # Thread-safe logging
+)
 # Configure loguru to output only INFO and above
 logger.remove()  # Remove default handler
 logger.add(
@@ -17,7 +32,7 @@ logger.add(
     level="INFO",
     format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 )
-
+ """
 # Helper function to import tool classes
 def _import_tool(module_path: str, class_name: str) -> Type[Tool]:
     """
@@ -76,8 +91,10 @@ def create_tool_instance(tool_class, **kwargs):
 TOOL_IMPORTS = {
     # LLM Tools
     "llm": lambda: _import_tool("quantalogic.tools.llm_tool", "LLMTool"),
+    "co_worker_agent": lambda: _import_tool("quantalogic.tools.llm_tool", "LLMTool"),
     "llm_vision": lambda: _import_tool("quantalogic.tools.llm_vision_tool", "LLMVisionTool"),
     "llm_image_generation": lambda: _import_tool("quantalogic.tools.image_generation.dalle_e", "LLMImageGenerationTool"),
+    "stable_diffusion": lambda: _import_tool("quantalogic.tools.image_generation.stable_diffusion", "StableDiffusionTool"),
     
     # File Tools
     "download_http_file": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
@@ -135,6 +152,10 @@ TOOL_IMPORTS = {
     
     # RAG Tools 
     "rag_tool_hf": lambda: _import_tool("quantalogic.tools.rag_tool", "RagToolHf"),
+    "openai_legal_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "OpenAILegalRAG"),
+    "legal_embedding_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "LegalEmbeddingRAG"),
+    "general_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "GeneralRAG"),
+    "simple_rag": lambda: _import_tool("quantalogic.tools.rag_tool", "SimpleRagTool"),
     
     # Utility Tools
     "task_complete": lambda: _import_tool("quantalogic.tools.task_complete_tool", "TaskCompleteTool"),
@@ -142,12 +163,31 @@ TOOL_IMPORTS = {
     "markitdown": lambda: _import_tool("quantalogic.tools.utilities", "MarkitdownTool"),
     "read_html": lambda: _import_tool("quantalogic.tools.read_html_tool", "ReadHTMLTool"),
     "oriented_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "OrientedLLMTool"),
+    "document_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "DocumentLLMTool"),
+    "legal_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalLLMTool"),
     "presentation_llm": lambda: _import_tool("quantalogic.tools.presentation_tools", "PresentationLLMTool"),
     "sequence": lambda: _import_tool("quantalogic.tools.utilities", "SequenceTool"),
     "csv_processor": lambda: _import_tool("quantalogic.tools.utilities", "CSVProcessorTool"),
     "mermaid_validator_tool": lambda: _import_tool("quantalogic.tools.utilities", "MermaidValidatorTool"),
     "download_file_tool": lambda: _import_tool("quantalogic.tools.utilities", "PrepareDownloadTool"),
     "vscode_server_tool": lambda: _import_tool("quantalogic.tools.utilities.vscode_tool", "VSCodeServerTool"),
+    "linkup_tool": lambda: _import_tool("quantalogic.tools", "LinkupTool"),
+    
+    "recommend_popular_products_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "RecommendPopularProductsTool"),
+    "product_identifier_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "ProductIdentifierTool"),
+    "product_memory_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "ProductMemoryTool"),
+    "product_validator_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "ProductValidatorTool"),
+
+    "legal_classifier_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalClassifierTool"),
+    "legal_letter_analyzer_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalLetterAnalyzerTool"),
+    "legal_case_triage_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalCaseTriageTool"),
+    "contract_comparison_tool": lambda: _import_tool("quantalogic.tools.utilities", "ContractComparisonTool"),
+    "contract_extractor_tool": lambda: _import_tool("quantalogic.tools.utilities", "ContractExtractorTool"),
+    "contextual_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "ContextualLLMTool"),
+    "defender_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "DefenderLLMTool"),
+    "judicial_analytics_tool": lambda: _import_tool("quantalogic.tools.utilities", "JudicialAnalyticsTool"),
+    "prosecutor_llm_tool": lambda: _import_tool("quantalogic.tools.utilities", "ProsecutorLLMTool"),
+
 }
 
 def create_custom_agent(
@@ -159,7 +199,8 @@ def create_custom_agent(
     specific_expertise: str = "",
     tools: Optional[list[dict[str, Any]]] = None,
     memory: Optional[AgentMemory] = None,
-    agent_mode: str = "react"
+    agent_mode: str = "react",
+    max_iterations: Optional[int] = 15,
 ) -> Agent:
     """Create an agent with lazy-loaded tools and graceful error handling.
 
@@ -197,15 +238,28 @@ def create_custom_agent(
     tool_configs = {
         # LLM Tools with shared parameters
         "llm": lambda params: create_tool_instance(TOOL_IMPORTS["llm"](), **get_llm_params(params)),
-        "oriented_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["oriented_llm_tool"](), **get_llm_params(params)),
+        "co_worker_agent": lambda params: create_tool_instance(TOOL_IMPORTS["co_worker_agent"](), **get_llm_params(params)),
+        "oriented_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["oriented_llm_tool"](), 
+            **get_llm_params(params),
+            role=params.get("role", ""),
+            name=params.get("name", "oriented_llm_tool"),
+            description=params.get("description", "A tool that provides expert explanations on quantum physics concepts"),
+        ),
+        "document_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["document_llm_tool"](), 
+            **get_llm_params(params),
+            context=params.get("context", ""), 
+        ),
+        "legal_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["legal_llm_tool"](), **get_llm_params(params)),
         "llm_vision": lambda params: create_tool_instance(TOOL_IMPORTS["llm_vision"](),
-            model_name=params.get("vision_model_name") or "gpt-4-vision",
-            on_token=console_print_token if not no_stream else None,
-            event_emitter=event_emitter
-        ) if vision_model_name else None,
+            model_name=params.get("vision_model_name") or "gpt-4o-mini",
+            on_token=console_print_token if not no_stream else None
+        ),
         "llm_image_generation": lambda params: create_tool_instance(TOOL_IMPORTS["llm_image_generation"](),
             provider="dall-e",
             model_name="openai/dall-e-3",
+            on_token=console_print_token if not no_stream else None
+        ),
+        "stable_diffusion": lambda params: create_tool_instance(TOOL_IMPORTS["stable_diffusion"](),
             on_token=console_print_token if not no_stream else None
         ),
         
@@ -270,12 +324,12 @@ def create_custom_agent(
         ),
         
         # Document conversion tools
-        "markdown_to_pdf": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_pdf"]()),
-        "markdown_to_pptx": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_pptx"]()),
-        "markdown_to_html": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_html"]()),
-        "markdown_to_epub": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_epub"]()),
-        "markdown_to_ipynb": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_ipynb"]()),
-        "markdown_to_latex": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_latex"]()),
+        "markdown_to_pdf": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_pdf"](),**get_llm_params(params)),
+        "markdown_to_pptx": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_pptx"](),**get_llm_params(params)),
+        "markdown_to_html": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_html"](),**get_llm_params(params)),
+        "markdown_to_epub": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_epub"](),**get_llm_params(params)),
+        "markdown_to_ipynb": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_ipynb"](),**get_llm_params(params)),
+        "markdown_to_latex": lambda params: create_tool_instance(TOOL_IMPORTS["markdown_to_latex"](),**get_llm_params(params)),
         "markdown_to_docx": lambda _: create_tool_instance(TOOL_IMPORTS["markdown_to_docx"]()),
         
         # Utility tools
@@ -313,10 +367,74 @@ def create_custom_agent(
             use_ocr_for_pdfs=params.get("use_ocr_for_pdfs", False),
             ocr_model=params.get("ocr_model", "openai/gpt-4o-mini"),
             embed_model=params.get("embed_model", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"),
-            document_paths=params.get("document_paths", [])
+            document_paths=params.get("document_paths", ["ddd"])
         ),
         
-        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]())
+        # Legal RAG tool
+        "openai_legal_rag": lambda params: create_tool_instance(TOOL_IMPORTS["openai_legal_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/openai_legal_rag"),
+            document_paths=params.get("document_paths", []),
+            openai_api_key=params.get("openai_api_key", os.getenv("OPENAI_API_KEY")),
+            embedding_model=params.get("embedding_model", "text-embedding-3-large"),
+            chunk_size=params.get("chunk_size", 512),
+            chunk_overlap=params.get("chunk_overlap", 128),
+            bm25_weight=params.get("bm25_weight", 0.3),
+            embedding_weight=params.get("embedding_weight", 0.7),
+            force_reindex=params.get("force_reindex", True),
+            cache_embeddings=params.get("cache_embeddings", True)
+        ),
+        
+        # Simple RAG tool
+        "simple_rag": lambda params: create_tool_instance(TOOL_IMPORTS["simple_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/simple_rag"),
+            document_paths=params.get("document_paths", []),
+            chunk_size=params.get("chunk_size", 1024),
+            chunk_overlap=params.get("chunk_overlap", 256),
+            force_reindex=params.get("force_reindex", True),
+            model_name=params.get("embedding_model", "text-embedding-3-large"),
+            use_temp_dir=params.get("use_temp_dir", True),
+            llm_model=params.get("model_name", "gpt-4o-mini"),
+            on_token=console_print_token if not no_stream else None,
+            event_emitter=event_emitter
+        ),
+        
+        # Legal Embedding RAG tool
+        "legal_embedding_rag": lambda params: create_tool_instance(TOOL_IMPORTS["legal_embedding_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/legal_embedding_rag"),
+            document_paths=params.get("document_paths", []),
+            embed_model=params.get("embed_model", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"),
+            chunk_size=params.get("chunk_size", 512),
+            chunk_overlap=params.get("chunk_overlap", 128),
+            force_reindex=params.get("force_reindex", True)
+        ),
+        
+        # General RAG tool
+        "general_rag": lambda params: create_tool_instance(TOOL_IMPORTS["general_rag"](),
+            persist_dir=params.get("persist_dir", "./storage/general_rag"),
+            document_paths=params.get("document_paths", []),
+            model_name=params.get("embedding_model", "text-embedding-3-large"),
+            chunk_size=params.get("chunk_size", 512),
+            chunk_overlap=params.get("chunk_overlap", 128), 
+        ),
+        
+        "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]()),
+        "linkup_tool": lambda _: create_tool_instance(TOOL_IMPORTS["linkup_tool"]()),
+        
+        "recommend_popular_products_tool": lambda params: create_tool_instance(TOOL_IMPORTS["recommend_popular_products_tool"](),**get_llm_params(params)),
+        "product_identifier_tool": lambda params: create_tool_instance(TOOL_IMPORTS["product_identifier_tool"](),**get_llm_params(params)),
+        "product_memory_tool": lambda _: create_tool_instance(TOOL_IMPORTS["product_memory_tool"]()),
+        "product_validator_tool": lambda params: create_tool_instance(TOOL_IMPORTS["product_validator_tool"](),**get_llm_params(params)),
+
+        "legal_classifier_tool": lambda params: create_tool_instance(TOOL_IMPORTS["legal_classifier_tool"](), **get_llm_params(params)),
+        "legal_letter_analyzer_tool": lambda params: create_tool_instance(TOOL_IMPORTS["legal_letter_analyzer_tool"](), **get_llm_params(params)),
+        "legal_case_triage_tool": lambda params: create_tool_instance(TOOL_IMPORTS["legal_case_triage_tool"](), **get_llm_params(params)),
+        "contract_comparison_tool": lambda params: create_tool_instance(TOOL_IMPORTS["contract_comparison_tool"](), **get_llm_params(params)),
+        "contract_extractor_tool": lambda params: create_tool_instance(TOOL_IMPORTS["contract_extractor_tool"](), **get_llm_params(params)),
+        "contextual_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["contextual_llm_tool"](), **get_llm_params(params)),
+        "defender_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["defender_llm_tool"](), **get_llm_params(params)),
+        "judicial_analytics_tool": lambda params: create_tool_instance(TOOL_IMPORTS["judicial_analytics_tool"](), **get_llm_params(params)),
+        "prosecutor_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["prosecutor_llm_tool"](), **get_llm_params(params)),
+
     }
 
     # Log available tool types before processing
@@ -380,7 +498,8 @@ def create_custom_agent(
             max_tokens_working_memory=max_tokens_working_memory,
             specific_expertise=specific_expertise,
             memory=memory if memory else AgentMemory(),
-            agent_mode=agent_mode
+            agent_mode=agent_mode,
+            max_iterations=max_iterations,
         )
     except Exception as e:
         logger.error(f"Failed to create agent: {str(e)}")

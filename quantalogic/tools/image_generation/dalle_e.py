@@ -212,7 +212,7 @@ class LLMImageGenerationTool(Tool):
             await self._save_metadata(metadata)
 
             logger.info(f"Image generated and saved at: {local_path}")
-            return str(metadata)
+            return str(image_url)
 
         except Exception as e:
             logger.error(f"Error generating DALL-E image: {e}")

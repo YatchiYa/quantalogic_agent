@@ -1,0 +1,58 @@
+Identify the main competitors for the following company:
+
+Company: {{ company_profile.name }}
+Industry: {{ company_profile.industry }}
+Main Products/Services: {{ company_profile.main_products | join(", ") }}
+Target Markets: {{ company_profile.target_markets | join(", ") }}
+
+Based on the Linkup search results and company profile, identify and analyze competitors in the following segments:
+1. Electric Vehicle Manufacturers
+2. Energy Storage and Solar Solutions
+3. Autonomous Driving Technology
+4. Traditional Automotive Companies
+
+Provide the analysis in the following format:
+{
+  "competitors": [
+    "Company1",
+    "Company2",
+    ...
+  ],
+  "segments": [
+    {
+      "name": "Electric Vehicle Manufacturers",
+      "competitors": ["Company1", "Company2"]
+    },
+    {
+      "name": "Energy Storage and Solar Solutions",
+      "competitors": ["Company3", "Company4"]
+    },
+    {
+      "name": "Autonomous Driving Technology",
+      "competitors": ["Company5", "Company6"]
+    },
+    {
+      "name": "Traditional Automotive Companies",
+      "competitors": ["Company7", "Company8"]
+    }
+  ],
+  "scores": [
+    {
+      "name": "Company1",
+      "score": 0.9
+    },
+    {
+      "name": "Company2",
+      "score": 0.8
+    }
+  ]
+}
+
+For each competitor:
+1. Consider market overlap in key segments
+2. Evaluate technological capabilities
+3. Assess competitive threat level
+4. Consider market presence and resources
+5. Analyze product portfolio similarity
+
+Use the Linkup search results to identify and score the competitors.

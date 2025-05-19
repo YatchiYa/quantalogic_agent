@@ -1,0 +1,90 @@
+
+You are an expert trading strategist specializing in comprehensive trading plans.
+
+Analyze the following market data for {{symbol}} over the past {{days}} days with {{interval}} interval:
+
+Price Information:
+- Current Price: {{current_price}}
+- Previous Close: {{previous_close}}
+
+Market Context:
+- Market Condition: {{market_context.market_condition}}
+- Market Sentiment: {{market_context.sentiment}}
+- Volatility State: {{market_context.volatility_state}}
+- Institutional Bias: {{market_context.institutional_bias}}
+
+Price Action Analysis:
+- Trend Direction: {{price_analysis.direction}}
+- Trend Strength: {{price_analysis.strength}}/10
+- Trend Health: {{price_analysis.trend_health}}
+
+Technical Indicators:
+{% for indicator in technical_indicators %}
+- {{indicator.name}}: {{indicator.value}} ({{indicator.signal}})
+{% endfor %}
+
+Smart Money Analysis:
+- Order Flow Bias: {{smart_money_analysis.order_flow_bias}}
+- Manipulation Scenarios:
+{% for scenario in smart_money_analysis.manipulation_scenarios %}
+  * {{scenario}}
+{% endfor %}
+
+Patterns Identified:
+{% for pattern in patterns %}
+- {{pattern.name}} ({{pattern.type}}) - Reliability: {{pattern.reliability}}/10
+{% endfor %}
+
+{% if advanced_patterns %}
+Advanced Patterns:
+{% for pattern in advanced_patterns %}
+- {{pattern.name}} ({{pattern.type}}) - Reliability: {{pattern.reliability}}/10
+{% endfor %}
+{% endif %}
+
+Create a comprehensive trading plan with the following components:
+
+1. Entry Strategy:
+   - Specific entry criteria
+   - Entry triggers
+   - Entry confirmation signals
+
+2. Exit Strategy:
+   - Take profit levels with rationale
+   - Stop loss placement strategy
+   - Trailing stop methodology
+   - Exit confirmation signals
+
+3. Position Sizing:
+   - Risk per trade (% of capital)
+   - Position sizing formula
+   - Scaling in/out strategy
+
+4. Risk Parameters:
+   - Maximum risk per trade
+   - Maximum daily drawdown
+   - Risk-reward minimum threshold
+   - Maximum open positions
+
+5. Trade Management:
+   - Criteria for adjusting stops
+   - Partial profit taking rules
+   - Adding to winning positions
+   - Hedging strategies if applicable
+
+6. Scenarios:
+   - Best case scenario
+   - Expected scenario
+   - Worst case scenario
+
+7. Contingency Plans:
+   - Actions if stop loss is hit
+   - Response to unexpected volatility
+   - Approach to news events
+   - Circuit breaker plan
+
+8. Timeframe Analysis:
+   - How this plan applies across different timeframes
+   - Alignment between timeframes
+
+Your trading plan should be specific, actionable, and comprehensive, providing clear guidelines for executing trades on {{symbol}}.

@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250424_160703.png",
+  "prompt": "Create a 3D figurine of a couple in a collector's blister pack, titled \"Starter Pack\". The woman is wearing a long, dark, double-breasted coat with a light-colored dress/top underneath and a hair clip. She's holding a phone for a selfie and smiling. The man is wearing a dark blue button-up shirt, a dark casual coat, and light-colored pants, looking seriously at the camera. They are posing closely together. The blister pack is transparent plastic.",
+  "revised_prompt": "Design a three-dimensional collector's figurine featuring a Middle-Eastern woman and a Black man in a transparent plastic blister pack, titled 'Starter Pack'. The woman sports a long, dark, double-breasted coat with a bright dress or top peeking out from underneath and a hairclip adorning her mane. She grins while taking a selfie with her phone. Her companion, the man, is clad in a dark blue buttoned shirt and a laid-back dark coat, complemented by light pants. He strikes a serious pose, looking straight into the camera. They are positioned closely to each other, emphasizing their relationship.",
+  "model": "openai/dall-e-3",
+  "created": "2025-04-24T16:07:03",
+  "parameters": {
+    "model": "openai/dall-e-3",
+    "size": "1024x1024",
+    "quality": "hd",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "Create a 3D figurine of a couple in a collector's blister pack, titled \"Starter Pack\". The woman is wearing a long, dark, double-breasted coat with a light-colored dress/top underneath and a hair clip. She's holding a phone for a selfie and smiling. The man is wearing a dark blue button-up shirt, a dark casual coat, and light-colored pants, looking seriously at the camera. They are posing closely together. The blister pack is transparent plastic."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-b8q9UEQuX1gQgo46zXUdNedJ.png?st=2025-04-24T13%3A07%3A03Z&se=2025-04-24T15%3A07%3A03Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-24T08%3A28%3A49Z&ske=2025-04-25T08%3A28%3A49Z&sks=b&skv=2024-08-04&sig=6n/WQzKMu9wKlzHZ%2BRe%2Bh19fdwR5XeddLn0/ScH9bWA%3D",
+  "local_path": "generated_images/dalle_20250424_160703.png"
+}

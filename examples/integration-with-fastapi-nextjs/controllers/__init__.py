@@ -1,0 +1,27 @@
+from .agent_controller import router as agent_router
+from .file_controller import router as file_router
+from .task_controller import router as task_router
+from .health_controller import router as health_router
+from .validation_controller import router as validation_router
+from .generation_controller import router as generation_router
+from .conversation_controller import router as conversation_router
+from .message_controller import router as message_router
+from .message_conversation_controller_public import router as message_conversation_router_public
+from .tools import router as tools
+from .chat_native_controller import router as chat_router
+from .chrome_scheduler_controller import router as chrome_scheduler_router
+
+__all__ = [
+    'agent_router',
+    'file_router',
+    'task_router',
+    'health_router',
+    'validation_router',
+    'generation_router',
+    'conversation_router',
+    'message_router',
+    'tools',
+    'message_conversation_router_public',
+    'chat_router',
+    'chrome_scheduler_router'
+]

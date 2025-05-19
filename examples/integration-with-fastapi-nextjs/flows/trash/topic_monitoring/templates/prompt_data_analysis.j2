@@ -1,0 +1,17 @@
+Analyze the following collected data for the theme:
+
+Theme: {{ theme.main_topic }}
+Time Period: {{ theme.time_scope }}
+
+Data Sources:
+{% for item in collected_data %}
+- {{ item.source.source_type }} ({{ item.source.url }}): {{ item.title }}
+{% endfor %}
+
+Please provide:
+1. Key findings from the content
+2. Identified trends and patterns
+3. Sentiment analysis results
+4. Important named entities
+5. Topic clusters and themes
+6. Relevant metrics and statistics

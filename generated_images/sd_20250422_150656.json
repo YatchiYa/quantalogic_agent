@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250422_150656.png",
+  "timestamp": "20250422_150656",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "Modern data-driven infographic, professional photography, corporate styling, AI Transformation, professional composition, corporate lighting, business-friendly color palette #0077B5, #FFFFFF, #283E4A, high-quality, 4K, LinkedIn",
+  "negative_prompt": "unprofessional, business-inappropriate, non-corporate, controversial, sensitive, blurry, low-resolution, amateurish, distracting, noisy, cluttered",
+  "size": "1024x1024",
+  "style": "photographic",
+  "cfg_scale": 7.5,
+  "steps": 50,
+  "seed": null,
+  "local_path": "generated_images/sd_20250422_150656.png"
+}

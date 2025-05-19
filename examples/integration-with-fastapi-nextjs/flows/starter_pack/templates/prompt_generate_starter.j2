@@ -1,0 +1,31 @@
+Based on the reference image analysis, create a detailed prompt for generating a collectible figure starter pack.
+
+Reference Analysis:
+People:
+{% for person in reference_analysis.people %}
+Person {{loop.index}}:
+- Facial Features: {{person.facial_features}}
+- Body Type: {{person.body_type}}
+- Clothing: {{person.clothing}}
+- Pose: {{person.pose}}
+- Expression: {{person.expression}}
+- Distinguishing Features: {{person.distinguishing_features}}
+{% endfor %}
+
+Overall Style: {{reference_analysis.overall_style}}
+Background: {{reference_analysis.background}}
+Lighting: {{reference_analysis.lighting}}
+Colors: {{", ".join(reference_analysis.color_scheme)}}
+Composition: {{reference_analysis.composition}}
+Mood: {{reference_analysis.mood}}
+
+Packaging Style: {{packaging_style}}
+
+Create a prompt that will generate:
+1. A high-quality 3D collectible figure
+2. Professional blister packaging
+3. Appropriate background and display elements
+4. Correct lighting and materials
+5. Any necessary special effects
+
+Remember to maintain accuracy to the reference while adapting to the collectible figure style.

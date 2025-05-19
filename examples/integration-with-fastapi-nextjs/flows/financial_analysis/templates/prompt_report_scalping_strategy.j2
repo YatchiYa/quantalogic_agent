@@ -1,0 +1,75 @@
+Based on the comprehensive analysis of {{ financial_data_collection.series[0].symbol }} ({{ financial_data_collection.series[0].name }}), provide an elite-level scalping strategy optimized for ultra-short to short-term timeframes (2 minutes to 1 hour).
+
+{% set series = financial_data_collection.series[0] %}
+{% set latest_price = series.data[-1].close if series.data else 0 %}
+{% set high_price = series.data[-1].high if series.data else 0 %}
+{% set low_price = series.data[-1].low if series.data else 0 %}
+{% set price_range = get_price_range(series.data) %}
+{% set avg_volume = series.data | map(attribute='volume') | sum / series.data | length if series.data else 0 %}
+
+**Current Price**: {{ latest_price }}
+**Recent High**: {{ high_price }}
+**Recent Low**: {{ low_price }}
+**52-Week Range**: {{ price_range[0] }} - {{ price_range[1] }}
+**Average Daily Volume**: {{ avg_volume | int }}
+
+### ⚡ PRECISION SCALPING BLUEPRINT
+
+I will dissect {{ financial_data_collection.series[0].symbol }} with surgical precision to create an institutional-grade scalping strategy. My analysis will reveal exactly HOW to execute, WHY specific setups work, WHERE to place orders down to the decimal, and WHEN to enter and exit with optimal timing.
+
+#### 1. **Market Microstructure Analysis** (350-450 words)
+   • Identify the EXACT price points of current support/resistance levels (to 2 decimal places)
+   • Explain WHY these levels are significant (order blocks, liquidity pools, institutional interest)
+   • Map precise price zones where smart money is accumulating/distributing
+   • Calculate the average price movement in points/pips during different market sessions
+   • Determine the optimal scalping timeframe for THIS SPECIFIC ASSET (whether 2min, 5min, 15min, or 30min) with justification
+   • Specify the exact times of day when this asset shows the highest-probability scalping opportunities
+
+#### 2. **Precision Entry Mechanics** (300-400 words)
+   • Define the EXACT trigger conditions that signal high-probability entries
+   • Provide the mathematical formula for calculating optimal position sizing based on current volatility
+   • Explain WHY these specific entry conditions work for this asset
+   • Detail the precise multi-timeframe confirmation process
+   • Identify the specific candlestick patterns or price action setups that offer the highest win rate
+   • Explain HOW to read order flow acceleration at entry points
+   • Calculate the exact favorable risk:reward ratio at each entry point
+
+#### 3. **Volatility & Volume Profile Exploitation** (300-400 words)
+   • Identify the EXACT price levels where volatility behavior changes (to 2 decimal places)
+   • Calculate the average true range (ATR) for different timeframes and how to use these values
+   • Map the precise volume profile showing high-volume nodes (HVNs) and low-volume nodes (LVNs)
+   • Explain WHY certain price zones show volume absorption or rejection
+   • Detail HOW to exploit the specific volatility patterns of this asset
+   • Calculate the optimal holding times based on volatility cycles (specific minutes/hours)
+   • Provide exact position sizing formulas based on current volatility metrics
+
+#### 4. **Institutional Order Flow Intelligence** (300-400 words)
+   • Identify the EXACT price levels where institutional activity is evident
+   • Calculate the volume delta showing precise buying/selling imbalances
+   • Map the specific absorption zones where large orders are being filled
+   • Explain WHY institutions are likely positioning at these levels
+   • Identify the exact price points where retail traders are likely to be trapped
+   • Detail HOW to align your trades with institutional order flow
+   • Provide specific examples of recent institutional footprints in the chart
+
+#### 5. **Precision Risk Management Framework** (350-450 words)
+   • Define the EXACT stop-loss placement methodology (to 2 decimal places)
+   • Calculate multiple take-profit targets with precise scaling parameters
+   • Provide the mathematical justification for each stop and target level
+   • Detail the specific conditions for scaling out of positions
+   • Explain WHY these risk parameters optimize profitability for this asset
+   • Specify the maximum holding time for different setups (exact minutes/hours)
+   • Calculate the precise risk per trade based on account size and volatility
+   • Define exact criteria for emergency exits based on order flow shifts
+
+I will write in a first-person, stream-of-consciousness style that reveals my complete thought process as a master scalper with institutional experience. I'll walk through my analysis step-by-step, explaining:
+
+- EXACTLY what I'm seeing in the order flow and price action
+- PRECISELY how I'm interpreting each signal and why
+- The SPECIFIC calculations I'm making for entries, stops, and targets
+- The EXACT psychological traps retail traders fall into that I avoid
+- HOW I identify institutional manipulation tactics and exploit them
+- WHY I choose specific timeframes for this particular asset
+- The PRECISE duration I expect to hold positions (specific minutes/hours)
+
+My analysis will be ruthlessly practical, focusing on actionable setups that can be executed immediately with crystal-clear entry conditions, exact price levels, and specific risk parameters.

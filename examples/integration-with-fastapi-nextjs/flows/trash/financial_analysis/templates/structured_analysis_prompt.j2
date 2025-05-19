@@ -1,0 +1,79 @@
+
+You are a financial analyst specializing in comprehensive market analysis.
+
+Analyze the following market data for {{symbol}} over the past {{days}} days with {{interval}} interval:
+
+Price Information:
+- Current Price: {{current_price}}
+- Previous Close: {{previous_close}}
+- 52-Week High: {{year_high}}
+- 52-Week Low: {{year_low}}
+
+Market Context:
+- Market Condition: {{market_context.market_condition}}
+- Market Sentiment: {{market_context.sentiment}}
+- Volatility State: {{market_context.volatility_state}}
+- Institutional Bias: {{market_context.institutional_bias}}
+
+Price Action Analysis:
+- Trend Direction: {{price_analysis.direction}}
+- Trend Strength: {{price_analysis.strength}}/10
+- Trend Health: {{price_analysis.trend_health}}
+
+Technical Indicators:
+{% for indicator in technical_indicators %}
+- {{indicator.name}}: {{indicator.value}} ({{indicator.signal}})
+{% endfor %}
+
+Smart Money Analysis:
+- Order Flow Bias: {{smart_money_analysis.order_flow_bias}}
+
+Patterns Identified:
+{% for pattern in patterns %}
+- {{pattern.name}} ({{pattern.type}}) - Reliability: {{pattern.reliability}}/10
+{% endfor %}
+
+Trading Plan:
+- Entry Strategy: {{trading_plan.entry_strategy}}
+- Exit Strategy: {{trading_plan.exit_strategy}}
+- Risk Parameters: {{trading_plan.risk_parameters}}
+
+Key Performance Indicators:
+- Win Rate: {{kpis.win_rate}}
+- Sharpe Ratio: {{kpis.sharpe_ratio}}
+- Max Drawdown: {{kpis.max_drawdown}}
+- Profit Factor: {{kpis.profit_factor}}
+
+Create a structured analysis with the following components:
+
+1. Market Sentiment:
+   - Overall sentiment (bullish, bearish, neutral)
+   - Confidence score (0-1)
+   - Key factors influencing sentiment
+   - Risks to be aware of
+   - Potential opportunities
+
+2. Technical Analysis:
+   - Trend strength (1-10)
+   - Support levels (list of prices)
+   - Resistance levels (list of prices)
+   - Key indicators and their signals
+   - Pattern analysis summary
+
+3. Trade Recommendation:
+   - Action (buy, sell, hold)
+   - Entry price (if applicable)
+   - Stop loss (if applicable)
+   - Take profit levels (list of prices)
+   - Timeframe for the trade
+   - Confidence score (0-1)
+   - Rationale for the recommendation
+
+4. Summary:
+   - Concise summary of the analysis
+   - Key points for consideration
+
+5. Risk Rating:
+   - Overall risk rating (1-10)
+
+Your analysis should be comprehensive, data-driven, and actionable.

@@ -1,27 +1,16 @@
 [tool.poetry]
 name = "quantalogic"
-version = "0.93"
+version = "0.59.4"
 description = "QuantaLogic ReAct Agents"
 authors = ["Raphaël MANSUY <raphael.mansuy@gmail.com>"]
 readme = "README.md"
-packages = [
-    { include = "quantalogic" },
-]
-
-# PyPI metadata
-license = "MIT"
-
-
-[tool.poetry.urls]
-Homepage = "https://github.com/quantalogic/quantalogic"
-Repository = "https://github.com/quantalogic/quantalogic"
-Documentation = "https://github.com/quantalogic/quantalogic#readme"
+packages = [{include = "quantalogic"}]
 
 # Core dependencies required for the base Agent and ToolManager
 [tool.poetry.dependencies]
-python = "<4.0,>=3.10"
+python = "<4.0,>=3.11"
 pydantic = "^2.10.4"
-litellm = "^1.63.14"
+litellm = "^1.56.4"
 rich = "^13.9.4"
 loguru = "^0.7.3"
 tenacity = "^9.0.0"
@@ -42,7 +31,6 @@ markitdown = "^0.0.1a3"
 html2text = "^2024.2.26"
 google-search-results = "^2.4.2"
 serpapi = "^0.1.5"
-quantalogic-flow = "^0.6.2"
 tree-sitter = "^0.23.2"
 tree-sitter-python = "^0.23.6"
 tree-sitter-c = "^0.23.4"
@@ -56,16 +44,39 @@ tree-sitter-rust = "^0.23.2"
 fuzzywuzzy = "^0.18.0"
 types-pyyaml = "^6.0.12.20241230"
 typing-extensions = "^4.12.2"
-pytest-asyncio = "^0.25.3"
-boto3 = "^1.34.0"
-botocore = "^1.29.123"
-psutil = "^7.0.0"
-openai = "^1.68.0"
-aiofiles = "^24.1.0"
-quantalogic-pythonbox = ">=0.9.11"
-quantalogic-toolbox = ">=0.8.0"
-
-
+py-zerox = "^0.0.7"
+uvicorn = "^0.34.0"
+fastapi = "^0.115.11"
+python-multipart = "^0.0.20"
+gnews = "^0.4.0"
+google-generativeai = "^0.8.4"
+google-genai = "^1.5.0"
+rank-bm25 = "^0.2.2"
+scikit-learn = "^1.6.1"
+numpy = "^2.2.4"
+selenium = "^4.29.0"
+webdriver-manager = "^4.0.2"
+asciinema = "^2.4.0"
+pypandoc = "^1.15"
+folium = "^0.19.5"
+geocoder = "^1.38.1"
+hkdf = "^0.0.3"
+python-jose = {extras = ["cryptography"], version = "^3.4.0"}
+linkup-sdk = "^0.2.4"
+alembic = "^1.15.2"
+psycopg2-binary = "^2.9.10"
+websocket-client = "^1.8.0"
+undetected-chromedriver = "^3.5.5"
+yfinance = "^0.2.55"
+pytz = "^2025.2"
+asyncpg = "^0.30.0"
+llama-index = "^0.12.19"
+llama-index-embeddings-openai = "^0.3.1"
+llama-index-embeddings-huggingface = "^0.5.1"
+llama-index-embeddings-instructor = "^0.3.0"
+llama-index-embeddings-bedrock = "^0.5.0"
+llama-index-vector-stores-chroma = "^0.4.1"
+llama-index-vector-stores-faiss = "^0.3.0"
 
 [tool.poetry.group.file-tools]
 optional = false
@@ -113,19 +124,18 @@ optional = true
 [tool.poetry.group.llm-tools.dependencies]
 transformers = "^4.49.0"
 torch = "^2.6.0"
-llama-index = "^0.12.19"
-llama-index-embeddings-openai = "^0.3.1"
-llama-index-embeddings-huggingface = "^0.5.1"
-llama-index-embeddings-instructor = "^0.3.0"
-llama-index-embeddings-bedrock = "^0.5.0"
-llama-index-vector-stores-chroma = "^0.4.1"
-llama-index-vector-stores-faiss = "^0.3.0"
 llmlingua = "^0.2.2"
+llama-index-graph-stores-nebula = "^0.4.2"
+seaborn = "^0.13.2"
+alpha-vantage = "^3.0.0"
+plotly = "^6.0.1"
+neo4j = "^5.28.1"
 
 [tool.poetry.group.web-tools]
 optional = true
 
 [tool.poetry.group.web-tools.dependencies]
+boto3 = "^1.35.86"
 uvicorn = "^0.34.0"
 fastapi = "^0.115.6"
 websocket = "^0.2.1"
@@ -179,12 +189,15 @@ optional = false
 ruff = "^0.8.4"
 pytest = "^8.2.0"
 pytest-mock = "^3.14.0"
-litellm = "^1.63.14"
+litellm = "^1.55.9"
 ollama = "^0.4.4"
 
 # Scripts for CLI and documentation
 [tool.poetry.scripts]
 quantalogic = "quantalogic.main:cli"
+docs-serve = "quantalogic.docs_cli:serve_docs"
+docs-build = "quantalogic.docs_cli:build_docs"
+docs-deploy = "quantalogic.docs_cli:deploy_docs"
 
 # Build system configuration
 [build-system]

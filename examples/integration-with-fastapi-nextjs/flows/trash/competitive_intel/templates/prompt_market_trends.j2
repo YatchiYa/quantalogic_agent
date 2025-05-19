@@ -1,0 +1,101 @@
+Analyze market trends based on competitor analysis and recent news:
+
+Company Being Analyzed: {{ company_profile.name }}
+Industry Context: {{ company_profile.industry }}
+
+Recent Market News:
+{% if market_news %}
+{% for item in market_news %}
+- {{ item.timestamp }} - {{ item.title }}
+  Summary: {{ item.summary }}
+  Impact: {{ item.impact_analysis.market_impact }}
+  Trends: {{ item.impact_analysis.industry_trends | join(", ") }}
+{% endfor %}
+{% else %}
+No recent market news available.
+{% endif %}
+
+Competitors:
+{% if competitors and competitors.competitors %}
+{% for competitor in competitors.competitors %}
+- {{ competitor }}
+{% endfor %}
+{% else %}
+No competitor information available.
+{% endif %}
+
+Based on the above information, analyze key market trends. Format your response as follows:
+
+{
+  "trends": [
+    {
+      "name": "Battery Technology Evolution",
+      "category": "Technology",
+      "description": "Advances in battery technology improving range and charging speed",
+      "drivers": [
+        "R&D investments",
+        "Consumer demand for longer range",
+        "Competition in EV market"
+      ],
+      "impact_assessment": {
+        "market_impact": "High potential to accelerate EV adoption",
+        "timeframe": "12-24 months",
+        "confidence_level": "High"
+      },
+      "affected_companies": [
+        "Tesla",
+        "Other EV manufacturers"
+      ],
+      "recommendations": [
+        "Increase R&D investment",
+        "Secure battery supply chain",
+        "Monitor competitor developments"
+      ]
+    }
+  ],
+  "meta_analysis": {
+    "key_insights": [
+      "Battery technology is advancing rapidly",
+      "Market competition is intensifying",
+      "Infrastructure development is critical"
+    ],
+    "market_outlook": "Positive growth trajectory with increasing competition",
+    "risk_factors": [
+      "Supply chain constraints",
+      "Regulatory changes",
+      "Technology obsolescence"
+    ],
+    "opportunities": [
+      "Market expansion",
+      "Technology leadership",
+      "New revenue streams"
+    ]
+  }
+}
+
+Focus on these key areas:
+1. Electric Vehicle Market Evolution
+   - Battery technology advancements
+   - Charging infrastructure development
+   - Consumer adoption trends
+   - Price competitiveness
+
+2. Autonomous Driving Progress
+   - Technology development
+   - Regulatory landscape
+   - Safety considerations
+   - Market readiness
+
+3. Energy Solutions
+   - Solar technology
+   - Energy storage
+   - Grid integration
+   - Market demand
+
+4. Industry Transformation
+   - Manufacturing innovation
+   - Supply chain developments
+   - New business models
+   - Sustainability initiatives
+
+Provide detailed analysis of how these trends affect the competitive landscape and future market dynamics.

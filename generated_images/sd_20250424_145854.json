@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250424_145854.png",
+  "timestamp": "20250424_145854",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A candid, natural photo of a person laughing genuinely in a cozy, sunlit room. The focus is on capturing a moment of authentic joy and contentment. The composition is slightly imperfect, with soft, diffused lighting and a shallow depth of field to emphasize the realness of the scene. The person is wearing comfortable, stylish clothing and has a relaxed, approachable expression. Pastel colors dominate the scene, creating a warm and inviting atmosphere. High-resolution, realistic textures, and subtle film grain. Instagram-optimized aesthetics, trending now.",
+  "negative_prompt": "AI artifacts, overly perfect skin, unnatural poses, harsh shadows, desaturated colors, watermarks, logos, text, photorealistic, corporate, staged, commercial, product photography, overly posed, plastic skin, blurry, nsfw, people, gore, text, watermark, low quality, ugly, blurry, unnatural, artificial, fake",
+  "size": "896x1152",
+  "style": "analog-film",
+  "cfg_scale": 7.5,
+  "steps": 50,
+  "seed": null,
+  "local_path": "generated_images/sd_20250424_145854.png"
+}

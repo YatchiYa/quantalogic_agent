@@ -1,0 +1,19 @@
+Develop pricing details based on:
+
+Deliverables:
+{{ deliverables.model_dump_json(indent=2) }}
+
+Team Structure:
+{{ team_structure.model_dump_json(indent=2) }}
+
+Cost Data:
+{{ cost_data | tojson(indent=2) }}
+
+Please provide:
+1. Detailed cost breakdown by deliverable
+2. Payment schedule aligned with milestones
+3. Clear pricing assumptions
+4. Additional costs if any
+5. Contingency calculations
+
+Ensure pricing is competitive while maintaining profitability.

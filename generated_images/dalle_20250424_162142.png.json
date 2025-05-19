@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250424_162142.png",
+  "prompt": "Create an image of a powerful, muscular, green-skinned woman resembling She-Hulk. She has long, flowing green hair and a fierce expression. She is wearing a stylish, torn business suit, showcasing her immense strength and physique. The background should be a destroyed cityscape.",
+  "revised_prompt": "Generate an image depicting a powerful, muscular, green-skinned woman. This woman has long, flowing green hair and a fierce expression. She dons a stylish, yet torn business suit, showcasing her immense physique and strength. Her surroundings include a crumbled cityscape, indicating her raw power.",
+  "model": "openai/dall-e-3",
+  "created": "2025-04-24T16:21:42",
+  "parameters": {
+    "model": "openai/dall-e-3",
+    "size": "1024x1024",
+    "quality": "hd",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "Create an image of a powerful, muscular, green-skinned woman resembling She-Hulk. She has long, flowing green hair and a fierce expression. She is wearing a stylish, torn business suit, showcasing her immense strength and physique. The background should be a destroyed cityscape."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-TsBblXg4EYkPJxJDAvhOMj5l.png?st=2025-04-24T13%3A21%3A42Z&se=2025-04-24T15%3A21%3A42Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-24T13%3A57%3A47Z&ske=2025-04-25T13%3A57%3A47Z&sks=b&skv=2024-08-04&sig=L55EEK7GOmlJdePUa1X1qR6sVCM1xKE5IKhot7yJbfM%3D",
+  "local_path": "generated_images/dalle_20250424_162142.png"
+}

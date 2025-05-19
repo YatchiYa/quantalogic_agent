@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250509_190053.png",
+  "timestamp": "20250509_190053",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "A hyperrealistic, modern, minimalist image accurately representing AI law. The composition features interconnected nodes symbolizing neural networks, subtly integrated with elegant, balanced legal scales. The color palette is strictly professional, using a clean combination of blues, grays, and whites to evoke intelligence and trustworthiness. Soft, volumetric lighting enhances the forward-thinking atmosphere. High resolution, 8K, Octane render.",
+  "negative_prompt": "photorealistic, people, figures, clutter, disorganization, distracting elements, text, words, signatures, artifacts, blurs, out of focus, distortions, errors, overly complex, photorealistic, stock photo, oversaturated, jpeg artifacts, watermarks.",
+  "size": "1024x1024",
+  "style": "digital-art",
+  "cfg_scale": 7.5,
+  "steps": 50,
+  "seed": null,
+  "local_path": "generated_images/sd_20250509_190053.png"
+}

@@ -1,0 +1,26 @@
+id,name,category,price,rating,stock,popularity_score,tags,release_date,sustainability_score
+PROD-001,SonicWave Pro Wireless Headphones,electronics,249.99,4.8,78,98,"wireless,noise-cancellation,premium,high-fidelity",2024-03-15,8.7
+PROD-002,VitalTrack Fitness Smartwatch,wearables,179.99,4.7,65,97,"fitness,health-tracking,gps,waterproof",2024-02-22,8.2
+PROD-003,UltraSlim X15 Laptop,electronics,1299.99,4.9,42,96,"ultrabook,premium,4k,gaming,productivity",2024-01-10,7.8
+PROD-004,ProChef Ceramic Cookware Set,kitchen,349.99,4.7,55,95,"ceramic,non-stick,eco-friendly,induction-compatible",2023-11-05,9.3
+PROD-005,AeroGlide Pro Electric Scooter,sports,699.99,4.8,35,94,"electric,commuting,foldable,eco-friendly",2024-02-18,8.9
+PROD-006,LuxeComfort Ergonomic Office Chair,home,399.99,4.7,48,93,"ergonomic,office,lumbar-support,adjustable",2023-10-30,8.5
+PROD-007,ArtisanBlend Specialty Coffee Sampler,food,49.99,4.9,110,92,"coffee,specialty,single-origin,gift,organic",2024-04-12,9.5
+PROD-008,TechGlow Smart LED Light Strip,electronics,59.99,4.6,85,91,"smart-home,lighting,customizable,voice-control",2023-12-05,8.4
+PROD-009,NatureEssence Organic Skincare Collection,lifestyle,129.99,4.8,40,90,"organic,skincare,vegan,cruelty-free,eco-friendly",2024-01-15,9.7
+PROD-010,PowerCore Portable Solar Generator,electronics,799.99,4.7,25,89,"solar,portable-power,emergency,off-grid,camping",2023-09-20,9.2
+PROD-011,Sony WH-1000XM5 Noise Cancelling Headphones,electronics,349.99,4.9,78,88,"wireless,noise-cancelling,premium,bluetooth",2023-05-15,8.5
+PROD-012,Apple Watch Series 9 (GPS + Cellular),wearables,499.99,4.8,65,87,"smartwatch,fitness,health,premium",2023-09-22,7.8
+PROD-013,La Colombe Nizza Single-Origin Ethiopian Coffee,food,32.99,4.9,120,86,"organic,fair-trade,specialty,sustainable",2024-01-10,9.2
+PROD-014,Bose SoundLink Revolve+ II Portable Speaker,electronics,329.99,4.7,42,85,"waterproof,bluetooth,premium,360-sound",2022-11-05,8.0
+PROD-015,LARQ Self-Cleaning Water Bottle with UV Purification,lifestyle,99.99,4.8,85,84,"eco-friendly,smart,self-cleaning,insulated",2023-08-18,9.5
+PROD-016,Lululemon The Reversible Mat 5mm,sports,98.00,4.8,53,83,"premium,eco-friendly,non-slip,reversible",2023-03-30,8.7
+PROD-017,Anker 3-in-1 MagSafe Charging Station,electronics,89.99,4.7,110,82,"wireless,fast-charging,multi-device,compact",2023-10-12,7.9
+PROD-018,Harney & Sons Master Tea Blender's Collection,food,74.99,4.9,38,81,"organic,luxury,gift-set,loose-leaf",2023-12-05,8.8
+PROD-019,John Boos Walnut End Grain Cutting Board,kitchen,199.99,4.8,25,80,"handcrafted,premium,sustainable,heirloom",2022-09-15,9.3
+PROD-020,Philips Hue White and Color Ambiance Starter Kit,home,219.99,4.7,60,79,"smart-home,voice-control,energy-efficient,customizable",2023-07-20,8.2
+PROD-021,Dyson V15 Detect Absolute Cordless Vacuum,home,749.99,4.8,32,78,"smart,laser-detection,hepa-filter,lightweight",2023-04-15,7.5
+PROD-022,Theragun Pro 5th Generation Massage Gun,lifestyle,599.00,4.7,28,77,"recovery,smart,bluetooth,ergonomic",2023-11-10,8.1
+PROD-023,Breville Barista Express Espresso Machine,kitchen,699.95,4.8,45,76,"semi-automatic,built-in-grinder,pressure-gauge,stainless-steel",2022-08-25,8.4
+PROD-024,Oura Ring Gen3 Horizon (Stealth),wearables,349.00,4.6,50,75,"sleep-tracking,health-monitoring,waterproof,titanium",2023-06-30,8.0
+PROD-025,Patagonia Better Sweater Fleece Jacket,lifestyle,159.00,4.9,95,74,"recycled-materials,fair-trade,sustainable,versatile",2023-09-05,9.7

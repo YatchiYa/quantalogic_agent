@@ -165,7 +165,7 @@ class LLMTool(Tool):
                     response = result.response
 
                 logger.debug(f"Generated async response: {response}")
-                return response
+                return "LLM Tool executed successfully, \nResult: \n" + response
             except Exception as e:
                 logger.error(f"Error generating async response: {e}")
                 raise Exception(f"Error generating async response: {e}") from e

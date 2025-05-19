@@ -1,0 +1,13 @@
+{
+  "filename": "sd_20250501_133733.png",
+  "timestamp": "20250501_133733",
+  "model_id": "stability.stable-diffusion-xl-v1",
+  "prompt": "Visually striking image, dynamic composition, vibrant colors, sharp focus, energetic and inspiring mood, sense of discovery and breakthrough, interconnected nodes, strategic pathways, central focal point representing mastery, Instagram-optimized, high-resolution, trending.",
+  "negative_prompt": "blurry, low quality, artifacts, text, watermarks, signatures, people, human figures, nudity, violence, offensive content, political content, generic, uninspired.",
+  "size": "1024x1024",
+  "style": "digital-art",
+  "cfg_scale": 7.5,
+  "steps": 50,
+  "seed": null,
+  "local_path": "generated_images/sd_20250501_133733.png"
+}

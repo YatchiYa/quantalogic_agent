@@ -1,0 +1,20 @@
+Classify and organize the following analysis results:
+
+Theme: {{ theme.main_topic }}
+
+Key Findings:
+{% for finding in data_analysis.key_findings %}
+- {{ finding }}
+{% endfor %}
+
+Trends:
+{% for trend in data_analysis.trends %}
+- {{ trend.name }}: {{ trend.description }}
+{% endfor %}
+
+Please provide:
+1. Categorized information by topic/impact
+2. High-priority items requiring attention
+3. Impact assessment for each category
+4. Required actions based on findings
+5. Identified knowledge gaps for further research

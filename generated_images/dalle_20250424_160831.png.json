@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250424_160831.png",
+  "prompt": "Create a 3D figurine of a couple in a collector's blister pack, titled \"Starter Pack\". The blister pack includes extra \"goodies\" like a gun. The man is well-behaved and dressed professionally. The woman has red eyes and red hair. She's holding a phone for a selfie. They are posing confidently together.",
+  "revised_prompt": "Creating a detailed 3D image of a tightly packed figurine set referred to as the 'Starter Pack'. Inside, are two colorful human avatar characters. First, an African male character, presenting himself with absolute decency, dressed in a sophisticated business suit. The second character is a Caucasian female with striking red hair and vivid red eyes, captured in the moment of taking a selfie on her phone. They both exhibit a stance of confidence, standing alongside each other in harmony. In the package, additional miniature elements like a plastic gun and other novelty items are also included.",
+  "model": "openai/dall-e-3",
+  "created": "2025-04-24T16:08:31",
+  "parameters": {
+    "model": "openai/dall-e-3",
+    "size": "1024x1024",
+    "quality": "hd",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "Create a 3D figurine of a couple in a collector's blister pack, titled \"Starter Pack\". The blister pack includes extra \"goodies\" like a gun. The man is well-behaved and dressed professionally. The woman has red eyes and red hair. She's holding a phone for a selfie. They are posing confidently together."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-dTALpbyTWd1K7zPtkGjP15y0.png?st=2025-04-24T13%3A08%3A31Z&se=2025-04-24T15%3A08%3A31Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-24T08%3A03%3A59Z&ske=2025-04-25T08%3A03%3A59Z&sks=b&skv=2024-08-04&sig=fxYGYhkxRLhO2rMKqtvTecK9v7ffVXiN/tNQJda50nw%3D",
+  "local_path": "generated_images/dalle_20250424_160831.png"
+}

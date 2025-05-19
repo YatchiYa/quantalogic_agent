@@ -1,0 +1,13 @@
+{
+  "products": [
+    {
+      "id": "TEST-001",
+      "name": "Test Product",
+      "category": "test",
+      "price": "89.99",
+      "description": "Updated test product",
+      "options": null,
+      "image_url": null
+    }
+  ]
+}

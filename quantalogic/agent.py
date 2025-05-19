@@ -10,7 +10,7 @@ from typing import Any, Optional
 
 from jinja2 import Environment, FileSystemLoader
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, PrivateAttr
+from pydantic import BaseModel, ConfigDict, PrivateAttr, Field
 
 from quantalogic.event_emitter import EventEmitter
 from quantalogic.generative_model import GenerativeModel, ResponseStats, TokenUsage
@@ -23,6 +23,7 @@ from quantalogic.utils import get_environment
 from quantalogic.utils.ask_user_validation import console_ask_for_user_validation
 from quantalogic.xml_parser import ToleranceXMLParser
 from quantalogic.xml_tool_parser import ToolParser
+import uuid
 
 # Maximum ratio occupancy of the occupied memory
 MAX_OCCUPANCY = 90.0
@@ -71,8 +72,8 @@ class Agent(BaseModel):
 
     specific_expertise: str
     model: GenerativeModel
-    memory: AgentMemory = AgentMemory()  # List of User/Assistant Messages
-    variable_store: VariableMemory = VariableMemory()  # Dictionary of variables
+    memory: AgentMemory = Field(default_factory=AgentMemory)  # List of User/Assistant Messages
+    variable_store: VariableMemory = Field(default_factory=VariableMemory)  # Dictionary of variables
     tools: ToolManager = ToolManager()
     event_emitter: EventEmitter = EventEmitter()
     config: AgentConfig
@@ -81,6 +82,7 @@ class Agent(BaseModel):
     ask_for_user_validation: Callable[[str, str], bool] = console_ask_for_user_validation
     last_tool_call: dict[str, Any] = {}  # Stores the last tool call information
     total_tokens: int = 0  # Total tokens in the conversation
+    total_cost: float = 0.0  # Total cost of the conversation
     current_iteration: int = 0
     max_input_tokens: int = DEFAULT_MAX_INPUT_TOKENS
     max_output_tokens: int = DEFAULT_MAX_OUTPUT_TOKENS
@@ -93,12 +95,13 @@ class Agent(BaseModel):
     tool_mode: Optional[str] = None  # Tool or toolset to prioritize in chat mode
     tracked_files: list[str] = []  # List to track files created or modified during execution
     agent_mode: str = "react"  # Default mode is ReAct
+    session_id: Optional[str] = None  # Track current conversation ID
 
     def __init__(
         self,
         model_name: str = "",
-        memory: AgentMemory = AgentMemory(),
-        variable_store: VariableMemory = VariableMemory(),
+        memory: Optional[AgentMemory] = None,
+        variable_store: Optional[VariableMemory] = None,
         tools: list[Tool] = [TaskCompleteTool()],
         ask_for_user_validation: Callable[[str, str], bool] = console_ask_for_user_validation,
         task_to_solve: str = "",
@@ -110,6 +113,8 @@ class Agent(BaseModel):
         chat_system_prompt: str | None = None,
         tool_mode: Optional[str] = None,
         agent_mode: str = "react",
+        max_iterations: Optional[int] = 30,
+        session_id: Optional[str] = None,
     ):
         """Initialize the agent with model, memory, tools, and configurations.
 
@@ -128,6 +133,7 @@ class Agent(BaseModel):
             chat_system_prompt: Optional base system prompt for chat mode persona
             tool_mode: Optional tool or toolset to prioritize in chat mode
             agent_mode: Mode to use ("react" or "chat")
+            session_id: Optional conversation ID for memory management
         """
         try:
             logger.debug("Initializing agent...")
@@ -161,6 +167,10 @@ class Agent(BaseModel):
                 "answer questions, and use tools when explicitly requested or when they enhance your response."
             )
 
+            # Initialize memory and variable store
+            memory = memory or AgentMemory()
+            variable_store = variable_store or VariableMemory()
+
             super().__init__(
                 specific_expertise=specific_expertise,
                 model=GenerativeModel(model=model_name, event_emitter=event_emitter),
@@ -174,16 +184,18 @@ class Agent(BaseModel):
                 ask_for_user_validation=ask_for_user_validation,
                 last_tool_call={},
                 total_tokens=0,
+                total_cost=0.0,
                 current_iteration=0,
                 max_input_tokens=DEFAULT_MAX_INPUT_TOKENS,
                 max_output_tokens=DEFAULT_MAX_OUTPUT_TOKENS,
-                max_iterations=30,
+                max_iterations=max_iterations,
                 system_prompt="",
                 compact_every_n_iterations=compact_every_n_iterations or 30,
                 max_tokens_working_memory=max_tokens_working_memory,
                 chat_system_prompt=chat_system_prompt,
                 tool_mode=tool_mode,
                 agent_mode=agent_mode,
+                session_id=session_id,
             )
 
             self._model_name = model_name
@@ -191,6 +203,7 @@ class Agent(BaseModel):
             logger.debug(f"Memory will be compacted every {self.compact_every_n_iterations} iterations")
             logger.debug(f"Max tokens for working memory set to: {self.max_tokens_working_memory}")
             logger.debug(f"Tool mode set to: {self.tool_mode}")
+            logger.debug(f"Conversation ID: {self.session_id}")
             logger.debug("Agent initialized successfully.")
         except Exception as e:
             logger.error(f"Failed to initialize agent: {str(e)}")
@@ -286,7 +299,7 @@ class Agent(BaseModel):
                         content += chunk
                     result = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -301,6 +314,7 @@ class Agent(BaseModel):
                 if not streaming:
                     token_usage = result.usage
                     self.total_tokens = token_usage.total_tokens
+                    self.total_cost = token_usage.cost
 
                 self._emit_event("task_think_end", {"response": content})
                 result = await self._async_observe_response(content, iteration=self.current_iteration)
@@ -407,6 +421,7 @@ class Agent(BaseModel):
         # Add user message to memory
         self.memory.add(Message(role="user", content=message))
         self._update_total_tokens(self.memory.memory, "")
+        self._update_total_cost(self.memory.memory, "")
 
         # Iterative tool usage with auto-execution
         current_prompt = message
@@ -430,7 +445,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -585,7 +600,7 @@ class Agent(BaseModel):
                         content += chunk
                     response = ResponseStats(
                         response=content,
-                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                        usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                         model=self.model.model,
                         finish_reason="stop",
                     )
@@ -598,6 +613,7 @@ class Agent(BaseModel):
                     content = response.response
 
                 self.total_tokens = response.usage.total_tokens if not streaming else self.total_tokens
+                self.total_cost = response.usage.cost if not streaming else self.total_cost
 
                 # Observe response for tool calls
                 observation = await self._async_observe_response(content)
@@ -708,7 +724,11 @@ class Agent(BaseModel):
                 is_repeated_call = self._is_repeated_tool_call(tool_name, arguments_with_values)
 
                 if is_repeated_call:
-                    executed_tool, response = self._handle_repeated_tool_call(tool_name, arguments_with_values)
+                    executed_tool, response, answer = self._handle_repeated_tool_call(tool_name, arguments_with_values)
+                    # For repeated calls, pass the error message to the observation response
+                    variable_name = self.variable_store.add(response)
+                    new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=response)
+                    return ObserveResponseResult(next_prompt=new_prompt, executed_tool=executed_tool, answer=None)
                 else:
                     executed_tool, response = await self._async_execute_tool(tool_name, tool, arguments_with_values)
 
@@ -720,7 +740,8 @@ class Agent(BaseModel):
                     self._track_file(arguments_with_values["file_path"], tool_name)
 
                 variable_name = self.variable_store.add(response)
-                new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration)
+                # Pass None as execution_error since this is a successful execution
+                new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=None)
 
                 # In chat mode, don't set answer; in task mode, set answer only for task_complete
                 is_task_complete_answer = executed_tool == "task_complete" and not is_chat_mode
@@ -767,6 +788,40 @@ class Agent(BaseModel):
         Returns:
             Tuple of (executed_tool_name, response)
         """
+        # Extract progress tracking information if available
+        current_step = None
+        total_steps = None
+        
+        # Check if this is part of a multi-step process
+        if 'prompt' in arguments_with_values and tool_name in ['llm_tool', 'llm']:
+            # Try to determine current step and total steps from the XML thinking block
+            try:
+                # Extract step information from the agent's last response
+                import re
+                # Use the new helper method to get the last assistant message
+                last_response = self.memory.get_last_assistant_message()
+                
+                if last_response:
+                    # Look for progress tracker in thinking block
+                    progress_match = re.search(r'<progress_tracker>[\s\S]*?Current: Step (\d+)[^\d].*?[\s\S]*?Progress: (\d+)\/(\d+)', 
+                                              last_response.content, re.DOTALL)
+                    if progress_match:
+                        current_step = int(progress_match.group(1))
+                        total_steps = int(progress_match.group(3))
+                        
+                        # Store this information for later use
+                        self.last_tool_call['current_step'] = current_step
+                        self.last_tool_call['total_steps'] = total_steps
+                        
+                        logger.info(f"Detected step {current_step}/{total_steps} from progress tracker")
+            except Exception as e:
+                logger.error(f"Error extracting step information: {str(e)}")
+        
+        # If we couldn't extract from thinking block, try to use stored values
+        if current_step is None and 'current_step' in self.last_tool_call:
+            current_step = self.last_tool_call.get('current_step')
+            total_steps = self.last_tool_call.get('total_steps')
+            
         if tool.need_validation:
             logger.info(f"Tool '{tool_name}' requires validation.")
             validation_id = str(uuid.uuid4())
@@ -817,10 +872,23 @@ class Agent(BaseModel):
             injectable_properties = tool.get_injectable_properties_in_execution()
             for key, value in injectable_properties.items():
                 converted_args[key] = value
+                
+            # Add progress tracking information for tools that support it
+            if hasattr(tool, "async_execute") and current_step is not None and total_steps is not None:
+                if "step_number" in tool.async_execute.__code__.co_varnames and "total_steps" in tool.async_execute.__code__.co_varnames:
+                    converted_args["step_number"] = current_step
+                    converted_args["total_steps"] = total_steps
+                    logger.info(f"Adding progress tracking to {tool_name}: step {current_step}/{total_steps}")
 
+            # Execute the tool
             if hasattr(tool, "async_execute") and callable(tool.async_execute):
                 response = await tool.async_execute(**converted_args)
             else:
+                # For synchronous tools that support progress tracking
+                if current_step is not None and total_steps is not None and hasattr(tool, "execute"):
+                    if "step_number" in tool.execute.__code__.co_varnames and "total_steps" in tool.execute.__code__.co_varnames:
+                        converted_args["step_number"] = current_step
+                        converted_args["total_steps"] = total_steps
                 response = tool.execute(**converted_args)
                 
             # Post-process tool response if needed
@@ -828,6 +896,14 @@ class Agent(BaseModel):
                 response = self._post_process_tool_response(tool_name, response) 
                     
             executed_tool = tool.name
+            
+            # Update step tracking after successful execution
+            if current_step is not None and total_steps is not None:
+                # If we've completed a step, increment for next time
+                self.last_tool_call['current_step'] = current_step + 1
+                self.last_tool_call['total_steps'] = total_steps
+                logger.info(f"Updated progress tracking: next step will be {current_step + 1}/{total_steps}")
+                
         except Exception as e:
             response = f"Error executing tool: {tool_name}: {str(e)}\n"
             executed_tool = ""
@@ -1029,6 +1105,7 @@ class Agent(BaseModel):
             self.memory.reset()
             self.variable_store.reset()
             self.total_tokens = 0
+            self.total_cost = 0.0
         self.current_iteration = 0
         self.max_output_tokens = self.model.get_model_max_output_tokens() or DEFAULT_MAX_OUTPUT_TOKENS
         self.max_input_tokens = self.model.get_model_max_input_tokens() or DEFAULT_MAX_INPUT_TOKENS
@@ -1043,6 +1120,15 @@ class Agent(BaseModel):
         """
         self.total_tokens = self.model.token_counter_with_history(message_history, prompt)
 
+    def _update_total_cost(self, message_history: list[Message], prompt: str) -> None:
+        """Update the total cost based on message history and prompt.
+
+        Args:
+            message_history: List of messages
+            prompt: Current prompt
+        """
+        self.total_cost = self.model.token_counter_with_history(message_history, prompt)
+
     def _emit_event(self, event_type: str, data: dict[str, Any] | None = None) -> None:
         """Emit an event with system context and optional additional data.
 
@@ -1053,6 +1139,7 @@ class Agent(BaseModel):
         event_data = {
             "iteration": self.current_iteration,
             "total_tokens": self.total_tokens,
+            "total_cost": self.total_cost,
             "context_occupancy": self._calculate_context_occupancy(),
             "max_input_tokens": self.max_input_tokens,
             "max_output_tokens": self.max_output_tokens,
@@ -1133,7 +1220,7 @@ class Agent(BaseModel):
             current_call["count"] = 1
 
         self.last_tool_call = current_call
-        return is_repeated_call and current_call.get("count", 0) >= 2
+        return is_repeated_call and current_call.get("count", 0) >= 3
 
     def _handle_no_tool_usage(self) -> ObserveResponseResult:
         """Handle the case where no tool usage is found in the response.
@@ -1154,14 +1241,13 @@ class Agent(BaseModel):
         Returns:
             ObserveResponseResult with error message
         """
-        logger.warning(f"Tool '{tool_name}' not found in tool manager.")
-        return ObserveResponseResult(
-            next_prompt=f"Error: Tool '{tool_name}' not found in tool manager.",
-            executed_tool="",
-            answer=None,
-        )
+        error_message = f"Tool '{tool_name}' not found. Available tools: {', '.join(self.tools.tool_names())}"
+        logger.error(error_message)
+        variable_name = self.variable_store.add(error_message)
+        new_prompt = self._format_observation_response(error_message, None, variable_name, self.current_iteration, execution_error=error_message)
+        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None)
 
-    def _handle_repeated_tool_call(self, tool_name: str, arguments_with_values: dict) -> tuple[str, str]:
+    def _handle_repeated_tool_call(self, tool_name: str, arguments_with_values: dict) -> tuple[str, str, str]:
         """Handle the case where a tool call is repeated.
 
         Args:
@@ -1169,16 +1255,19 @@ class Agent(BaseModel):
             arguments_with_values: Tool arguments
 
         Returns:
-            Tuple of (executed_tool_name, error_message)
+            Tuple of (executed_tool_name, error_message, answer)
         """
+        answer = arguments_with_values.get('answer')
         repeat_count = self.last_tool_call.get("count", 0)
         error_message = self._render_template(
             'repeated_tool_call_error.j2',
             tool_name=tool_name,
             arguments_with_values=arguments_with_values,
-            repeat_count=repeat_count
+            repeat_count=repeat_count,
+            last_answer=answer
         )
-        return tool_name, error_message
+        # Return the original tuple format expected by _async_observe_response
+        return tool_name, error_message, answer
 
     def _handle_tool_execution_failure(self, response: str) -> ObserveResponseResult:
         """Handle the case where tool execution fails.
@@ -1189,11 +1278,10 @@ class Agent(BaseModel):
         Returns:
             ObserveResponseResult with error message
         """
-        return ObserveResponseResult(
-            next_prompt=response,
-            executed_tool="",
-            answer=None,
-        )
+        logger.error(f"Tool execution failed: {response}")
+        variable_name = self.variable_store.add(response)
+        new_prompt = self._format_observation_response(response, None, variable_name, self.current_iteration, execution_error=response)
+        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None)
 
     def _handle_error(self, error: Exception) -> ObserveResponseResult:
         """Handle any exceptions that occur during response observation.
@@ -1396,7 +1484,7 @@ class Agent(BaseModel):
         return response
 
     def _format_observation_response(
-        self, response: str, last_executed_tool: str, variable_name: str, iteration: int
+        self, response: str, last_executed_tool: str, variable_name: str, iteration: int, execution_error: str = None
     ) -> str:
         """Format the observation response with the given response, variable name, and iteration.
 
@@ -1405,6 +1493,7 @@ class Agent(BaseModel):
             last_executed_tool: Name of last executed tool
             variable_name: Name of variable storing response
             iteration: Current iteration number
+            execution_error: Optional error message if tool execution failed
 
         Returns:
             Formatted observation response
@@ -1415,6 +1504,45 @@ class Agent(BaseModel):
             response_display += (
                 f"... content was truncated full content available by interpolation in variable {variable_name}"
             )
+
+        # Extract progress metadata from the response if available
+        progress_metadata = None
+        if response and isinstance(response, str):
+            try:
+                # Look for progress metadata in the response
+                import re
+                metadata_match = re.search(r'\[PROGRESS_METADATA\]\n(.*?)\n\[\/PROGRESS_METADATA\]', 
+                                         response, re.DOTALL)
+                
+                if metadata_match:
+                    metadata_text = metadata_match.group(1)
+                    metadata_lines = metadata_text.strip().split('\n')
+                    metadata_dict = {}
+                    
+                    for line in metadata_lines:
+                        if ':' in line:
+                            key, value = line.split(':', 1)
+                            metadata_dict[key.strip()] = value.strip()
+                    
+                    # Create structured progress metadata
+                    if 'Step' in metadata_dict and '/' in metadata_dict['Step']:
+                        current_step, total_steps = metadata_dict['Step'].split('/')
+                        progress_metadata = {
+                            'step': int(current_step),
+                            'total_steps': int(total_steps),
+                            'percentage': int(metadata_dict.get('Progress', '0').replace('%', '')),
+                            'status': metadata_dict.get('Status', 'UNKNOWN'),
+                            'error': metadata_dict.get('Error', None)
+                        }
+                        
+                        # Store the current progress in the agent state for future reference
+                        self.last_tool_call['progress_metadata'] = progress_metadata
+                        
+                        # Remove the metadata section from the displayed response
+                        response_display = re.sub(r'\[PROGRESS_METADATA\]\n.*?\n\[\/PROGRESS_METADATA\]', 
+                                                '', response_display, flags=re.DOTALL)
+            except Exception as e:
+                logger.error(f"Error extracting progress metadata: {str(e)}")
 
         tools_prompt = self._get_tools_names_prompt()
         variables_prompt = self._get_variable_prompt()
@@ -1428,10 +1556,39 @@ class Agent(BaseModel):
             variables_prompt=variables_prompt,
             last_executed_tool=last_executed_tool,
             variable_name=variable_name,
-            response_display=response_display
+            response_display=response_display,
+            execution_error=execution_error,
+            progress_metadata=progress_metadata,
+            elapsed_time=self._get_elapsed_time(),
+            progress_percentage=self._calculate_progress_percentage(progress_metadata)
         )
 
         return formatted_response
+        
+    def _calculate_progress_percentage(self, progress_metadata):
+        """Calculate overall progress percentage based on metadata or iteration count.
+        
+        Args:
+            progress_metadata: Progress metadata extracted from tool response
+            
+        Returns:
+            Progress percentage as an integer
+        """
+        if progress_metadata and 'step' in progress_metadata and 'total_steps' in progress_metadata:
+            return round((progress_metadata['step'] / progress_metadata['total_steps']) * 100)
+        else:
+            # Fallback to iteration-based progress
+            return round((self.current_iteration / self.max_iterations) * 100)
+            
+    def _get_elapsed_time(self):
+        """Get the elapsed time since the agent started processing the task.
+        
+        Returns:
+            Formatted elapsed time string
+        """
+        # This is a placeholder - in a real implementation, you would track start time
+        # and calculate the actual elapsed time
+        return "N/A"
 
     def _prepare_prompt_task(self, task: str) -> str:
         """Prepare the initial prompt for the task.

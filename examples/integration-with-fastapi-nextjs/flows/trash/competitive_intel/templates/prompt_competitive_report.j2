@@ -1,0 +1,148 @@
+Generate a comprehensive competitive intelligence report based on the following information:
+
+Company Profile:
+Name: {{ company_profile.name }}
+Industry: {{ company_profile.industry }}
+Main Products/Services: {{ company_profile.main_products }}
+
+Competitor Analysis:
+{% if competitor_details and competitor_details.competitors %}
+{% for competitor in competitor_details.competitors %}
+{{ competitor.name }}:
+- Market Position: {{ competitor.market_position.global_rank }} ({{ competitor.market_position.market_share }})
+- Recent Activities: 
+{% for activity in competitor.recent_activities %}
+  * {{ activity.date }}: {{ activity.description }} - {{ activity.impact }}
+{% endfor %}
+{% endfor %}
+{% else %}
+No competitor details available.
+{% endif %}
+
+Market News:
+{% if market_news %}
+{% for item in market_news %}
+{{ item.timestamp }} - {{ item.title }}
+- Summary: {{ item.summary }}
+- Impact: {{ item.impact_analysis.market_impact }}
+{% endfor %}
+{% else %}
+No recent market news available.
+{% endif %}
+
+Market Trends:
+{% if market_trends %}
+{% for trend in market_trends %}
+{{ trend.name }} ({{ trend.category }}):
+- Description: {{ trend.description }}
+- Impact: {{ trend.impact_assessment.market_impact }}
+- Timeframe: {{ trend.impact_assessment.timeframe }}
+{% endfor %}
+{% else %}
+No market trends analysis available.
+{% endif %}
+
+Based on this information, generate a structured competitive intelligence report in the following format:
+
+{
+  "company_name": "{{ company_profile.name }}",
+  "report_date": "YYYY-MM-DD",
+  "executive_summary": [
+    "Key finding 1",
+    "Key finding 2",
+    "Key finding 3"
+  ],
+  "competitors": [
+    {
+      "name": "Competitor name",
+      "profile": {
+        "company_type": "Public/Private",
+        "headquarters": "Location",
+        "founded": "Year",
+        "employees": "Count",
+        "revenue": "Amount"
+      },
+      "market_position": {
+        "global_rank": "Rank",
+        "market_share": "Share %",
+        "target_segments": ["Segment 1", "Segment 2"],
+        "geographic_presence": ["Region 1", "Region 2"]
+      }
+    }
+  ],
+  "market_news": [
+    {
+      "timestamp": "YYYY-MM-DD",
+      "company": "Company name",
+      "title": "News title",
+      "summary": "Brief summary",
+      "source": "Source name",
+      "impact_analysis": {
+        "market_impact": "Impact description",
+        "competitive_implications": "Implications",
+        "industry_trends": ["Trend 1", "Trend 2"]
+      },
+      "categories": ["Category 1", "Category 2"]
+    }
+  ],
+  "market_trends": [
+    {
+      "name": "Trend name",
+      "category": "Category",
+      "description": "Description",
+      "drivers": ["Driver 1", "Driver 2"],
+      "impact_assessment": {
+        "market_impact": "Impact description",
+        "timeframe": "Timeline",
+        "confidence_level": "High/Medium/Low"
+      },
+      "affected_companies": ["Company 1", "Company 2"],
+      "recommendations": ["Recommendation 1", "Recommendation 2"]
+    }
+  ],
+  "strategic_recommendations": [
+    {
+      "action": "Action description",
+      "priority": "High/Medium/Low",
+      "expected_impact": "Impact description",
+      "timeline": "Timeline",
+      "resources_needed": ["Resource 1", "Resource 2"]
+    }
+  ],
+  "risk_assessment": [
+    {
+      "risk_type": "Risk type",
+      "description": "Risk description",
+      "severity": "High/Medium/Low",
+      "likelihood": "High/Medium/Low",
+      "mitigation_steps": ["Step 1", "Step 2"]
+    }
+  ],
+  "opportunities": [
+    {
+      "name": "Opportunity name",
+      "description": "Description",
+      "potential_impact": "Impact description",
+      "requirements": ["Requirement 1", "Requirement 2"],
+      "timeline": "Timeline"
+    }
+  ],
+  "monitoring_priorities": [
+    "Priority area 1",
+    "Priority area 2"
+  ]
+}
+
+Focus on:
+1. Key competitive advantages and threats
+2. Market opportunities and challenges
+3. Strategic recommendations
+4. Risk mitigation strategies
+5. Technology and innovation implications
+6. Market positioning and differentiation
+
+Ensure the report is:
+1. Data-driven with specific examples
+2. Forward-looking with actionable insights
+3. Focused on strategic implications
+4. Clear and concise in recommendations

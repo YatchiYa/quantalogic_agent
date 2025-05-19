@@ -1,0 +1,17 @@
+{
+  "filename": "dalle_20250424_162103.png",
+  "prompt": "Create an image of a powerful, muscular, green-skinned woman resembling the Hulk. She has long, flowing green hair and a determined expression. She is wearing ripped clothing, showcasing her immense strength and physique.",
+  "revised_prompt": "Generate an image of a formidable, muscular woman with green skin that mirrors a well-known bulky superhero archetype. She sports long, billowing turquoise hair and a look of determination on her face. Her attire consists of rugged, torn clothes, highlighting her impressive strength and physique.",
+  "model": "openai/dall-e-3",
+  "created": "2025-04-24T16:21:02",
+  "parameters": {
+    "model": "openai/dall-e-3",
+    "size": "1024x1024",
+    "quality": "hd",
+    "style": "vivid",
+    "response_format": "url",
+    "prompt": "Create an image of a powerful, muscular, green-skinned woman resembling the Hulk. She has long, flowing green hair and a determined expression. She is wearing ripped clothing, showcasing her immense strength and physique."
+  },
+  "image_url": "https://oaidalleapiprodscus.blob.core.windows.net/private/org-7L4b41fUDYyYwcZmoo8L2h3w/user-cPc54DrmgZqPw1d3n0yqp2uf/img-gu1NkA49GdUltNwvNiUSaqVB.png?st=2025-04-24T13%3A21%3A02Z&se=2025-04-24T15%3A21%3A02Z&sp=r&sv=2024-08-04&sr=b&rscd=inline&rsct=image/png&skoid=cc612491-d948-4d2e-9821-2683df3719f5&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2025-04-24T01%3A39%3A14Z&ske=2025-04-25T01%3A39%3A14Z&sks=b&skv=2024-08-04&sig=2/H99vthpTc3/JRSArCWODGbz8zjTtioqWjRFkgOkM0%3D",
+  "local_path": "generated_images/dalle_20250424_162103.png"
+}
