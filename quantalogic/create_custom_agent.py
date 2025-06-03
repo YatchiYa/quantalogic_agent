@@ -12,27 +12,7 @@ from quantalogic.tools.tool import Tool
 
 import sys
 from pathlib import Path
-# Configure loguru logger
-""" logger.remove()  # Remove default handler
-# Add file handler
-project_root = Path(__file__).resolve().parents[3]  # Go up 3 levels to reach project root
-log_file = project_root / "agent_log.log"
-logger.add(
-    log_file,
-    rotation="1 day",  # Create a new file daily
-    retention="7 days",  # Keep logs for 7 days
-    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} - {message}",
-    level="DEBUG",
-    enqueue=True  # Thread-safe logging
-)
-# Configure loguru to output only INFO and above
-logger.remove()  # Remove default handler
-logger.add(
-    sink=lambda msg: print(msg, end=""),
-    level="INFO",
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
-)
- """
+
 # Helper function to import tool classes
 def _import_tool(module_path: str, class_name: str) -> Type[Tool]:
     """
@@ -137,6 +117,14 @@ TOOL_IMPORTS = {
     "bitbucket_clone_repo_tool": lambda: _import_tool("quantalogic.tools.git", "BitbucketCloneTool"),
     "bitbucket_operations_tool": lambda: _import_tool("quantalogic.tools.git", "BitbucketOperationsTool"),
     "git_operations_tool": lambda: _import_tool("quantalogic.tools.git", "GitOperationsTool"),
+
+    # Git Specialized Tools
+    "git_create_branch_tool": lambda: _import_tool("quantalogic.tools.git", "GitCreateBranchTool"),
+    "git_checkout_tool": lambda: _import_tool("quantalogic.tools.git", "GitCheckoutTool"),
+    "git_commit_tool": lambda: _import_tool("quantalogic.tools.git", "GitCommitTool"),
+    "git_push_tool": lambda: _import_tool("quantalogic.tools.git", "GitPushTool"),
+    "git_pull_tool": lambda: _import_tool("quantalogic.tools.git", "GitPullTool"),
+    "git_list_branches_tool": lambda: _import_tool("quantalogic.tools.git", "GitListBranchesTool"),
     
     # NASA Tools
     "nasa_neows_tool": lambda: _import_tool("quantalogic.tools.nasa_packages", "NasaNeoWsTool"),
@@ -178,6 +166,17 @@ TOOL_IMPORTS = {
     "product_memory_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "ProductMemoryTool"),
     "product_validator_tool": lambda: _import_tool("quantalogic.tools.ecommerce", "ProductValidatorTool"),
 
+    "google_news_llm_tool": lambda: _import_tool("quantalogic.tools.google_packages", "GoogleNewsLLMTool"),
+    "linkup_enhanced_tool": lambda: _import_tool("quantalogic.tools.google_packages", "LinkupEnhancedTool"),
+    "duckduckgo_search_llm_tool_enhanced": lambda: _import_tool("quantalogic.tools.google_packages", "DuckDuckGoSearchLLMTool"),
+    "linkup_llm_tool": lambda: _import_tool("quantalogic.tools.google_packages", "LinkupLLMTool"),
+    "perplexity_requests_tool": lambda: _import_tool("quantalogic.tools.google_packages", "PerplexityRequestsTool"),
+    "perplexity_deep_search_tool": lambda: _import_tool("quantalogic.tools.google_packages", "PerplexityDeepSearchTool"),
+
+    "website_search_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebsiteSearchTool"),
+    "web_scraper_llm_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebScraperLLMTool"),
+    "web_scraper_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebScraperTool"),
+
     "legal_classifier_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalClassifierTool"),
     "legal_letter_analyzer_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalLetterAnalyzerTool"),
     "legal_case_triage_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalCaseTriageTool"),
@@ -200,7 +199,8 @@ def create_custom_agent(
     tools: Optional[list[dict[str, Any]]] = None,
     memory: Optional[AgentMemory] = None,
     agent_mode: str = "react",
-    max_iterations: Optional[int] = 15,
+    max_iterations: Optional[int] = 30,
+    agent_id: Optional[str] = None,
 ) -> Agent:
     """Create an agent with lazy-loaded tools and graceful error handling.
 
@@ -234,6 +234,9 @@ def create_custom_agent(
             "event_emitter": event_emitter
         }
 
+    # Log the agent_id for debugging
+    logger.info(f"Creating custom agent with ID: {agent_id}")
+    
     # Define tool configurations with default parameters
     tool_configs = {
         # LLM Tools with shared parameters
@@ -266,20 +269,32 @@ def create_custom_agent(
         # Simple tools without parameters
         "download_http_file": lambda _: create_tool_instance(TOOL_IMPORTS["download_http_file"]()),
         "duck_duck_go_search": lambda _: create_tool_instance(TOOL_IMPORTS["duck_duck_go_search"]()),
-        "write_file": lambda _: create_tool_instance(TOOL_IMPORTS["write_file"]()),
+        "write_file": lambda params: create_tool_instance(TOOL_IMPORTS["write_file"](), 
+            agent_id=agent_id  # Use params agent_id or fall back to the agent's ID
+        ),
         "file_tracker": lambda _: create_tool_instance(TOOL_IMPORTS["file_tracker"]()),
         "task_complete": lambda _: create_tool_instance(TOOL_IMPORTS["task_complete"]()),
-        "edit_whole_content": lambda _: create_tool_instance(TOOL_IMPORTS["edit_whole_content"]()),
+        "edit_whole_content": lambda _: create_tool_instance(TOOL_IMPORTS["edit_whole_content"](),
+            agent_id=agent_id  # Pass agent_id to ensure files are in agent-specific directories
+        ),
         "execute_bash_command": lambda _: create_tool_instance(TOOL_IMPORTS["execute_bash_command"]()),
         "input_question": lambda _: create_tool_instance(TOOL_IMPORTS["input_question"]()),
-        "list_directory": lambda _: create_tool_instance(TOOL_IMPORTS["list_directory"]()),
+        "list_directory": lambda _: create_tool_instance(TOOL_IMPORTS["list_directory"](),
+            agent_id=agent_id  # Pass agent_id to ensure directories are in agent-specific directories
+        ),
         "markitdown": lambda _: create_tool_instance(TOOL_IMPORTS["markitdown"]()),
         "nodejs": lambda _: create_tool_instance(TOOL_IMPORTS["nodejs"]()),
         "python": lambda _: create_tool_instance(TOOL_IMPORTS["python"]()),
-        "read_file_block": lambda _: create_tool_instance(TOOL_IMPORTS["read_file_block"]()),
-        "read_file": lambda _: create_tool_instance(TOOL_IMPORTS["read_file"]()),
+        "read_file_block": lambda _: create_tool_instance(TOOL_IMPORTS["read_file_block"](),
+            agent_id=agent_id  # Pass agent_id to ensure files are read from agent-specific directories
+        ),
+        "read_file": lambda _: create_tool_instance(TOOL_IMPORTS["read_file"](),
+            agent_id=agent_id  # Pass agent_id to ensure files are read from agent-specific directories
+        ),
         "read_html": lambda _: create_tool_instance(TOOL_IMPORTS["read_html"]()),
-        "replace_in_file": lambda _: create_tool_instance(TOOL_IMPORTS["replace_in_file"]()),
+        "replace_in_file": lambda _: create_tool_instance(TOOL_IMPORTS["replace_in_file"](),
+            agent_id=agent_id  # Pass agent_id to ensure files are in agent-specific directories
+        ),
         "ripgrep": lambda _: create_tool_instance(TOOL_IMPORTS["ripgrep"]()),
         "search_definition_names": lambda _: create_tool_instance(TOOL_IMPORTS["search_definition_names"]()),
         "wikipedia_search": lambda _: create_tool_instance(TOOL_IMPORTS["wikipedia_search"]()),
@@ -311,16 +326,48 @@ def create_custom_agent(
         
         # Git tools
         "clone_repo_tool": lambda params: create_tool_instance(TOOL_IMPORTS["clone_repo_tool"](),
-            auth_token=params.get("auth_token", "")
+            auth_token=params.get("auth_token", ""),
+            default_repo_url=params.get("default_repo_url", ""), 
+            default_create_branch=params.get("default_create_branch", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
         ),
         "bitbucket_clone_repo_tool": lambda params: create_tool_instance(TOOL_IMPORTS["bitbucket_clone_repo_tool"](),
-            access_token=params.get("access_token", "")
+            access_token=params.get("access_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
         ),
         "bitbucket_operations_tool": lambda params: create_tool_instance(TOOL_IMPORTS["bitbucket_operations_tool"](),
-            access_token=params.get("access_token", "")
+            access_token=params.get("access_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
         ),
         "git_operations_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_operations_tool"](),
-            auth_token=params.get("auth_token", "")
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+
+        # git specialized tool
+        "git_create_branch_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_create_branch_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+        "git_checkout_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_checkout_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+        "git_commit_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_commit_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+        "git_push_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_push_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+        "git_pull_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_pull_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
+        ),
+        "git_list_branches_tool": lambda params: create_tool_instance(TOOL_IMPORTS["git_list_branches_tool"](),
+            auth_token=params.get("auth_token", ""),
+            agent_id=agent_id  # Pass agent_id to ensure repos are cloned to agent-specific directories
         ),
         
         # Document conversion tools
@@ -420,6 +467,17 @@ def create_custom_agent(
         "vscode_server_tool": lambda _: create_tool_instance(TOOL_IMPORTS["vscode_server_tool"]()),
         "linkup_tool": lambda _: create_tool_instance(TOOL_IMPORTS["linkup_tool"]()),
         
+        "google_news_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["google_news_llm_tool"](),**get_llm_params(params)),
+        "linkup_enhanced_tool": lambda params: create_tool_instance(TOOL_IMPORTS["linkup_enhanced_tool"](),**get_llm_params(params)),
+        "duckduckgo_search_llm_tool_enhanced": lambda params: create_tool_instance(TOOL_IMPORTS["duckduckgo_search_llm_tool_enhanced"](),**get_llm_params(params)),
+        "linkup_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["linkup_llm_tool"](),**get_llm_params(params)),
+        "perplexity_requests_tool": lambda params: create_tool_instance(TOOL_IMPORTS["perplexity_requests_tool"](),**get_llm_params(params)),
+        "perplexity_deep_search_tool": lambda params: create_tool_instance(TOOL_IMPORTS["perplexity_deep_search_tool"](),**get_llm_params(params)),
+
+        "website_search_tool": lambda params: create_tool_instance(TOOL_IMPORTS["website_search_tool"](),**get_llm_params(params)),
+        "web_scraper_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["web_scraper_llm_tool"](),**get_llm_params(params)),
+        "web_scraper_tool": lambda params: create_tool_instance(TOOL_IMPORTS["web_scraper_tool"](),**get_llm_params(params)),
+
         "recommend_popular_products_tool": lambda params: create_tool_instance(TOOL_IMPORTS["recommend_popular_products_tool"](),**get_llm_params(params)),
         "product_identifier_tool": lambda params: create_tool_instance(TOOL_IMPORTS["product_identifier_tool"](),**get_llm_params(params)),
         "product_memory_tool": lambda _: create_tool_instance(TOOL_IMPORTS["product_memory_tool"]()),
@@ -500,6 +558,7 @@ def create_custom_agent(
             memory=memory if memory else AgentMemory(),
             agent_mode=agent_mode,
             max_iterations=max_iterations,
+            agent_id=agent_id,
         )
     except Exception as e:
         logger.error(f"Failed to create agent: {str(e)}")

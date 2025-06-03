@@ -23,11 +23,10 @@ class DocumentLLMTool(Tool):
     name: str = Field(default="llm_for_context_tool")
     description: str = Field(
         default=(
-            "Answers questions about documents or content that has been uploaded to the chat. "
-            "This tool receives parsed document content as context and uses it to provide accurate, "
-            "contextually relevant responses about the documents. The context string contains "
-            "the content of one or more files that have been parsed and prepared for analysis. "
-            "Use this tool when the user asks questions about documents they've uploaded."
+            "Answers questions about documents, specs or content that has been defined "
+            "This tool receives parsed content as context and uses it to provide accurate, "
+            "contextually relevant responses about the content. "
+            "Use this tool when the user asks questions about content they've defined."
         )
     )
     context: str = Field(
@@ -42,14 +41,6 @@ class DocumentLLMTool(Tool):
     
     arguments: list = Field(
         default=[
-            ToolArgument(
-                name="system_prompt",
-                arg_type="string",
-                description=("The persona or system prompt to guide the language model's behavior. "
-                             "Can reference context using $context$ syntax."),
-                required=True,
-                example=("You are an expert in natural language processing. Here is some context: $context$"),
-            ),
             ToolArgument(
                 name="prompt",
                 arg_type="string",
@@ -73,7 +64,6 @@ class DocumentLLMTool(Tool):
         self,
         model_name: str,
         context: str = "",
-        system_prompt: str | None = None,
         on_token: Callable | None = None,
         name: str = "llm_context_tool",
         generative_model: GenerativeModel | None = None,
@@ -83,14 +73,14 @@ class DocumentLLMTool(Tool):
 
         Args:
             model_name (str): The name of the language model to use.
-            context (str, optional): Context string that can be referenced in prompts.
-            system_prompt (str, optional): Default system prompt for the model.
+            context (str, optional): Context string that can be referenced in prompts. 
             on_token (Callable, optional): Callback function for streaming tokens.
             name (str): Name of the tool instance. Defaults to "llm_context_tool".
             generative_model (GenerativeModel, optional): Pre-initialized generative model.
             event_emitter (EventEmitter, optional): Event emitter for handling events.
         """
         # Use dict to pass validated data to parent constructor
+        system_prompt = "As an expert in the field, you are provided with context, You must use this context to answer the user's question. " 
         super().__init__(
             **{
                 "model_name": model_name,
@@ -137,11 +127,10 @@ class DocumentLLMTool(Tool):
             logger.debug(f"Setting up event listener for LLMForContextTool with model: {self.model_name}")
             self.generative_model.event_emitter.on("stream_chunk", self.on_token)
             
-    def execute(self, system_prompt: str | None = None, prompt: str | None = None, temperature: str | None = None) -> str:
+    def execute(self, prompt: str | None = None, temperature: str | None = None) -> str:
         """Execute the tool to generate an answer.
 
         Args:
-            system_prompt (str, optional): The system prompt to guide the model.
             prompt (str, optional): The question to be answered.
             temperature (str, optional): Sampling temperature. Defaults to "0.5".
 
@@ -152,10 +141,10 @@ class DocumentLLMTool(Tool):
             ValueError: If temperature is not a valid float between 0 and 1.
             Exception: If there's an error during response generation.
         """
-        return asyncio.run(self.async_execute(system_prompt, prompt, temperature))
+        return asyncio.run(self.async_execute(prompt, temperature))
     
     async def async_execute(
-        self, system_prompt: str | None = None, prompt: str | None = None, temperature: str | None = "0.5"
+        self, prompt: str | None = None, temperature: str | None = "0.5"
     ) -> str:
         """Execute the tool to generate an answer asynchronously with context interpolation.
 
@@ -180,7 +169,7 @@ class DocumentLLMTool(Tool):
             raise ValueError(f"Invalid temperature value: {temperature}") from ve
 
         # Use provided system prompt or default
-        used_system_prompt = system_prompt or self.system_prompt or "You are a helpful assistant."
+        used_system_prompt = self.system_prompt or "You are an expert in the field, you are provided with context, You must use this context to answer the user's question."
         
         # Interpolate context in system prompt and prompt
         interpolated_system_prompt = self._interpolate_context(used_system_prompt)

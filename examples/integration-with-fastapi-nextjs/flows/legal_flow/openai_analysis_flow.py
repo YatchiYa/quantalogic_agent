@@ -106,8 +106,8 @@ async def execute_query(
 ) -> Dict[str, Any]:
     """Execute the query against the RAG tool."""
     try:
-        # Execute the query
-        result = rag_tool.execute(
+        # Execute the query using await since we're in an async function
+        result = await rag_tool.execute(
             query=validated_query.query_text,
             max_sources=validated_query.max_sources,
             min_relevance=validated_query.min_relevance,
@@ -230,8 +230,8 @@ async def analyze_InRag_documents(
             use_llm=use_llm
         )
         
-        # Execute the query
-        result = rag_tool.execute(
+        # Execute the query with await since we're in an async function
+        result = await rag_tool.execute(
             query=validated_query.query_text,
             max_sources=validated_query.max_sources,
             min_relevance=validated_query.min_relevance,

@@ -1,6 +1,16 @@
 # Task Execution Analysis
 
+📦 Agent ID: {{ agent_id }}
 📊 Iteration: {{ iteration }}/{{ max_iterations }}
+
+### working directory
+- You Must work inside the agent_id folder in: /tmp/{{ agent_id }} directory
+- When you use tool writing, editing...etc, make sure the file path is inside the /tmp/{{ agent_id }} folder
+
+- 📁 **Git Integration Note**
+    - The repository cloned must be in the following directory: `/tmp/{{ agent_id }}/git_repos/`
+    - All interactions with Git repositories must be done in the directory cloned :
+      - `/tmp/{{ agent_id }}/git_repos/` with the repository cloned in it
 
 ### Current Task
 ```
@@ -10,15 +20,17 @@
 ### Task Complexity
 🎯 Level: [Simple|Standard|Complex]
 📈 Progress: {{ progress_percentage }}%
-⏱️ Time Elapsed: {{ elapsed_time }}
 
 ### Available Resources
 🛠️ Tools: {{ tools_prompt }}
 📦 State: {{ variables_prompt }}
 
 ### Last Action Result
-Tool: {{ last_executed_tool }}
+Last executed tool: {{ last_executed_tool }}
 Status: {{ 'SUCCESS' if last_executed_tool else 'NO_TOOL_EXECUTED' }}
+
+Last executed tool result:
+
 <{{ variable_name }}>
 {{ response_display }}
 </{{ variable_name }}>
@@ -40,7 +52,10 @@ Error: {{ progress_metadata.error }}
 ```
 {% endif %}
 
-### Response Requirements
+### Response Requirements 
+1. Analyze the execution result and progress, formalize if the current step is solved according to the task.
+2. Determine the most effective next step
+3. Select exactly ONE tool from the available list
 
 [IF Simple Task]
 Provide focused solution in TWO blocks:
@@ -62,16 +77,17 @@ Provide focused solution in TWO blocks:
 Provide detailed analysis in TWO blocks:
 
 1. Analysis Block (<thinking>):
-   • Update progress tracking
-   • Evaluate action results
-   • Determine next step
-   • Track completion status
-   • Handle any errors
+   • Analyze well tools results.
+   • Update progress tracking.
+   • Evaluate action results.
+   • Determine next step.
+   • Track completion status.
+   • Handle any errors.
 
 2. Action Block (<action>):
-   • Select ONE tool
-   • Use variable interpolation
-   • Provide precise parameters
+   • Select ONE tool.
+   • Use variable interpolation.
+   • Provide precise parameters.
 
 ### Response Format
 
@@ -94,9 +110,9 @@ Provide detailed analysis in TWO blocks:
 </thinking>
 
 <action>
-<tool_name>
+<selected_tool_name>
   [Parameters]
-</tool_name>
+</selected_tool_name>
 </action>
 ```
 
@@ -108,10 +124,13 @@ Provide detailed analysis in TWO blocks:
     • 🎯 Current: [Active step number and full action description: "Step 3: Generate content for Z"]
     • 📝 Pending: [List remaining steps with numbers and actions: "Step 4: Write content", "Step 5: Format output"]
     • 📊 Progress: [X/Y steps] ([Calculate exact percentage]%)
+    • 🔁 Action History: [action with brief parameters and brief result,]
   </progress_tracker>
 
   <execution_state>
-    • 🔄 Last Result: [Detailed outcome with specific data points from response]
+    • 🔄 Last Action: [Tool name + status]
+    • 🔄 Last Result: [Brief outcome with specific data points from response]
+    • 🔁 Action History: [action with brief parameters and brief result,]
     • 🚫 Error Status: [None/Specific error with root cause analysis - look for "Error:" prefix in tool output]
     • ⚡ Next Action: [Plan with fallback if needed]
     • 💾 State Update: [Specific variable changes based on tool output]
@@ -121,9 +140,9 @@ Provide detailed analysis in TWO blocks:
 </thinking>
 
 <action>
-<tool_name>
+<selected_tool_name>
   [Parameters]
-</tool_name>
+</selected_tool_name>
 </action>
 ```
 
@@ -132,9 +151,10 @@ Provide detailed analysis in TWO blocks:
 2. 🎯 Follow execution plan strictly
 3. 💾 Use variable content, not names
 4. 📝 Structure output in markdown
-5. 🔄 Revise plan on failures with specific modifications
-6. ⚡ Complete task when all steps done
-7. 🔍 Validate results before completion
-8. 🚫 After 3 similar failures, try completely different approach
-9. 🔁 Detect and break loops by tracking previous actions
-10. 📊 Extract and use specific data points from tool responses
+5. If previous step failed, revise approach
+6. 🔄 Revise plan on failures with specific modifications
+7. 🚫 After 3 similar failures, try completely different approach
+8. 🔁 Detect and break loops by tracking previous actions
+9. 📊 Extract and use specific data points from tool responses
+10. 🔍 Validate results before completion
+11. ⚡ Complete task when all steps done

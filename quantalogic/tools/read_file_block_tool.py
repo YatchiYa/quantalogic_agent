@@ -1,7 +1,10 @@
 """Tool for reading a block of lines from a file."""
 
 import os
+from pathlib import Path
+from typing import Optional
 
+from loguru import logger
 from pydantic import field_validator
 
 from quantalogic.tools.tool import Tool, ToolArgument
@@ -10,15 +13,16 @@ MAX_LINES = 200
 
 
 class ReadFileBlockTool(Tool):
-    """Tool for reading a block of lines from a file."""
+    """Tool for reading a block of lines from a file in agent-specific directory."""
 
     name: str = "read_file_block_tool"
     description: str = (
-        "Reads a block of lines from a file and returns its content."
-        "Good to read specific portions of a file. But not adapted when the full file is needed."
-        f"Can return only a max of {MAX_LINES} lines at a time."
+        "Reads a block of lines from a file and returns its content. "
+        "Good to read specific portions of a file. But not adapted when the full file is needed. "
+        f"Can return only a max of {MAX_LINES} lines at a time. "
         "Use multiple read_file_block_tool to read larger files."
     )
+    agent_id: Optional[str] = None
     arguments: list = [
         ToolArgument(
             name="file_path",
@@ -63,7 +67,7 @@ class ReadFileBlockTool(Tool):
 
         return v
 
-    def execute(self, file_path: str, line_start: int, line_end: int) -> str:
+    def execute(self, file_path: str, line_start: int, line_end: int, agent_id: str = None) -> str:
         """Reads a block of lines from a file and returns its content.
 
         Args:
@@ -89,9 +93,30 @@ class ReadFileBlockTool(Tool):
             if line_start > line_end:
                 raise ValueError("line_start must be less than or equal to line_end")
 
+            # Update agent_id if provided in this call
+            if agent_id is not None:
+                logger.debug(f"Setting agent_id from parameter: {agent_id}")
+                self.agent_id = agent_id
+            
             # Handle path expansion and normalization
             file_path = os.path.expanduser(file_path)
+            
+            # Handle agent-specific paths
+            if self.agent_id and str(self.agent_id).strip():
+                # If path is in /tmp but not in agent directory, adjust it
+                if file_path.startswith("/tmp/") and not file_path.startswith(f"/tmp/{self.agent_id}/"):
+                    # Extract the part after /tmp/
+                    relative_path = file_path[5:]
+                    file_path = f"/tmp/{self.agent_id}/{relative_path}"
+                    logger.debug(f"Adjusted path to agent directory: {file_path}")
+                # If path doesn't start with /tmp, prepend agent directory
+                elif not file_path.startswith("/tmp/"):
+                    clean_path = file_path.lstrip("/")
+                    file_path = f"/tmp/{self.agent_id}/{clean_path}"
+                    logger.debug(f"Prepended agent directory: {file_path}")
+            
             file_path = os.path.abspath(file_path)
+            logger.debug(f"Final file path: {file_path}")
 
             # Validate file exists and is readable
             if not os.path.exists(file_path):

@@ -38,7 +38,7 @@ class OrientedLLMTool(Tool):
                 name="temperature",
                 arg_type="string",
                 description='Sampling temperature between "0.0" and "1.0": "0.0" for deterministic responses, "1.0" for maximum creativity. (float)',
-                required=False,
+                required=True,
                 default="0.5",
                 example="0.7",
             ),

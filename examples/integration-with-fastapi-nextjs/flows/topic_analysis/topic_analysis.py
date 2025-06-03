@@ -113,7 +113,7 @@ async def search_topic_overview(topic_name: str) -> Dict:
             depth="standard",
             analysis_depth="standard",
             scrape_sources="true",
-            max_sources_to_scrape="5",
+            max_sources_to_scrape="10",
             output_format="technical"
         )
         

@@ -19,7 +19,7 @@ SYSTEM_PROMPTS: Dict[str, str] = {
     "default": "system_prompt.j2"  # Fallback template
 }
 
-def system_prompt(tools: str, environment: str, expertise: str = "", agent_mode: str = "react"):
+def system_prompt(tools: str, environment: str, expertise: str = "", agent_mode: str = "react", agent_id: str = ""):
     """System prompt for the ReAct chatbot with enhanced cognitive architecture.
     
     Uses a Jinja2 template from the prompts directory based on agent_mode.
@@ -53,5 +53,6 @@ def system_prompt(tools: str, environment: str, expertise: str = "", agent_mode:
         version=get_version(),
         tools=tools,
         environment=environment,
-        expertise=expertise
+        expertise=expertise,
+        agent_id=agent_id
     )

@@ -9,29 +9,23 @@ Tool Selection Guidelines:
    • Prefer built-in tools
    • Minimize tool chain length
 
-2. Standard Tasks:
+2. Standard / complexe Tasks:
    • Select tools sequentially
    • Plan tool chain carefully
    • Consider tool dependencies
 
-3. Complex Tasks:
-   • Map out complete tool chain
-   • Plan fallback options
-   • Consider error handling
-
-Operational Rules:
+Instructions:
 1. Select Only ONE tool per message
-2. Tool output comes in next response
+2. You will receive the tool's output in the next user response
 3. Choose most appropriate tool per step
-4. Validate tool results thoroughly
-5. Handle tool errors gracefully
-6. Use task_complete for final answer
+4. Validate tool results or error message
+5. Use task_complete for final answer
 
 Response Format:
 <action>
-<tool_name>
+<selected_tool_name>
   [precise_parameters]
-</tool_name>
+</selected_tool_name>
 </action>
 
 Task Completion:

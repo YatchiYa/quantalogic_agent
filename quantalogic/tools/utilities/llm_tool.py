@@ -72,7 +72,7 @@ class LegalLLMTool(Tool):
                 name="temperature",
                 arg_type="float",
                 description="Response precision (0.0 for strict legal interpretation, 1.0 for creative analysis)",
-                required=False,
+                required=True,
                 default="0.3",
             ),
         ]

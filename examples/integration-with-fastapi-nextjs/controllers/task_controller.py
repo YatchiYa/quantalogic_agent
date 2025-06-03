@@ -12,7 +12,7 @@ async def submit_task(request: TaskSubmission) -> Dict[str, str]:
     """Submit a new task and return its ID."""
     task_id = await agent_state.submit_task(request)
     # Start task execution in background
-    asyncio.create_task(agent_state.execute_task(task_id))
+    asyncio.create_task(agent_state.execute_task(task_id, conversation_id=request.conversation_id))
     return {"task_id": task_id}
 
 @router.post("/chat")

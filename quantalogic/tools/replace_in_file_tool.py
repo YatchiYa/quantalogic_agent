@@ -13,6 +13,7 @@ This tool:
 
 import difflib
 import os
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 from loguru import logger
@@ -65,6 +66,7 @@ class ReplaceInFileTool(Tool):
         "⚠️ THIS TOOL MUST BE USED IN PRIORITY TO UPDATE AN EXISTING FILE."
     )
     need_validation: bool = False
+    agent_id: Optional[str] = None
 
     SIMILARITY_THRESHOLD: float = 0.85
 
@@ -181,7 +183,7 @@ class ReplaceInFileTool(Tool):
 
         return blocks
 
-    def execute(self, path: str, diff: str) -> str:
+    def execute(self, path: str, diff: str, agent_id: str = None) -> str:
         """Replaces sections in a file based on SEARCH/REPLACE blocks with similarity-based fallback."""
         if not path:
             return "Error: File path cannot be empty"
@@ -190,8 +192,34 @@ class ReplaceInFileTool(Tool):
             return "Error: Diff content cannot be empty"
 
         try:
+            # Update agent_id if provided in this call
+            if agent_id is not None:
+                logger.debug(f"Setting agent_id from parameter: {agent_id}")
+                self.agent_id = agent_id
+                
             path = os.path.expanduser(path) if path.startswith("~") else path
+            
+            # Handle agent-specific paths
+            if self.agent_id and str(self.agent_id).strip():
+                base_dir = f"/tmp/{self.agent_id}"
+                logger.debug(f"Using agent-specific directory: {base_dir}")
+                
+                # If path is in /tmp but not in agent directory, adjust it
+                if path.startswith("/tmp/") and not path.startswith(f"/tmp/{self.agent_id}/"):
+                    # Extract the part after /tmp/
+                    relative_path = path[5:]
+                    path = f"/tmp/{self.agent_id}/{relative_path}"
+                    logger.debug(f"Adjusted path to agent directory: {path}")
+                # If path doesn't start with /tmp and is not absolute, prepend agent directory
+                elif not path.startswith("/tmp/") and not os.path.isabs(path):
+                    clean_path = path.lstrip("/")
+                    path = f"/tmp/{self.agent_id}/{clean_path}"
+                    logger.debug(f"Prepended agent directory: {path}")
+            else:
+                logger.debug("Using default directory (no agent_id provided)")
+                
             path = os.path.abspath(path) if not os.path.isabs(path) else path
+            logger.debug(f"Final file path: {path}")
 
             if not os.path.isfile(path):
                 return f"Error: File not found: '{path}'"

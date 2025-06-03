@@ -7,6 +7,10 @@ from pathlib import Path
 import mimetypes
 import urllib.parse
 
+# Import the file utility functions
+from quantalogic.utils.read_file import read_file
+from quantalogic.utils.write_file import write_file
+
 from fastapi import APIRouter, HTTPException, File, UploadFile, Form
 from fastapi.responses import FileResponse, JSONResponse, Response
 from pydantic import BaseModel
@@ -22,6 +26,12 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 class HtmlContent(BaseModel):
     content: str
+
+class FileWriteRequest(BaseModel):
+    """Request model for file write operations."""
+    file_path: str
+    content: str
+    create_dirs: Optional[bool] = True
 
 class FileUploadResponse(BaseModel):
     status: str
@@ -170,56 +180,145 @@ async def download_file(filename: str):
     )
 
 @router.get("/files/content")
-async def get_file_content(file_path: str, raw: Optional[bool] = False) -> Response:
-    """Retrieve file content by path with support for various file types."""
+async def get_file_content(file_path: str, raw: Optional[bool] = False, max_size: int = 10 * 1024 * 1024) -> Response:
+    """Retrieve file content by path with support for various file types.
+    
+    Parameters:
+    file_path (str): Path to the file to retrieve
+    raw (bool, optional): If True, returns raw file content instead of JSON. Defaults to False.
+    max_size (int, optional): Maximum allowed file size in bytes. Defaults to 10MB.
+    
+    Returns:
+    Response: Either JSONResponse with file metadata and content or FileResponse with raw file
+    """
+    
     try:
+        # Decode URL-encoded path
         decoded_path = urllib.parse.unquote(file_path)
-        path = Path(decoded_path)
         
-        if not path.is_absolute() or not path.exists():
-            raise HTTPException(
-                status_code=404,
-                detail=f"File not found: {decoded_path}"
-            )
-        
-        mime_type, _ = mimetypes.guess_type(str(path))
-        if mime_type is None:
-            mime_type = 'application/octet-stream'
-        
-        if raw:
-            return FileResponse(
-                path=str(path),
-                media_type=mime_type,
-                filename=path.name
-            )
-        
-        if mime_type.startswith(('text/', 'application/json', 'application/xml', 'application/javascript')):
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    content = f.read()
-                return JSONResponse({
-                    "status": "success",
-                    "path": str(path),
-                    "mime_type": mime_type,
-                    "content": content,
-                    "size": path.stat().st_size,
-                    "filename": path.name
-                })
-            except UnicodeDecodeError:
+        # Use read_file to handle path expansion, validation, and file reading
+        try:
+            # For mime type detection, we still need the path object
+            path = Path(os.path.abspath(os.path.expanduser(decoded_path)))
+            # Use read_file with the specified max_size 
+            
+            
+            # Get mime type for response headers
+            mime_type, _ = mimetypes.guess_type(str(path))
+            if mime_type is None:
+                mime_type = 'application/octet-stream'
+            
+            # Return raw file response if requested
+            if raw:
                 return FileResponse(
                     path=str(path),
                     media_type=mime_type,
                     filename=path.name
                 )
-        
-        return FileResponse(
-            path=str(path),
-            media_type=mime_type,
-            filename=path.name
-        )
-        
+            
+            content = read_file(str(path), max_size=max_size)
+            # Return JSON response with the file content
+            return JSONResponse({
+                "status": "success",
+                "path": str(path),
+                "mime_type": mime_type,
+                "content": content,
+                "size": path.stat().st_size,
+                "filename": path.name
+            })
+            
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"File not found: {decoded_path}"
+            )
+        except PermissionError:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Permission denied: Unable to read the file '{decoded_path}'"
+            )
+        except OSError as e:
+            if "exceeds the maximum allowed size" in str(e):
+                raise HTTPException(
+                    status_code=413,  # Payload Too Large
+                    detail=str(e)
+                )
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error reading file: {str(e)}"
+            )
+            
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error reading file content: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/files/content/update")
+async def write_file_content(request: FileWriteRequest) -> Response:
+    """Write content to a file at the specified path.
+    
+    Parameters:
+    request (FileWriteRequest): Request body containing content and options
+    
+    Returns:
+    Response: JSONResponse with file metadata
+    """
+    try:
+        try:
+            # Use write_file to handle path expansion, validation, and file writing
+            absolute_path = write_file(
+                request.file_path, 
+                request.content,
+                create_dirs=request.create_dirs
+            )
+            
+            # Get the Path object for additional file info
+            path = Path(absolute_path)
+            
+            # Get mime type for response headers
+            mime_type, _ = mimetypes.guess_type(str(path))
+            if mime_type is None:
+                mime_type = 'application/octet-stream'
+            
+            return JSONResponse({
+                "status": "success",
+                "path": str(path),
+                "mime_type": mime_type,
+                "size": path.stat().st_size,
+                "filename": path.name
+            })
+            
+        except FileNotFoundError:
+            raise HTTPException(
+                status_code=404,
+                detail=f"File location not found: {request.file_path}"
+            )
+        except PermissionError:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Permission denied: Unable to write to the file '{request.file_path}'"
+            )
+        except ValueError as e:
+            if "exceeds the maximum allowed size" in str(e):
+                raise HTTPException(
+                    status_code=413,  # Payload Too Large
+                    detail=str(e)
+                )
+            raise HTTPException(
+                status_code=400,
+                detail=str(e)
+            )
+        except OSError as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error writing file: {str(e)}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error writing file content: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+## overwrite file 

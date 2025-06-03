@@ -96,6 +96,7 @@ class Agent(BaseModel):
     tracked_files: list[str] = []  # List to track files created or modified during execution
     agent_mode: str = "react"  # Default mode is ReAct
     session_id: Optional[str] = None  # Track current conversation ID
+    agent_id: Optional[str] = None  # Track agent ID
 
     def __init__(
         self,
@@ -115,6 +116,7 @@ class Agent(BaseModel):
         agent_mode: str = "react",
         max_iterations: Optional[int] = 30,
         session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
     ):
         """Initialize the agent with model, memory, tools, and configurations.
 
@@ -134,7 +136,8 @@ class Agent(BaseModel):
             tool_mode: Optional tool or toolset to prioritize in chat mode
             agent_mode: Mode to use ("react" or "chat")
             session_id: Optional conversation ID for memory management
-        """
+            agent_id: Optional agent ID for memory management
+            """
         try:
             logger.debug("Initializing agent...")
 
@@ -152,7 +155,7 @@ class Agent(BaseModel):
 
             logger.info(f"Agent mode: {agent_mode}")
             system_prompt_text = system_prompt(
-                tools=tools_markdown, environment=environment, expertise=specific_expertise, agent_mode=agent_mode
+                tools=tools_markdown, environment=environment, expertise=specific_expertise, agent_mode=agent_mode, agent_id=agent_id
             )
             logger.debug(f"System prompt: {system_prompt_text}")
 
@@ -196,6 +199,7 @@ class Agent(BaseModel):
                 tool_mode=tool_mode,
                 agent_mode=agent_mode,
                 session_id=session_id,
+                agent_id=agent_id,
             )
 
             self._model_name = model_name
@@ -324,7 +328,8 @@ class Agent(BaseModel):
                     self._emit_event("task_complete", {
                         "response": result.answer,
                         "message": "Task execution completed",
-                        "tracked_files": self.tracked_files if self.tracked_files else []
+                        "tracked_files": self.tracked_files if self.tracked_files else [],
+                        "session_id": self.session_id
                     })
                     answer = result.answer or ""
                     done = True
@@ -343,7 +348,8 @@ class Agent(BaseModel):
         task_solve_end_data = {
             "result": answer,
             "message": "Task execution completed",
-            "tracked_files": self.tracked_files if self.tracked_files else []
+            "tracked_files": self.tracked_files if self.tracked_files else [],
+            "session_id": self.session_id
         }
         self._emit_event("task_solve_end", task_solve_end_data)
         return answer
@@ -879,6 +885,11 @@ class Agent(BaseModel):
                     converted_args["step_number"] = current_step
                     converted_args["total_steps"] = total_steps
                     logger.info(f"Adding progress tracking to {tool_name}: step {current_step}/{total_steps}")
+                    
+            # Pass agent_id to tools that support it
+            if hasattr(tool, "agent_id") and self.agent_id:
+                converted_args["agent_id"] = self.agent_id
+                logger.info(f"Passing agent_id {self.agent_id} to {tool_name}")
 
             # Execute the tool
             if hasattr(tool, "async_execute") and callable(tool.async_execute):
@@ -889,6 +900,10 @@ class Agent(BaseModel):
                     if "step_number" in tool.execute.__code__.co_varnames and "total_steps" in tool.execute.__code__.co_varnames:
                         converted_args["step_number"] = current_step
                         converted_args["total_steps"] = total_steps
+                
+                # Pass agent_id to synchronous tools that support it
+                if hasattr(tool, "agent_id") and self.agent_id:
+                    converted_args["agent_id"] = self.agent_id
                 response = tool.execute(**converted_args)
                 
             # Post-process tool response if needed
@@ -1560,7 +1575,8 @@ class Agent(BaseModel):
             execution_error=execution_error,
             progress_metadata=progress_metadata,
             elapsed_time=self._get_elapsed_time(),
-            progress_percentage=self._calculate_progress_percentage(progress_metadata)
+            progress_percentage=self._calculate_progress_percentage(progress_metadata),
+            agent_id=self.agent_id,
         )
 
         return formatted_response
@@ -1845,8 +1861,26 @@ class Agent(BaseModel):
             tool_name: Name of the tool that created/modified the file
         """
         try:
-            # Handle /tmp directory for write tools
-            if tool_name in ["write_file_tool", "writefile", "edit_whole_content", "replace_in_file", "replaceinfile", "EditWholeContent"]:
+            # Handle agent-specific directories for file tools
+            file_tools = ["write_file_tool", "writefile", "edit_whole_content", "replace_in_file", "replaceinfile", "EditWholeContent"]
+            
+            if self.agent_id and tool_name in file_tools:
+                # Check if the path already includes the agent_id
+                agent_path_pattern = f"/tmp/{self.agent_id}/"
+                if not file_path.startswith(agent_path_pattern):
+                    # If path starts with /tmp/ but doesn't have agent_id, insert it
+                    if file_path.startswith("/tmp/"):
+                        file_parts = file_path.split("/", 3)
+                        if len(file_parts) >= 3:
+                            # Reconstruct with agent_id
+                            file_path = f"/tmp/{self.agent_id}/{file_parts[-1]}"
+                    else:
+                        # Path doesn't start with /tmp, add both /tmp and agent_id
+                        file_path = os.path.join("/tmp", self.agent_id, file_path.lstrip("/"))
+                        
+                logger.debug(f"Adjusted tracked file path with agent_id: {file_path}")
+            # Handle regular /tmp directory for write tools without agent_id
+            elif tool_name in file_tools:
                 if not file_path.startswith("/tmp/"):
                     file_path = os.path.join("/tmp", file_path.lstrip("/"))
             
@@ -1857,15 +1891,35 @@ class Agent(BaseModel):
             # Resolve any . or .. in the path
             tracked_path = os.path.realpath(file_path)
             
-            # For write tools, ensure path is in /tmp
-            if tool_name in ["write_file_tool", "writefile"] and not tracked_path.startswith("/tmp/"):
-                logger.warning(f"Attempted to track file outside /tmp: {tracked_path}")
-                return
+            # For write tools, ensure path is in appropriate directory
+            if tool_name in file_tools:
+                if self.agent_id and not tracked_path.startswith(f"/tmp/{self.agent_id}/"):
+                    logger.warning(f"Attempted to track file outside agent directory: {tracked_path}")
+                    return
+                elif not self.agent_id and not tracked_path.startswith("/tmp/"):
+                    logger.warning(f"Attempted to track file outside /tmp: {tracked_path}")
+                    return
                 
+            # Check if the file path already exists in tracked_files
+            path_exists = False
+            for tracked_file in self.tracked_files:
+                if tracked_file.get("path") == tracked_path:
+                    path_exists = True
+                    break
+                    
             # Add to tracked files if not already present
-            if tracked_path not in self.tracked_files:
-                self.tracked_files.append(tracked_path)
+            if not path_exists:
+                self.tracked_files.append({
+                    "path": tracked_path,
+                    "agent_id": self.agent_id,
+                    "session_id": self.session_id
+                })
                 logger.debug(f"Added {tracked_path} to tracked files")
+            else:
+                logger.debug(f"File {tracked_path} already in tracked files, skipping")
                 
         except Exception as e:
             logger.error(f"Error tracking file {file_path}: {str(e)}")
+            # Log detailed info for debugging
+            logger.error(f"Tool: {tool_name}, Agent ID: {self.agent_id}, Original path: {file_path}")
+

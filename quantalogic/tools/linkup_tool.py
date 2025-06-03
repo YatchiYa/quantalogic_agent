@@ -29,8 +29,8 @@ class LinkupTool(Tool):
             arg_type="string",
             description="Search depth (standard or deep)",
             required=False,
-            default="deep",
-            example="deep",
+            default="standard",
+            example="standard",
         ),
         ToolArgument(
             name="output_type",
@@ -57,7 +57,7 @@ class LinkupTool(Tool):
         self, 
         response: Any,
         output_type: Literal["searchResults", "sourcedAnswer"]
-    ) -> str:
+    ) -> dict:
         """Format the Linkup API response based on output type.
 
         Args:
@@ -65,33 +65,62 @@ class LinkupTool(Tool):
             output_type: Type of output to format
 
         Returns:
-            str: Formatted search results or sourced answer
+            dict: Formatted search results or sourced answer as a structured dictionary
         """
         try:
             if output_type == "sourcedAnswer":
-                # For sourced answers, return the complete response which includes
-                # both the answer and sources
-                return response
+                # For sourced answers, return a structured dictionary similar to LinkupEnhancedTool
+                # Extract answer if available
+                answer = response.answer if hasattr(response, "answer") else ""
+                
+                # Process sources if available
+                sources = []
+                if hasattr(response, "sources") and response.sources:
+                    for source in response.sources:
+                        source_dict = {
+                            "title": source.title if hasattr(source, "title") else "No title",
+                            "url": source.url if hasattr(source, "url") else "No URL",
+                            "content": source.content if hasattr(source, "content") else "No content"
+                        }
+                        sources.append(source_dict)
+                
+                # Return structured response
+                return {
+                    "answer": answer,
+                    "sources": sources,
+                    "sources_count": len(sources),
+                    "output_type": output_type
+                }
+                
             elif output_type == "searchResults":
-                # For search results, format the results list
+                # For search results, return a structured dictionary
                 results = []
-                for i, result in enumerate(response.results, start=1):
-                    results.append(
-                        f"{i}. Content: {result.content}\n   Source: {result.url}"
-                    )
-                return "Search Results:\n" + "\n\n".join(results)
+                if hasattr(response, "results"):
+                    for result in response.results:
+                        result_dict = {
+                            "content": result.content if hasattr(result, "content") else "No content",
+                            "url": result.url if hasattr(result, "url") else "No URL"
+                        }
+                        results.append(result_dict)
+                
+                return {
+                    "results": results,
+                    "results_count": len(results),
+                    "output_type": output_type
+                }
             else:
-                return "Invalid output type specified."
+                return {"error": "Invalid output type specified."}
         except Exception as e:
-            logger.error(f"Error formatting response: {str(e)}")
-            return f"Error formatting response: {str(e)}"
+            error_msg = f"Error formatting response: {str(e)}"
+            logger.error(error_msg)
+            return {"error": error_msg}
 
     def execute(
         self,
         query: str,
         depth: str = "standard",
         output_type: str = "sourcedAnswer",
-    ) -> str:
+    ) -> dict:
         """Perform a web search using the Linkup API.
 
         Args:
@@ -100,7 +129,7 @@ class LinkupTool(Tool):
             output_type: Type of output (searchResults or sourcedAnswer)
 
         Returns:
-            str: Formatted search results or sourced answer
+            dict: Structured dictionary with search results or sourced answer
 
         Raises:
             ValueError: If the API key is not set or if there's an error with the request
@@ -128,13 +157,19 @@ class LinkupTool(Tool):
                 output_type=output_type
             )
 
-            # Format and return the response
-            return self._format_response(response, output_type)
+            # Format the response as a structured dictionary
+            formatted_response = self._format_response(response, output_type)
+            
+            # Add query and depth to the response
+            formatted_response["query"] = query
+            formatted_response["depth"] = depth
+            
+            return formatted_response
 
         except Exception as e:
             error_msg = f"Error performing Linkup search: {str(e)}"
             logger.error(error_msg)
-            raise ValueError(error_msg)
+            return {"error": error_msg, "query": query}
 
 
 if __name__ == "__main__":

@@ -13,6 +13,10 @@ from pydantic import Field
 
 from quantalogic.tools.tool import Tool, ToolArgument
 
+# Base directory for all cloned repositories
+REPOS_BASE_DIR = "/tmp"
+REPOS_SUBDIR = "git_repos"
+
 # Repository types
 REPO_TYPE_GITHUB = "github"
 REPO_TYPE_GITLAB = "gitlab"
@@ -33,28 +37,33 @@ class GitOperationsTool(Tool):
         "- push: Pushes commits to the remote repository and auto-commits any pending changes if needed\n"
         "- pull: Fetches and merges changes from the remote repository\n\n"
         "- branch_name is required for create, checkout, commit to, or push to. (not required for 'list_branches' or 'list_remote_branches' operations)\n"
-        "Automatically handles authentication for GitHub and GitLab repositories using the provided token."
+        "Automatically handles authentication for GitHub and GitLab repositories using the provided token.\n"
+        "Repositories are organized in agent-specific directories under /tmp/agent_id/git_repos/ where an agent_id is always provided during tool initialization.\n"
+        "This ensures isolation between different agents working with the same repositories."
     )
     need_validation: bool = False
     auth_token: str = Field(default=None, description="Authentication token for private repositories (GitHub or GitLab)")
+    agent_id: Optional[str] = Field(default=None, description="Agent ID for directory organization")
 
-    def __init__(self, auth_token: str = None, **data):
-        """Initialize the tool with an optional auth token.
+    def __init__(self, auth_token: str = None, agent_id: str = None, **data):
+        """Initialize the tool with optional parameters.
         
         Args:
             auth_token: Authentication token for private repositories (GitHub or GitLab)
+            agent_id: Agent ID for directory organization
             **data: Additional tool configuration data
         """
         super().__init__(**data)
         self.auth_token = auth_token
+        self.agent_id = agent_id
 
     arguments: list = [
         ToolArgument(
             name="repo_path",
             arg_type="string",
-            description="The local path to the Git repository (must be within /tmp/git_repos)",
+            description="The local path to the Git repository (must be within /tmp/agent_id/git_repos/)",
             required=True,
-            example="/tmp/git_repos/my_repo",
+            example="/tmp/agent_id/git_repos/my_repo",
         ),
         ToolArgument(
             name="operation",
@@ -582,12 +591,69 @@ class GitOperationsTool(Tool):
             logger.error(f"Failed to push changes: {error_msg}")
             raise ValueError(f"Failed to push changes: {error_msg}")
 
+    def _validate_repo_path(self, repo_path: str, agent_id: str = None) -> str:
+        """Validate and adjust repository path based on agent_id.
+        
+        Args:
+            repo_path: Path to the Git repository
+            
+        Returns:
+            str: Validated and potentially adjusted repository path
+            
+        Raises:
+            ValueError: If the repository path is invalid or doesn't exist
+        """
+        # Determine base directory based on agent_id
+        if agent_id and str(agent_id).strip():
+            agent_base_dir = os.path.join(REPOS_BASE_DIR, agent_id, REPOS_SUBDIR)
+            logger.info(f"Using agent-specific directory: {agent_base_dir}")
+            
+            # Convert to absolute path
+            abs_path = os.path.abspath(repo_path)
+            
+            # Check if path is already in the agent's directory
+            if not abs_path.startswith(agent_base_dir):
+                # If it's in REPOS_BASE_DIR but not in agent dir, adjust it
+                if abs_path.startswith(REPOS_BASE_DIR):
+                    # Extract the part after REPOS_BASE_DIR
+                    relative_path = os.path.relpath(abs_path, REPOS_BASE_DIR)
+                    # If it contains git_repos but not in the agent's path
+                    if REPOS_SUBDIR in relative_path:
+                        parts = relative_path.split(REPOS_SUBDIR, 1)
+                        if len(parts) > 1:
+                            # Keep only the part after git_repos
+                            new_path = os.path.join(agent_base_dir, parts[1].lstrip('/'))
+                            logger.info(f"Adjusted repository path to agent directory: {new_path}")
+                            return new_path
+                    
+                    # Otherwise use the full relative path
+                    new_path = os.path.join(agent_base_dir, relative_path)
+                    logger.info(f"Adjusted repository path to agent directory: {new_path}")
+                    return new_path
+                else:
+                    # If outside REPOS_BASE_DIR entirely, use basename in agent dir
+                    new_path = os.path.join(agent_base_dir, os.path.basename(abs_path))
+                    logger.info(f"Moved repository path to agent directory: {new_path}")
+                    return new_path
+            return abs_path
+        else:
+            # Without agent_id, ensure it's within the fallback directory
+            fallback_dir = os.path.join(REPOS_BASE_DIR, REPOS_SUBDIR)
+            abs_path = os.path.abspath(repo_path)
+            
+            if not abs_path.startswith(fallback_dir):
+                new_path = os.path.join(fallback_dir, os.path.basename(abs_path))
+                logger.info(f"Adjusted repository path to base directory: {new_path}")
+                return new_path
+            return abs_path
+
     def execute(
         self, 
         repo_path: str, 
         operation: str, 
         branch_name: str = None, 
-        commit_message: str = None
+        commit_message: str = None,
+        agent_id: str = None,
     ) -> str:
         """Executes the requested Git operation on the specified repository.
 
@@ -605,10 +671,9 @@ class GitOperationsTool(Tool):
             GitCommandError: If there's an error during Git operations
         """
         try:
-            # Validate repo_path is within the allowed directory
-            if not repo_path.startswith("/tmp/git_repos/"):
-                raise ValueError(f"Repository path must be within /tmp/git_repos/: {repo_path}")
-                
+            # Validate and adjust repo_path based on agent_id
+            repo_path = self._validate_repo_path(repo_path, agent_id)
+            
             # Validate repo_path exists
             if not os.path.exists(repo_path):
                 raise ValueError(f"Repository path does not exist: {repo_path}")
@@ -676,20 +741,17 @@ if __name__ == "__main__":
     import sys
     
     # Default values
-    repo_path = "/tmp/git_repos/my_repo"
-    operation = "commit"  # Options: create_branch, checkout, commit, push, pull, list_branches, list_remote_branches
+    repo_path = "/tmp/agent_id/git_repos/my_repo"
+    operation = "list_remote_branches"  # Options: create_branch, checkout, commit, push, pull, list_branches, list_remote_branches
     branch_name = "feature/new-feature"
     commit_message = "Add new feature"
     # Files argument removed as we now automatically add all files
     token = None
+    agent_id = "test_agent"
     
     # Parse command line arguments if provided
     if len(sys.argv) > 1:
         repo_path = sys.argv[1]
-        # Ensure repo_path is within allowed directory
-        if not repo_path.startswith("/tmp/git_repos/"):
-            print(f"Error: Repository path must be within /tmp/git_repos/: {repo_path}")
-            sys.exit(1)
     if len(sys.argv) > 2:
         operation = sys.argv[2]
     if len(sys.argv) > 3:
@@ -698,9 +760,11 @@ if __name__ == "__main__":
         commit_message = sys.argv[4]
     if len(sys.argv) > 5:
         token = sys.argv[5]
+    if len(sys.argv) > 6:
+        agent_id = sys.argv[6]
     
     # Initialize and run the tool
-    tool = GitOperationsTool(auth_token=token)
+    tool = GitOperationsTool(auth_token=token, agent_id=agent_id)
     
     try:
         result = tool.execute(

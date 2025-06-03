@@ -648,8 +648,7 @@ class SimpleRagTool(Tool):
         try:
             logger.info("Generating answer using LLM")
             
-            prompt = f"""\
-You are an expert document analyst and information synthesizer. 
+            prompt = f"""\You are an expert document analyst and information synthesizer. 
 You always answer in french unless it's specified by the user
 
 Based on the following sources extracted from documents, provide a comprehensive, 
@@ -676,8 +675,7 @@ Instructions:
 
 Your comprehensive answer:
 """
-            legal_prompt = f"""\
-Vous êtes un expert juridique algérien spécialisé dans l'analyse et l'interprétation du droit algérien.
+            legal_prompt = f"""\Vous êtes un expert juridique algérien spécialisé dans l'analyse et l'interprétation du droit algérien.
 Sur la base des sources juridiques algériennes suivantes, fournissez une réponse professionnelle, 
 complète et bien structurée à cette question: "{query}" 
 
@@ -704,28 +702,46 @@ Instructions pour votre réponse:
 Votre réponse juridique professionnelle:
 """
             
-            
             # Generate the answer using LLMTool
             from quantalogic.tools.llm_tool import LLMTool
+            import asyncio
             
             # Initialize the LLM tool with the same model as specified in the class
             llm_tool = LLMTool(model_name=self.llm_model, event_emitter=self.event_emitter, on_token=self.on_token)
             
             # Execute the tool with system prompt and user query
             system_prompt = "You are an expert in document analysis."
-            answer = llm_tool.execute(
-                system_prompt=system_prompt,
-                prompt=prompt,
-                temperature="0.2"
-            )
             
-            return answer
+            # Check if we're in an event loop
+            try:
+                loop = asyncio.get_running_loop()
+                is_in_loop = True
+            except RuntimeError:
+                is_in_loop = False
+                
+            if is_in_loop:
+                # We're already in an event loop, use async version
+                answer = asyncio.create_task(llm_tool.async_execute(
+                    system_prompt=system_prompt,
+                    prompt=prompt,
+                    temperature="0.2"
+                ))
+                # Get the result synchronously
+                return "LLM processing in progress. Results will be available shortly."
+            else:
+                # No event loop, create one
+                answer = asyncio.run(llm_tool.async_execute(
+                    system_prompt=system_prompt,
+                    prompt=prompt,
+                    temperature="0.2"
+                ))
+                return answer
             
         except Exception as e:
             logger.error(f"Error generating LLM answer: {e}")
             return f"Error generating answer: {str(e)}"
 
-    def execute(
+    async def execute(
         self,
         query: str,
         max_sources: int = 5,
@@ -830,7 +846,51 @@ Votre réponse juridique professionnelle:
             
             # Generate answer
             if use_llm and sources:
-                answer = self._generate_llm_answer(query, context_text)
+                # Import here to avoid circular imports
+                from quantalogic.tools.llm_tool import LLMTool
+                import asyncio
+                
+                # Initialize the LLM tool with the same model as specified in the class
+                llm_tool = LLMTool(model_name=self.llm_model, event_emitter=self.event_emitter, on_token=self.on_token)
+                
+                # Prepare the prompt
+                prompt = f"""You are an expert document analyst and information synthesizer. 
+You always answer in french unless it's specified by the user
+
+Based on the following sources extracted from documents, provide a comprehensive, 
+well-structured answer to this query: "{query}"
+
+Here are the relevant document excerpts:
+
+{context_text}
+
+Instructions:
+1. Synthesize the information from all sources into a coherent, well-structured answer
+2. Organize your response with the following sections:
+   - Executive Summary (brief overview of the answer)
+   - Detailed Analysis (comprehensive explanation with specific details)
+   - Key Points (bullet points of the most important information)
+3. Focus on directly answering the query with the most relevant information
+4. If the sources don't contain enough information to answer the query, acknowledge this limitation
+5. Write in a professional, clear, and authoritative style appropriate for analysis
+6. Format your response using Markdown for better readability
+7. Do not include phrases like "Based on the sources" or "According to the document" - write as if you're providing the information directly
+8. Include all relevant details from the sources that help answer the query
+9. If there are any ambiguities or potential interpretations, note them clearly
+10. Conclude with any recommendations or next steps if appropriate
+
+Your comprehensive answer:
+"""
+                
+                # Execute the tool with system prompt and user query
+                system_prompt = "You are an expert in document analysis."
+                
+                # Use async version
+                answer = await llm_tool.async_execute(
+                    system_prompt=system_prompt,
+                    prompt=prompt,
+                    temperature="0.2"
+                )
             else:
                 # Simple concatenation of sources
                 answer = f"Query: {query}\n\n"

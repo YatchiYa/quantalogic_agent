@@ -1,0 +1,44 @@
+To accomplish this new task, you have access to only these tools:
+
+{{ tool_names }}
+
+Tool Selection Guidelines:
+
+1. Simple Tasks:
+   • Choose ONE direct tool
+   • Prefer built-in tools
+   • Minimize tool chain length
+
+2. Standard Tasks:
+   • Select tools sequentially
+   • Plan tool chain carefully
+   • Consider tool dependencies
+
+3. Complex Tasks:
+   • Map out complete tool chain
+   • Plan fallback options
+   • Consider error handling
+
+Operational Rules:
+1. Select Only ONE tool per message
+2. Tool output comes in next response
+3. Choose most appropriate tool per step
+4. Validate tool results thoroughly
+5. Handle tool errors gracefully
+6. Use task_complete for final answer
+
+Response Format:
+<action>
+<tool_name>
+  [precise_parameters]
+</tool_name>
+</action>
+
+Task Completion:
+<action>
+<task_complete>
+  <answer>
+[Final result well structured in markdown, with clear sections using ###, ####, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]
+  </answer>
+</task_complete>
+</action>

@@ -1,25 +1,26 @@
-"""Tool for listing the contents of a directory in the /tmp directory only."""
+"""Tool for listing the contents of a directory in the agent's directory under /tmp."""
 
 import os
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 from loguru import logger
 
 from quantalogic.tools.tool import Tool, ToolArgument
 
 
 class ListDirectoryTool(Tool):
-    """Lists directory contents with pagination and .gitignore support, restricted to /tmp directory."""
+    """Lists directory contents with pagination and .gitignore support, restricted to agent's directory under /tmp."""
 
     name: str = "list_directory_tool"
-    description: str = "Lists directory contents with pagination and .gitignore filtering (restricted to /tmp directory)"
+    description: str = "Lists directory contents with pagination and .gitignore filtering (restricted to agent's directory under /tmp)"
+    agent_id: Optional[str] = None
     arguments: list[ToolArgument] = [
         ToolArgument(
             name="directory_path",
             arg_type="string",
-            description="Absolute or relative path to target directory",
+            description="Absolute or relative path to target directory (will be adjusted to agent's directory under /tmp if needed)",
             required=True,
-            example="~/documents/projects",
+            example="/tmp/agent_id/myfiles or myfiles",
         ),
         ToolArgument(
             name="recursive",
@@ -141,6 +142,7 @@ class ListDirectoryTool(Tool):
         max_depth: str = "10",
         start_line: str = "1",
         end_line: str = "200",
+        agent_id: str = None,
     ) -> str:
         """
         List directory contents with pagination.
@@ -159,15 +161,44 @@ class ListDirectoryTool(Tool):
             ValueError: For invalid directory paths or pagination parameters
         """
         try:
+            # Use agent_id parameter if provided, otherwise use the instance's agent_id
+            effective_agent_id = agent_id or self.agent_id
+            logger.debug(f"ListDirectoryTool using agent_id: {effective_agent_id}")
+            
             # Expand user home directory
             if directory_path.startswith("~"):
                 directory_path = os.path.expanduser(directory_path)
 
+            # Adjust path for agent-specific directory if needed
+            if effective_agent_id:
+                # If path is not already in the agent's directory, adjust it
+                agent_path = f"/tmp/{effective_agent_id}"
+                
+                if not directory_path.startswith(agent_path):
+                    # If it's in /tmp but not in agent directory, adjust it
+                    if directory_path.startswith("/tmp/"):
+                        # Extract the part after /tmp/
+                        relative_path = directory_path.split("/tmp/", 1)[1]
+                        # Ensure we don't include another agent's directory
+                        if "/" in relative_path:
+                            relative_path = relative_path.split("/", 1)[1]
+                        directory_path = f"{agent_path}/{relative_path}"
+                    else:
+                        # Not in /tmp at all, put it in agent directory
+                        directory_path = os.path.join(agent_path, directory_path.lstrip("/"))
+                        
+                logger.debug(f"Adjusted directory path to: {directory_path}")
+                
+                # Create agent directory if it doesn't exist
+                os.makedirs(agent_path, exist_ok=True)
+            
             path = Path(directory_path)
             abs_path = os.path.abspath(directory_path)
             
-            # Validate directory is within /tmp
-            if not abs_path.startswith("/tmp"):
+            # Validate directory is within appropriate location
+            if effective_agent_id and not abs_path.startswith(f"/tmp/{effective_agent_id}"):
+                raise ValueError(f"Security restriction: This tool can only access directories within /tmp/{effective_agent_id}. '{abs_path}' is not allowed.")
+            elif not effective_agent_id and not abs_path.startswith("/tmp"):
                 raise ValueError(f"Security restriction: This tool can only access directories within /tmp. '{abs_path}' is not allowed.")
             
             # Validate directory
@@ -225,5 +256,10 @@ class ListDirectoryTool(Tool):
 
 
 if __name__ == "__main__":
-    tool = ListDirectoryTool()
+    # Example usage with agent_id
+    tool = ListDirectoryTool(agent_id="test_agent")
     print(tool.execute(directory_path="/tmp", recursive="true"))
+    
+    # Example usage without agent_id
+    tool_no_agent = ListDirectoryTool()
+    print(tool_no_agent.execute(directory_path="/tmp", recursive="true"))

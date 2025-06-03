@@ -33,12 +33,39 @@ class TaskCompleteTool(Tool):
         """
         import re
 
-        # Check for any variable-like patterns
-        var_pattern = r'\$[a-zA-Z_][a-zA-Z0-9_]*\$?'
+        # Check for uninterpolated variables (those with $ at both start and end)
+        var_pattern = r'\$[a-zA-Z_][a-zA-Z0-9_]*\$'
         matches = re.findall(var_pattern, answer)
         
+        # Filter out false positives like SCSS variables
+        filtered_matches = []
         if matches:
-            var_list = ", ".join(matches)
+            # Check for code blocks that might contain SCSS/CSS
+            code_blocks = re.findall(r'```(?:scss|css|sass)([\s\S]*?)```', answer, re.IGNORECASE)
+            
+            # Create a list of ranges to exclude (SCSS/CSS code blocks)
+            exclude_ranges = []
+            for block in code_blocks:
+                # Find all occurrences of this block in the answer
+                for match in re.finditer(re.escape(block), answer):
+                    exclude_ranges.append((match.start(), match.end()))
+            
+            # Only include matches that aren't in code blocks
+            for match in matches:
+                match_positions = [(m.start(), m.end()) for m in re.finditer(re.escape(match), answer)]
+                
+                for start, end in match_positions:
+                    in_code_block = False
+                    for block_start, block_end in exclude_ranges:
+                        if start >= block_start and end <= block_end:
+                            in_code_block = True
+                            break
+                    
+                    if not in_code_block:
+                        filtered_matches.append(match)
+        
+        if filtered_matches:
+            var_list = ", ".join(set(filtered_matches))  # Use set to remove duplicates
             error_msg = (
                 f"Error: Task complete answer contains uninterpolated variables: {var_list}. "
                 "Variables should be interpolated before completing the task."

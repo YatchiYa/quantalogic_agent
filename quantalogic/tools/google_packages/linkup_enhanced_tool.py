@@ -32,10 +32,10 @@ class LinkupEnhancedTool(Tool):
             description="Whether to scrape the content of the sources"
         )
         max_sources_to_scrape: int = Field(
-            default=3,
+            default=20,
             description="Maximum number of sources to scrape",
-            ge=1,
-            le=5
+            ge=10,
+            le=100
         )
         output_format: str = Field(
             default="standard",
@@ -88,7 +88,7 @@ class LinkupEnhancedTool(Tool):
             arg_type="string",
             description="Search depth (standard or deep)",
             required=False,
-            default="deep"
+            default="standard"
         ),
         ToolArgument(
             name="analysis_depth",
@@ -107,9 +107,9 @@ class LinkupEnhancedTool(Tool):
         ToolArgument(
             name="max_sources_to_scrape",
             arg_type="int",
-            description="Maximum number of sources to scrape (1-5)",
+            description="Maximum number of sources to scrape (10-100)",
             required=False,
-            default="3"
+            default="20"
         ),
         ToolArgument(
             name="output_format",
@@ -446,7 +446,7 @@ USER QUESTION: {question}
         depth: str = "deep",
         analysis_depth: str = "standard",
         scrape_sources: str = "true",
-        max_sources_to_scrape: str = "3",
+        max_sources_to_scrape: str = "10",
         output_format: str = "standard"
     ) -> dict:
         """
@@ -551,7 +551,7 @@ USER QUESTION: {question}
         self,
         query: str,
         question: str,
-        depth: str = "deep",
+        depth: str = "standard",
         analysis_depth: str = "standard",
         scrape_sources: str = "true",
         max_sources_to_scrape: str = "3",

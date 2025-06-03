@@ -22,6 +22,8 @@ chat_sessions: Dict[str, AgentMemory] = {}
 system_prompts: Dict[str, str] = {}
 # Store chat models
 chat_models: Dict[str, GenerativeModel] = {}
+# Track active streaming sessions
+active_streams: Dict[str, bool] = {}
 
 # Define LinkupTool as a function for LiteLLM
 def perform_web_search(query: str, depth: str = "standard", output_type: str = "sourcedAnswer") -> str:
@@ -109,30 +111,72 @@ def track_cost_callback(kwargs, completion_response, start_time, end_time):
 # Set LiteLLM callback
 litellm.success_callback = [track_cost_callback]
 
-async def stream_response(response_iter) -> AsyncGenerator[str, None]:
-    """Stream response chunks."""
+async def stream_response(response_iter, session_id=None, user_message=None) -> AsyncGenerator[str, None]:
+    """Stream response chunks and update memory when done."""
+    full_response = ""
     try:
+        # Register this stream as active if we have a session_id
+        if session_id:
+            active_streams[session_id] = True
+            logger.info(f"Started streaming for session {session_id}")
+            
         if hasattr(response_iter, '__aiter__'):  # Check if it's an async iterator
             async for chunk in response_iter:
+                # Check if streaming should be stopped
+                if session_id and not active_streams.get(session_id, True):
+                    logger.info(f"Streaming cancelled for session {session_id}")
+                    break
+                    
                 if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
                     content = chunk.choices[0].delta.content
                     if content:
+                        full_response += content
                         yield f"data: {json.dumps({'content': content})}\n\n"
         else:  # Handle sync iterator
             for chunk in response_iter:
+                # Check if streaming should be stopped
+                if session_id and not active_streams.get(session_id, True):
+                    logger.info(f"Streaming cancelled for session {session_id}")
+                    break
+                    
                 if hasattr(chunk.choices[0], 'delta') and hasattr(chunk.choices[0].delta, 'content'):
                     content = chunk.choices[0].delta.content
                     if content:
+                        full_response += content
                         yield f"data: {json.dumps({'content': content})}\n\n"
     except Exception as e:
         logger.error(f"Error in stream_response: {str(e)}")
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
     finally:
+        # Clean up active stream tracking
+        if session_id and session_id in active_streams:
+            del active_streams[session_id]
+            logger.info(f"Finished streaming for session {session_id}")
+            
+        # Update memory if session_id and user_message are provided
+        if session_id and user_message and full_response:
+            try:
+                memory = chat_sessions.get(session_id)
+                if memory:
+                    memory.add(Message(role="user", content=user_message))
+                    memory.add(Message(role="assistant", content=full_response))
+                    
+                    # Compact memory if needed
+                    if len(memory.memory) > 10:
+                        memory.compact(n=2)
+                    logger.info(f"Updated memory for streaming session {session_id}")
+            except Exception as e:
+                logger.error(f"Error updating memory after streaming: {str(e)}")
+        
+        # Send a cancelled message if streaming was stopped
+        if session_id and not active_streams.get(session_id, True):
+            yield f"data: {json.dumps({'cancelled': True})}\n\n"
+            
         yield "data: [DONE]\n\n"
 
 @router.post("/send")
 async def send_message(request: ChatRequest):
-    """Send a message to the chat model."""
+    """Send a message to the chat model.""" 
     try:
         # Update system prompt and get memory
         update_system_prompt(request.session_id, request.system_prompt)
@@ -158,7 +202,8 @@ async def send_message(request: ChatRequest):
                     messages=messages,
                     temperature=request.temperature,
                     tools=TOOLS,
-                    tool_choice="auto"
+                    tool_choice="auto",
+                    stream_options={"include_usage": True}
                 )
                 
                 # Process response
@@ -181,6 +226,11 @@ async def send_message(request: ChatRequest):
                                 "content": None,
                                 "tool_calls": [tool_call]
                             })
+                            
+                            # Convert search_result to string if it's not already
+                            if not isinstance(search_result, str):
+                                search_result = json.dumps(search_result)
+                                
                             messages.append({
                                 "role": "tool",
                                 "tool_call_id": tool_call.id,
@@ -197,11 +247,12 @@ async def send_message(request: ChatRequest):
                 model=request.model,
                 messages=messages,
                 temperature=request.temperature,
-                stream=True
+                stream=True,
+                stream_options={"include_usage": True}
             )
             
             return StreamingResponse(
-                stream_response(response_iter),
+                stream_response(response_iter, session_id=request.session_id, user_message=request.message),
                 media_type="text/event-stream"
             )
         else:
@@ -209,7 +260,8 @@ async def send_message(request: ChatRequest):
             final_response = await litellm.acompletion(
                 model=request.model,
                 messages=messages,
-                temperature=request.temperature
+                temperature=request.temperature,
+                stream_options={"include_usage": True}
             )
             response_content = final_response.choices[0].message.content
             
@@ -257,4 +309,19 @@ async def get_session_history(session_id: str) -> List[Dict[str, str]]:
         return [{"role": msg.role, "content": msg.content} for msg in memory.memory]
     except Exception as e:
         logger.error(f"Error getting session history: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/stop/{session_id}")
+async def stop_streaming(session_id: str):
+    """Stop an ongoing streaming response for a session."""
+    try:
+        if session_id in active_streams:
+            active_streams[session_id] = False
+            logger.info(f"Requested to stop streaming for session {session_id}")
+            return {"status": "success", "message": f"Streaming for session {session_id} will be stopped"}
+        else:
+            logger.info(f"No active streaming found for session {session_id}")
+            return {"status": "not_found", "message": f"No active streaming found for session {session_id}"}
+    except Exception as e:
+        logger.error(f"Error stopping streaming: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

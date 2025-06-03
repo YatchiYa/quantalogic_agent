@@ -135,12 +135,15 @@ class AgentState:
             for tool in config.tools:
                 tool_dict = {
                     "type": tool.type,
-                    "parameters": {}
+                    "parameters": {
+                        # Pass agent_id to all tools that might need it
+                        "agent_id": config.id
+                    }
                 }
                 if tool.parameters:
                     # Convert Pydantic model to dict and remove None values
                     params = tool.parameters.dict(exclude_none=True)
-                    tool_dict["parameters"] = params
+                    tool_dict["parameters"].update(params)
                 tools_dict.append(tool_dict)
             
             logger.debug(f"Converted tools configuration: {tools_dict}")
@@ -153,7 +156,8 @@ class AgentState:
                 tools=tools_dict,
                 specific_expertise=config.expertise,
                 memory=AgentMemory(),
-                agent_mode=config.agent_mode
+                agent_mode=config.agent_mode,
+                agent_id=config.id,
             )
              
             # Override ask_for_user_validation with SSE-based method 
@@ -256,7 +260,8 @@ class AgentState:
                     tools=tools_dict,
                     specific_expertise=config.expertise or "",  # Ensure expertise is never None
                     memory=existing_memory or AgentMemory(),  # Use existing memory or create new one
-                    agent_mode=config.agent_mode or "default"  # Ensure agent_mode is never None
+                    agent_mode=config.agent_mode or "default",  # Ensure agent_mode is never None
+                    agent_id=agent_id
                 )
                 
                 # Override ask_for_user_validation with SSE-based method 
@@ -379,6 +384,11 @@ class AgentState:
         task_info["completed_at"] = datetime.now().isoformat()
         
         # Broadcast task stopped event
+        self._handle_event("task_stopped", {
+            "task_id": task_id,
+            "message": "Task execution stopped by user",
+            "result": "Task stopped by user request"
+        })
         self._handle_event("task_solve_end", {
             "task_id": task_id,
             "message": "Task execution stopped by user",
@@ -589,6 +599,12 @@ class AgentState:
                     no_stream=False,
                     tools=tools,
                     specific_expertise=expertise,
+                    agent_mode="react", 
+                    memory=AgentMemory(),
+                    max_iterations=30,
+                    compact_every_n_iteration=5,
+                    max_tokens_working_memory=1000,
+                    agent_id="default",
                     # memory=memory
                 )
                 # Set up event handlers before registering the agent
@@ -750,7 +766,7 @@ class AgentState:
         except Exception as e:
             logger.error(f"Error handling event {event_type}: {e}", exc_info=True)
 
-    async def execute_task(self, task_id: str) -> None:
+    async def execute_task(self, task_id: str, conversation_id: Optional[str] = None) -> None:
         """Execute a task asynchronously."""
         if task_id not in self.tasks:
             raise ValueError(f"Task {task_id} not found")
@@ -764,6 +780,7 @@ class AgentState:
             request = task_info.get("request", {})
             agent_id = request.get("agent_id")
             conversation_id = request.get("conversation_id")
+            logger.info(f"Executing task {task_id} with agent {agent_id} and conversation {conversation_id}")
             
             try:
                 # Get the agent for this task
@@ -796,6 +813,7 @@ class AgentState:
                     raise
             
             # Create event for task start
+            agent.session_id = conversation_id
             self._handle_event("task_solve_start", {
                 "task_id": task_id,
                 "agent_id": agent_id,

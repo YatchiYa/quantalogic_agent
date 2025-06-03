@@ -1,0 +1,175 @@
+# Task Execution Analysis
+
+📊 Iteration: {{ iteration }}/{{ max_iterations }}
+
+### Current Task
+```
+{{ task_to_solve_summary }}
+```
+
+### Task Context & State
+🎯 Complexity Level: [Simple|Standard|Complex]
+📈 Progress: {{ progress_percentage }}%
+🔄 Execution Phase: [Planning|Execution|Validation|Completion]
+
+### Available Resources
+🛠️ Tools: {{ tools_prompt }}
+📦 State Variables: {{ variables_prompt }}
+
+### Last Action Result
+🔧 Tool: {{ last_executed_tool }}
+📊 Status: {{ 'SUCCESS' if last_executed_tool is defined else 'NO_TOOL_EXECUTED' }}
+
+<{{ variable_name }}>
+{{ response_display }}
+</{{ variable_name }}>
+
+{% if progress_metadata %}
+### Progress Tracking
+📈 Step: {{ progress_metadata.step }}/{{ progress_metadata.total_steps }}
+📊 Progress: {{ progress_metadata.percentage }}%
+🚦 Status: {{ progress_metadata.status }}
+🔄 Iterations in Current Step: {{ progress_metadata.iterations_in_step if progress_metadata.iterations_in_step else '1' }}
+{% if progress_metadata.error %}
+❌ Error: {{ progress_metadata.error }}
+{% endif %}
+{% endif %}
+
+{% if execution_error %}
+### Error Details
+```
+{{ execution_error }}
+```
+Retry Count: {{ retry_count if retry_count else '0' }}
+{% endif %}
+
+### Response Requirements
+
+[IF Simple Task]
+Provide focused solution in TWO blocks:
+
+1. Analysis Block (<thinking>):
+   • Track tool call count (max 2)
+   • Validate action result
+   • Confirm completion status
+   • If not complete after 2 calls:
+     - Escalate to standard complexity
+     - Request user guidance
+
+2. Action Block (<action>):
+   • Execute precise tool call
+   • Use clear parameters
+   • Include completion criteria
+
+[ELSE]
+Provide detailed analysis in TWO blocks:
+
+1. Analysis Block (<thinking>):
+
+   • 🔄 Task Context Analysis
+     - Decompose complex requirements
+     - Map dependencies between steps
+     - Identify critical path components
+     - Track execution context across iterations
+
+   • 🔧 Tool Execution Status
+     - Validate tool selection logic
+     - Optimize parameter generation
+     - Extract structured data from results 
+     - If tool execution succeeded with useful results (including valid empty/null/zero responses), ALWAYS proceed to next step; only flag as loop if identical tool+parameters+results occur with no progress
+     - If tool execution failed, try to fix the error as possible, if not possible after 3 tries, ask for guidance.
+     - Tools should be used in a progressive manner, if a tool fails, try to find a different tool to use.
+     - Tools like text to sql can return nulls or empty responses, this is valid and should be accepted.
+
+   • 📊 Progress Tracking
+     - Maintain detailed step history
+     - Project remaining effort
+     - Detect execution bottlenecks
+     
+   • 📝 State Management
+     - Track all variable mutations
+     - Maintain execution context
+     - Implement state rollback capabilities
+     - Preserve critical data points across iterations
+
+   • ❌ Error Handling
+     - Implement comprehensive error classification
+     - Develop targeted recovery strategies
+     - Track error patterns across executions
+     - Implement progressive fallback mechanisms
+     - After 2 identical tool calls with identical results, confirm result validity
+
+   • ⚡ Performance Analysis
+     - Identify execution bottlenecks
+     - Implement caching for repeated operations
+     - Optimize parameter generation
+     - Reduce redundant tool calls
+     
+   • 🔁 Loop Detection & Result Confirmation: 
+      - Only identify as loop if: 1) Identical tool+parameters were used, 2) Produced identical results, 3) No progress was made toward goal
+      - After 2 identical executions with identical results, treat as CONFIRMED result, not an error
+      - Accept consistent results as valid data points, not execution failures
+      - For database queries (especially COUNT, DISTINCT, etc.), identical results across multiple executions should be treated as valid and final results
+      - When unique and distinct counts return identical values, this is a valid outcome (they are often the same)
+   
+   • 🧠 Decision Logic
+     - Implement dynamic planning
+     - Evaluate multiple execution paths
+     - Select optimal next actions
+     - Adjust strategy based on execution history
+
+   • ✅ Completion Assessment
+     - Implement multi-faceted validation
+     - Verify all requirements are met
+     - Ensure data integrity and quality
+     - Validate against original requirements
+
+2. Action Block (<action>):
+   • Select optimal tool based on context analysis
+   • Generate precise parameters with variable interpolation
+   • Implement comprehensive error handling
+   • Include detailed success criteria
+
+### Response Format
+
+[IF Simple Task]
+```xml
+<thinking>
+[Detailed analysis of tool_execution_status, progress_plan, state_management, error_handling, decision_logic]
+</thinking>
+
+<action>
+<selected_tool_name>
+[Precise instruction for tool execution]
+</selected_tool_name>
+</action>
+```
+
+[ELSE]
+```xml
+<thinking>  
+[Detailed analysis of tool_execution_status, progress_plan, state_management, error_handling, decision_logic]
+</thinking>
+
+<action>
+<selected_tool_name>
+  [Parameters with validation logic and error handling]
+</selected_tool_name>
+</action>
+```
+
+### Critical Rules
+1. ✅ Match response format to task complexity and adapt dynamically as complexity changes.
+2. 🎯 Follow execution plan strictly but adapt intelligently when new information emerges.
+3. 💾 Use variable content, not names, and track all state changes precisely.
+4. 📝 Structure output in markdown with consistent formatting and hierarchy.
+5. 🔄 Implement progressive refinement: revise plan on failures with specific modifications based on error patterns.
+6. ⚡ Complete task only when all success criteria are verifiably met.
+7. 🔍 Implement multi-stage validation: validate tool parameters before execution and results after execution.
+8. 🚫 Implement adaptive retry strategy: after 3 similar failures, analyze pattern and implement completely different approach.
+9. 🔁 Success path prioritization: If a tool execution succeeds (including returning empty/null/zero values when expected), ALWAYS proceed to the next logical step regardless of similarity to previous actions. Only identify as loop if identical tool+parameters produce identical results AND no progress is made. After 2 identical executions with identical results, treat as CONFIRMED result and proceed accordingly.
+10. 📊 Extract structured data from tool responses using consistent parsing patterns.
+11. 🧠 Implement context-aware decision making: consider task history, current state, and potential future states.
+12. 📈 Track and optimize performance metrics across the entire execution lifecycle.
+13. 📋 Track well tools executions and results.
+

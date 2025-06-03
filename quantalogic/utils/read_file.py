@@ -40,11 +40,22 @@ def read_file(file_path: str, max_size: int = 10 * 1024 * 1024) -> str:
         if file_size > max_size:
             raise OSError(f"File size ({file_size} bytes) exceeds the maximum allowed size ({max_size} bytes).")
 
-        # Read the file content
-        with open(absolute_path, encoding="utf-8") as file:
-            content = file.read()
-
-        return content
+        # Try to read the file content as UTF-8 first
+        try:
+            with open(absolute_path, encoding="utf-8") as file:
+                content = file.read()
+            return content
+        except UnicodeDecodeError:
+            # If UTF-8 fails, try to read with a more lenient encoding
+            try:
+                with open(absolute_path, encoding="utf-8", errors="replace") as file:
+                    content = file.read()
+                return content
+            except UnicodeDecodeError:
+                # If that still fails, read as binary and decode with latin-1 (which accepts any byte)
+                with open(absolute_path, encoding="latin-1") as file:
+                    content = file.read()
+                return content
 
     except FileNotFoundError:
         raise FileNotFoundError(f"The file '{absolute_path}' does not exist.")
