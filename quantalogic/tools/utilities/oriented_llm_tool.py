@@ -1,7 +1,7 @@
 """Oriented LLM Tool for generating answers to questions using a language model with customizable role."""
 
 import asyncio
-from typing import Callable, Optional
+from typing import Callable, Optional, Any, Dict, Union
 
 from loguru import logger
 from pydantic import ConfigDict, Field
@@ -110,7 +110,7 @@ class OrientedLLMTool(Tool):
         """
         return f"You are {self.role}. Respond to all queries in this role."
 
-    async def async_execute(self, prompt: str, temperature: Optional[str] = "0.5", step_number: Optional[int] = None, total_steps: Optional[int] = None) -> str:
+    async def async_execute(self, prompt: str, temperature: Optional[str] = "0.5", step_number: Optional[int] = None, total_steps: Optional[int] = None) -> Union[str, Dict[str, Any]]:
         """Execute the tool to generate an answer asynchronously.
 
         Args:
@@ -172,7 +172,10 @@ class OrientedLLMTool(Tool):
                 # Format the response with tool name and progress tracking
                 formatted_response = f"{self.name} Tool executed successfully, \nResult: \n{response}{progress_info}"
                 
-                return formatted_response
+                return {
+                        "status": "success",
+                        "answer": formatted_response
+                    }
             except Exception as e:
                 logger.error(f"Error generating async response: {e}")
                 error_msg = f"Error generating async response: {e}"
@@ -181,11 +184,17 @@ class OrientedLLMTool(Tool):
                 if step_number is not None and total_steps is not None:
                     error_msg += f"\n\n[PROGRESS_METADATA]\nStep: {step_number}/{total_steps}\nTool: {self.name}\nStatus: ERROR\nError: {str(e)}\n[/PROGRESS_METADATA]"
                 
-                raise Exception(error_msg) from e
+                return {
+                        "status": "error",
+                        "answer": error_msg
+                    }
         else:
-            raise ValueError("Generative model not initialized")
+            return {
+                        "status": "error",
+                        "answer": "Generative model not initialized"
+                    }
 
-    def execute(self, prompt: str, temperature: Optional[str] = "0.5", step_number: Optional[int] = None, total_steps: Optional[int] = None) -> str:
+    def execute(self, prompt: str, temperature: Optional[str] = "0.5", step_number: Optional[int] = None, total_steps: Optional[int] = None) -> Union[str, Dict[str, Any]]:
         """Execute the tool to generate an answer synchronously.
 
         Args:

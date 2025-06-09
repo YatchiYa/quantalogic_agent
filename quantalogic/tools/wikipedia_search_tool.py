@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Any, Callable, Dict, Union
 
 """Tool for interacting with Wikipedia API for search results."""
 
@@ -62,7 +62,7 @@ class WikipediaSearchTool(Tool):
         ),
     ]
 
-    def execute(self, query: str, page: Union[str, int] = 1, num_results: Union[str, int] = 10) -> str:
+    def execute(self, query: str, page: Union[str, int] = 1, num_results: Union[str, int] = 10) -> Union[str, Dict[str, Any]]:
         """Execute a search query using Wikipedia API and return results.
 
         Args:
@@ -134,7 +134,10 @@ class WikipediaSearchTool(Tool):
             output.insert(0, f"==== Page {page} of results ====")
             output.append(f"==== End of page {page} ====")
 
-            return "\n".join(output)
+            return {
+                        "status": "success",
+                        "answer": "\n".join(output)
+                    }
 
         except Exception as e:
             raise RuntimeError(f"Search failed: {str(e)}")

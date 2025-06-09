@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import List, Dict, Optional
 from loguru import logger
 
+from typing import Any, Callable, Dict, Union
+
 from quantalogic.tools.tool import Tool, ToolArgument
 
 
@@ -143,7 +145,7 @@ class ListDirectoryTool(Tool):
         start_line: str = "1",
         end_line: str = "200",
         agent_id: str = None,
-    ) -> str:
+    ) -> Union[str, Dict[str, Any]]:
         """
         List directory contents with pagination.
 
@@ -248,11 +250,17 @@ class ListDirectoryTool(Tool):
                     showing_msg += " Use higher end_line value to see more items."
                 header += f" {showing_msg}"
                 
-            return f"{header}\n" + "\n".join(paginated_lines)
+            return {
+                        "status": "success",
+                        "answer": f"{header}\n" + "\n".join(paginated_lines)
+                    }
             
         except Exception as e:
             logger.error(f"Error listing directory: {str(e)}")
-            return f"Error: {str(e)}"
+            return {
+                        "status": "error",
+                        "answer": f"Error: {str(e)}"
+                    }
 
 
 if __name__ == "__main__":

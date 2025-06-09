@@ -3,7 +3,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Tuple, Literal, Optional
+from typing import Tuple, Literal, Optional, Dict, Any, Union
 import re
 
 import requests
@@ -13,6 +13,8 @@ from loguru import logger
 from pydantic import Field
 
 from quantalogic.tools.tool import Tool, ToolArgument
+from quantalogic.tools.list_directory_tool import ListDirectoryTool
+from quantalogic.tools.git.specialized.git_list_branches_tool import GitListBranchesTool
 
 # Base directory for all cloned repositories
 REPOS_BASE_DIR = "/tmp"
@@ -230,7 +232,7 @@ class CloneRepoTool(Tool):
         os.makedirs(target_path, exist_ok=True)
         logger.info(f"Created clean target directory: {target_path}")
 
-    def execute(self, target_path: str, repo_url: str = None, create_branch: str = None, agent_id: str = None) -> str:
+    def execute(self, target_path: str, repo_url: str = None, create_branch: str = None, agent_id: str = None) -> Union[str, Dict[str, Any]]:
         """Clones a Git repository to the specified path within REPOS_BASE_DIR.
 
         Args:
@@ -336,10 +338,74 @@ class CloneRepoTool(Tool):
                     # Continue execution as the clone was successful
 
             logger.info(f"Successfully cloned repository to {target_path}")
-            success_message = f"Repository successfully cloned to: {target_path}"
-            if actual_create_branch:
-                success_message += f" and branch '{actual_create_branch}' was created and checked out"
-            return success_message
+            
+            # List files in the cloned repository
+            try:
+                list_dir_tool = ListDirectoryTool(agent_id=self.agent_id)
+                directory_listing = list_dir_tool.execute(
+                    directory_path=target_path,
+                    recursive="true",
+                    max_depth="10",
+                    start_line="1",
+                    end_line="200",
+                    agent_id=self.agent_id
+                )
+                
+                # Build success message
+                success_message = f"Repository successfully cloned to: {target_path}"
+                if actual_create_branch:
+                    success_message += f" and branch '{actual_create_branch}' was created and checked out"
+                
+                # Add directory listing to the success message
+                if isinstance(directory_listing, dict) and directory_listing.get("status") == "success":
+                    success_message += f"\n\nRepository contents:\n{directory_listing.get('answer')}"
+                elif isinstance(directory_listing, str):
+                    success_message += f"\n\nRepository contents:\n{directory_listing}"
+                else:
+                    success_message += "\n\nUnable to list repository contents."
+
+                # List local branches
+                try:
+                    list_branches_tool = GitListBranchesTool(agent_id=self.agent_id)
+                    local_branches_listing = list_branches_tool.execute(
+                        repo_path=target_path,
+                        list_type="local",
+                        agent_id=self.agent_id
+                    )
+                    success_message += f"\n\n{local_branches_listing}"
+                except Exception as e:
+                    logger.warning(f"Failed to list local branches: {str(e)}")
+                    success_message += "\n\nUnable to list local branches."
+
+                # List remote branches
+                try:
+                    # Re-instantiate or ensure state is clean if necessary, though for this tool it might be fine
+                    list_branches_tool_remote = GitListBranchesTool(agent_id=self.agent_id) 
+                    remote_branches_listing = list_branches_tool_remote.execute(
+                        repo_path=target_path,
+                        list_type="remote",
+                        agent_id=self.agent_id
+                    )
+                    success_message += f"\n\n{remote_branches_listing}"
+                except Exception as e:
+                    logger.warning(f"Failed to list remote branches: {str(e)}")
+                    success_message += "\n\nUnable to list remote branches."
+                    
+                return {
+                    "status": "success",
+                    "answer": success_message
+                }
+            except Exception as e:
+                logger.warning(f"Failed to list repository contents or branches: {str(e)}")
+                # Return basic success message if listing fails
+                success_message = f"Repository successfully cloned to: {target_path}"
+                if actual_create_branch:
+                    success_message += f" and branch '{actual_create_branch}' was created and checked out"
+                success_message += "\n\nFurther repository exploration (file listing, branches) failed."
+                return {
+                    "status": "success", # Still success for clone, but with a note
+                    "answer": success_message
+                }
 
         except GitCommandError as e:
             error_msg = str(e)
@@ -347,11 +413,19 @@ class CloneRepoTool(Tool):
             if self.auth_token:
                 error_msg = error_msg.replace(self.auth_token, "***")
             logger.error(f"Failed to clone repository: {error_msg}")
-            raise GitCommandError(f"Failed to clone repository: {error_msg}", e.status)
+            # raise GitCommandError(f"Failed to clone repository: {error_msg}", e.status)
+            return {
+                "status": "error",
+                "answer": f"Failed to clone repository: {error_msg}"
+            }
         
         except Exception as e:
             logger.error(f"An error occurred while cloning the repository: {str(e)}")
-            raise ValueError(f"An error occurred while cloning the repository: {str(e)}")
+            # raise ValueError(f"An error occurred while cloning the repository: {str(e)}")
+            return {
+                "status": "error",
+                "answer": f"An error occurred while cloning the repository: {str(e)}"
+            }
 
 
 if __name__ == "__main__":

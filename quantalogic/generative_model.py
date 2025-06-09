@@ -62,6 +62,7 @@ class TokenUsage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
+    cost: float
 
 
 class ResponseStats(BaseModel):

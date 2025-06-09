@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+from typing import Any, Callable, Dict, Union
 
 from loguru import logger
 from quantalogic.tools.tool import Tool, ToolArgument
@@ -180,7 +181,7 @@ class WriteFileTool(Tool):
             logger.error(f"Error in _interpolate_variables: {str(e)}")
             return content
 
-    def execute(self, file_path: str, content: str, append_mode: str = "False", overwrite: str = "False", agent_id: str = None, variables: dict = None) -> str:
+    def execute(self, file_path: str, content: str, append_mode: str = "False", overwrite: str = "False", agent_id: str = None, variables: dict = None) -> Union[str, Dict[str, Any]]:
         """Writes a file with the given content in the agent's directory under /tmp.
 
         Args:
@@ -234,9 +235,12 @@ class WriteFileTool(Tool):
                     with open(file_path, 'w', encoding="utf-8") as f:
                         f.write(processed_content)
                     file_size = os.path.getsize(file_path)
-                    result = f"File {file_path} overwritten successfully. Size: {file_size} bytes."
+                    result = f"Success: File {file_path} overwritten successfully. Size: {file_size} bytes."
                     logger.info(f"WriteFileTool result: {result}")
-                    return result
+                    return {
+                        "status": "success",
+                        "answer": result
+                    }
                 elif append_mode_bool:
                     # Append to existing file
                     processed_content = self._process_escape_sequences(content)
@@ -246,14 +250,20 @@ class WriteFileTool(Tool):
                     with open(file_path, 'a', encoding="utf-8") as f:
                         f.write(processed_content)
                     file_size = os.path.getsize(file_path)
-                    result = f"File {file_path} appended to successfully. Size: {file_size} bytes."
+                    result = f"Success: File {file_path} appended to successfully. Size: {file_size} bytes."
                     logger.info(f"WriteFileTool result: {result}")
-                    return result
+                    return {
+                        "status": "success",
+                        "answer": result
+                    }
                 else:
                     # File exists but neither overwrite nor append mode specified
-                    result = f"Error: File {file_path} already exists. Use overwrite=True to replace it or append_mode=True to add to it."
+                    result = f"Success: File {file_path} already exists. Use overwrite=True to replace it or append_mode=True to add to it."
                     logger.info(f"WriteFileTool result: {result}")
-                    return result
+                    return {
+                        "status": "success",
+                        "answer": result
+                    }
             else:
                 # File doesn't exist, create it
                 processed_content = self._process_escape_sequences(content)
@@ -263,18 +273,27 @@ class WriteFileTool(Tool):
                 with open(file_path, 'w', encoding="utf-8") as f:
                     f.write(processed_content)
                 file_size = os.path.getsize(file_path)
-                result = f"File {file_path} created successfully. Size: {file_size} bytes."
+                result = f"Success: File {file_path} created successfully. Size: {file_size} bytes."
                 logger.info(f"WriteFileTool result: {result}")
-                return result
+                return {
+                    "status": "success",
+                    "answer": result
+                }
 
         except ValueError as e:
             error_msg = f"Write file error: {str(e)}"
             logger.error(error_msg)
-            raise ValueError(error_msg)
+            return {
+                "status": "error",
+                "answer": error_msg
+            }
         except Exception as e:
             error_msg = f"Unexpected error writing file: {str(e)}"
             logger.error(error_msg)
-            raise Exception(f"Failed to write file: {str(e)}")
+            return {
+                "status": "error",
+                "answer": error_msg
+            }
 
 
 if __name__ == "__main__":

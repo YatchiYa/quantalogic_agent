@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
+from typing import Any, Callable, Dict, Union
 
 from loguru import logger
 from quantalogic.tools.tool import Tool, ToolArgument
@@ -52,7 +53,7 @@ class ReadFileTool(Tool):
             truncated_content += f"\n\n[The content is too long. Truncated at {MAX_LINES} lines.]"
         return truncated_content
 
-    def execute(self, file_path: str, agent_id: str = None) -> str:
+    def execute(self, file_path: str, agent_id: str = None) -> Union[str, Dict[str, Any]]:
         """Reads a file or HTTP content and returns its content.
 
         Args:
@@ -104,9 +105,15 @@ class ReadFileTool(Tool):
                 content = read_file(file_path)
                 truncated_content = self._truncate_content(content)
                 result = f"{truncated_content}"
-                return result
+                return {
+                        "status": "success",
+                        "answer": result
+                    }
             except Exception as e:
-                return f"Error reading file {file_path}: {str(e)}"
+                return {
+                        "status": "error",
+                        "answer": f"Error reading file {file_path}: {str(e)}"
+                    }
 
 
 if __name__ == "__main__":

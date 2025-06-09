@@ -29,7 +29,7 @@ import uuid
 MAX_OCCUPANCY = 90.0
 
 # Maximum response length in characters
-MAX_RESPONSE_LENGTH = 1024 * 32
+MAX_RESPONSE_LENGTH = 300
 
 DEFAULT_MAX_INPUT_TOKENS = 128 * 1024
 DEFAULT_MAX_OUTPUT_TOKENS = 4096
@@ -56,6 +56,7 @@ class ObserveResponseResult(BaseModel):
     next_prompt: str
     executed_tool: str | None = None
     answer: str | None = None
+    status: str | None = None
 
 
 class Agent(BaseModel):
@@ -338,18 +339,33 @@ class Agent(BaseModel):
                 self.current_iteration += 1
                 if self.current_iteration >= self.max_iterations:
                     done = True
-                    self._emit_event("error_max_iterations_reached")
+                    self._emit_event("error_max_iterations_reached", {
+                        "message": "Max iterations reached",
+                        "session_id": self.session_id,
+                        "total_tokens": self.total_tokens,
+                        "total_cost": self.total_cost,
+                        "response": answer,
+                    })
 
             except Exception as e:
                 logger.error(f"Error during async task solving: {str(e)}")
                 answer = f"Error: {str(e)}"
                 done = True
+                self._emit_event("error_task_solving", {
+                    "message": "Error during async task solving",
+                    "session_id": self.session_id,
+                    "total_tokens": self.total_tokens,
+                    "total_cost": self.total_cost,
+                    "response": answer,
+                })
 
         task_solve_end_data = {
             "result": answer,
             "message": "Task execution completed",
             "tracked_files": self.tracked_files if self.tracked_files else [],
-            "session_id": self.session_id
+            "session_id": self.session_id,
+            "total_tokens": self.total_tokens,
+            "total_cost": self.total_cost,
         }
         self._emit_event("task_solve_end", task_solve_end_data)
         return answer
@@ -714,7 +730,7 @@ class Agent(BaseModel):
             parsed_content = self._parse_tool_usage(content)
             if not parsed_content:
                 logger.debug("No tool usage detected in response")
-                return ObserveResponseResult(next_prompt=content, executed_tool=None, answer=None)
+                return ObserveResponseResult(next_prompt=content, executed_tool=None, answer=None, status="none")
 
             # Process tools for regular ReAct mode
             tool_names = list(parsed_content.keys())
@@ -733,12 +749,12 @@ class Agent(BaseModel):
                     executed_tool, response, answer = self._handle_repeated_tool_call(tool_name, arguments_with_values)
                     # For repeated calls, pass the error message to the observation response
                     variable_name = self.variable_store.add(response)
-                    new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=response)
-                    return ObserveResponseResult(next_prompt=new_prompt, executed_tool=executed_tool, answer=None)
+                    new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=response, status="repeated")
+                    return ObserveResponseResult(next_prompt=new_prompt, executed_tool=executed_tool, answer=None, status="repeated")
                 else:
-                    executed_tool, response = await self._async_execute_tool(tool_name, tool, arguments_with_values)
+                    executed_tool, response, status = await self._async_execute_tool(tool_name, tool, arguments_with_values)
 
-                if not executed_tool:
+                if not executed_tool or status != "success":
                     return self._handle_tool_execution_failure(response)
 
                 # Track files when write_file_tool or writefile is used
@@ -747,7 +763,7 @@ class Agent(BaseModel):
 
                 variable_name = self.variable_store.add(response)
                 # Pass None as execution_error since this is a successful execution
-                new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=None)
+                new_prompt = self._format_observation_response(response, executed_tool, variable_name, iteration, execution_error=None, status=status)
 
                 # In chat mode, don't set answer; in task mode, set answer only for task_complete
                 is_task_complete_answer = executed_tool == "task_complete" and not is_chat_mode
@@ -756,6 +772,7 @@ class Agent(BaseModel):
                     next_prompt=new_prompt,
                     executed_tool=executed_tool,
                     answer=response if is_task_complete_answer else None,
+                    status=status
                 )
 
             # If no tools were executed, return original content
@@ -893,7 +910,7 @@ class Agent(BaseModel):
 
             # Execute the tool
             if hasattr(tool, "async_execute") and callable(tool.async_execute):
-                response = await tool.async_execute(**converted_args)
+                tool_result = await tool.async_execute(**converted_args)
             else:
                 # For synchronous tools that support progress tracking
                 if current_step is not None and total_steps is not None and hasattr(tool, "execute"):
@@ -904,29 +921,47 @@ class Agent(BaseModel):
                 # Pass agent_id to synchronous tools that support it
                 if hasattr(tool, "agent_id") and self.agent_id:
                     converted_args["agent_id"] = self.agent_id
-                response = tool.execute(**converted_args)
+                tool_result = tool.execute(**converted_args)
+            
+            # Check if the response is in the new dictionary format
+            status = "success"  # Default status
+            if isinstance(tool_result, dict) and "status" in tool_result and "answer" in tool_result:
+                status = tool_result["status"]
+                response = tool_result["answer"]
+                logger.debug(f"Tool '{tool_name}' returned with status: {status}")
+            else:
+                # Handle legacy string response format
+                response = tool_result
                 
             # Post-process tool response if needed
-            if (tool.need_post_process):
+            if tool.need_post_process:
                 response = self._post_process_tool_response(tool_name, response) 
-                    
-            executed_tool = tool.name
             
-            # Update step tracking after successful execution
-            if current_step is not None and total_steps is not None:
-                # If we've completed a step, increment for next time
-                self.last_tool_call['current_step'] = current_step + 1
-                self.last_tool_call['total_steps'] = total_steps
-                logger.info(f"Updated progress tracking: next step will be {current_step + 1}/{total_steps}")
+            # Set executed_tool based on status
+            if status == "success":
+                executed_tool = tool.name
+                
+                # Update step tracking after successful execution
+                if current_step is not None and total_steps is not None:
+                    # If we've completed a step, increment for next time
+                    self.last_tool_call['current_step'] = current_step + 1
+                    self.last_tool_call['total_steps'] = total_steps
+                    logger.info(f"Updated progress tracking: next step will be {current_step + 1}/{total_steps}")
+            else:
+                # For error status, set executed_tool to empty string to indicate failure
+                # This is consistent with the exception handling below
+                executed_tool = tool.name
+                logger.warning(f"Tool '{tool_name}' execution failed with status: {status}")
                 
         except Exception as e:
             response = f"Error executing tool: {tool_name}: {str(e)}\n"
-            executed_tool = ""
+            executed_tool = tool.name
+            logger.error(f"Exception while executing tool '{tool_name}': {str(e)}")
  
         self._emit_event(
-            "tool_execution_end", {"tool_name": tool_name, "arguments": arguments_with_values, "response": response}
+            "tool_execution_end", {"tool_name": tool_name, "arguments": arguments_with_values, "response": response, "status": status}
         )
-        return executed_tool, response
+        return executed_tool, response, status
 
     async def _async_interpolate_variables(self, text: str, depth: int = 0) -> str:
         """Interpolate variables using $var$ syntax in the given text with recursion protection.
@@ -1259,8 +1294,8 @@ class Agent(BaseModel):
         error_message = f"Tool '{tool_name}' not found. Available tools: {', '.join(self.tools.tool_names())}"
         logger.error(error_message)
         variable_name = self.variable_store.add(error_message)
-        new_prompt = self._format_observation_response(error_message, None, variable_name, self.current_iteration, execution_error=error_message)
-        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None)
+        new_prompt = self._format_observation_response(error_message, None, variable_name, self.current_iteration, execution_error=error_message, status="error")
+        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None, status="error")
 
     def _handle_repeated_tool_call(self, tool_name: str, arguments_with_values: dict) -> tuple[str, str, str]:
         """Handle the case where a tool call is repeated.
@@ -1295,8 +1330,8 @@ class Agent(BaseModel):
         """
         logger.error(f"Tool execution failed: {response}")
         variable_name = self.variable_store.add(response)
-        new_prompt = self._format_observation_response(response, None, variable_name, self.current_iteration, execution_error=response)
-        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None)
+        new_prompt = self._format_observation_response(response, None, variable_name, self.current_iteration, execution_error=response, status="error")
+        return ObserveResponseResult(next_prompt=new_prompt, executed_tool=None, answer=None, status="error")
 
     def _handle_error(self, error: Exception) -> ObserveResponseResult:
         """Handle any exceptions that occur during response observation.
@@ -1312,6 +1347,7 @@ class Agent(BaseModel):
             next_prompt=f"An error occurred while processing the response: {str(error)}",
             executed_tool=None,
             answer=None,
+            status="error"
         )
         
     async def _async_observe_response_chat(self, content: str, iteration: int = 1) -> ObserveResponseResult:
@@ -1379,14 +1415,14 @@ class Agent(BaseModel):
                 if is_repeated_call:
                     executed_tool, response = self._handle_repeated_tool_call(tool_name, arguments_with_values)
                 else:
-                    executed_tool, response = await self._async_execute_tool(tool_name, tool, arguments_with_values)
+                    executed_tool, response, status = await self._async_execute_tool(tool_name, tool, arguments_with_values)
                 
-                if not executed_tool:
+                if not executed_tool or status != "success":
                     # Tool execution failed
                     return self._handle_tool_execution_failure(response)
                 
                 # Store result in variable memory for potential future reference
-                variable_name = f"result_{executed_tool}_{iteration}"
+                variable_name = f"success_result_{executed_tool}_{iteration}"
                 self.variable_store[variable_name] = response
                 
                 # Truncate response if too long for display
@@ -1399,14 +1435,16 @@ class Agent(BaseModel):
                 return ObserveResponseResult(
                     next_prompt=response_display,
                     executed_tool=executed_tool,
-                    answer=None
+                    answer=None,
+                    status=status
                 )
                 
             # If we get here, no tool was successfully executed
             return ObserveResponseResult(
                 next_prompt="I tried to use a tool, but encountered an issue. Please try again with a different request.",
                 executed_tool=None,
-                answer=None
+                answer=None,
+                status="error"
             )
                 
         except Exception as e:
@@ -1450,14 +1488,14 @@ class Agent(BaseModel):
         
         Args:
             tool_name: Name of the tool that produced the response
-            response: Raw tool response
+            response: Raw tool response (string or any other type)
             
         Returns:
             Processed response as a string
         """
-        # Immediately return if response is not a string
+        # Convert response to string if it's not already
         if not isinstance(response, str):
-            return response
+            response = str(response)
             
         # Try to parse as JSON if it looks like JSON
         if response.strip().startswith(("{" , "[")) and response.strip().endswith(("}", "]")):
@@ -1499,7 +1537,7 @@ class Agent(BaseModel):
         return response
 
     def _format_observation_response(
-        self, response: str, last_executed_tool: str, variable_name: str, iteration: int, execution_error: str = None
+        self, response: str, last_executed_tool: str, variable_name: str, iteration: int, execution_error: str = None, status: str = None
     ) -> str:
         """Format the observation response with the given response, variable name, and iteration.
 
@@ -1509,6 +1547,7 @@ class Agent(BaseModel):
             variable_name: Name of variable storing response
             iteration: Current iteration number
             execution_error: Optional error message if tool execution failed
+            status: Optional status of the tool execution
 
         Returns:
             Formatted observation response
@@ -1577,6 +1616,7 @@ class Agent(BaseModel):
             elapsed_time=self._get_elapsed_time(),
             progress_percentage=self._calculate_progress_percentage(progress_metadata),
             agent_id=self.agent_id,
+            status=status,
         )
 
         return formatted_response

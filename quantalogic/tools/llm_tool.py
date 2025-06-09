@@ -1,7 +1,7 @@
 """LLM Tool for generating answers to questions using a language model."""
 
 import asyncio
-from typing import Callable
+from typing import Any, Callable, Dict, Union
 
 from loguru import logger
 from pydantic import ConfigDict, Field
@@ -111,7 +111,7 @@ class LLMTool(Tool):
 
     async def async_execute(
         self, system_prompt: str | None = None, prompt: str | None = None, temperature: str | None = None
-    ) -> str:
+    ) -> Union[str, Dict[str, Any]]:
         """Execute the tool to generate an answer asynchronously.
 
         This method provides a native asynchronous implementation, utilizing the generative model's
@@ -165,10 +165,18 @@ class LLMTool(Tool):
                     response = result.response
 
                 logger.debug(f"Generated async response: {response}")
-                return response
+                # Return in the new format with status and answer
+                return {
+                    "status": "success",
+                    "answer": response
+                }
             except Exception as e:
                 logger.error(f"Error generating async response: {e}")
-                raise Exception(f"Error generating async response: {e}") from e
+                # Return error status and message in the new format
+                return {
+                    "status": "error",
+                    "answer": f"Error generating response: {e}"
+                }
         else:
             raise ValueError("Generative model not initialized")
 

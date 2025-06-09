@@ -7,7 +7,7 @@ with type-validated arguments and execution methods.
 import ast
 import asyncio  # Added for asynchronous support
 import inspect
-from typing import Any, Callable, Literal, TypeVar
+from typing import Any, Callable, Dict, Literal, TypeVar, Union
 
 from docstring_parser import parse as parse_docstring
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -213,7 +213,7 @@ class Tool(ToolDefinition):
             ]
         return []
 
-    def execute(self, **kwargs: Any) -> str:
+    def execute(self, **kwargs: Any) -> Union[str, Dict[str, Any]]:
         """Execute the tool with provided arguments.
 
         If not implemented by a subclass, falls back to the asynchronous execute_async method.
@@ -222,7 +222,8 @@ class Tool(ToolDefinition):
             **kwargs: Keyword arguments for tool execution.
 
         Returns:
-            A string representing the result of tool execution.
+            Either a string representing the result of tool execution or a dictionary with 'status' and 'answer' keys.
+            The dictionary format allows tools to return additional metadata about the execution.
         """
         # Check if execute is implemented in the subclass
         if self.__class__.execute is Tool.execute:
@@ -230,7 +231,7 @@ class Tool(ToolDefinition):
             return asyncio.run(self.async_execute(**kwargs))
         raise NotImplementedError("This method should be implemented by subclasses.")
 
-    async def async_execute(self, **kwargs: Any) -> str:
+    async def async_execute(self, **kwargs: Any) -> Union[str, Dict[str, Any]]:
         """Asynchronous version of execute.
 
         By default, runs the synchronous execute method in a separate thread using asyncio.to_thread.
@@ -241,7 +242,8 @@ class Tool(ToolDefinition):
             **kwargs: Keyword arguments for tool execution.
 
         Returns:
-            A string representing the result of tool execution.
+            Either a string representing the result of tool execution or a dictionary with 'status' and 'answer' keys.
+            The dictionary format allows tools to return additional metadata about the execution.
         """
         # Check if execute_async is implemented in the subclass
         if self.__class__.async_execute is Tool.async_execute:
@@ -341,12 +343,16 @@ def create_tool(func: F) -> Tool:
             self._func = func
 
         if is_async:
-            async def async_execute(self, **kwargs: Any) -> str:
+            async def async_execute(self, **kwargs: Any) -> Union[str, Dict[str, Any]]:
                 result = await self._func(**kwargs)
+                if isinstance(result, dict) and 'status' in result and 'answer' in result:
+                    return result
                 return str(result)
         else:
-            def execute(self, **kwargs: Any) -> str:
+            def execute(self, **kwargs: Any) -> Union[str, Dict[str, Any]]:
                 result = self._func(**kwargs)
+                if isinstance(result, dict) and 'status' in result and 'answer' in result:
+                    return result
                 return str(result)
 
     return GeneratedTool()

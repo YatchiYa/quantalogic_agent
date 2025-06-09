@@ -13,6 +13,7 @@ from quantalogic.generative_model import GenerativeModel, Message
 from quantalogic.memory import AgentMemory
 from quantalogic.tools.linkup_tool import LinkupTool
 from quantalogic.event_emitter import EventEmitter
+from ..prompts.legal_system_prompt import LEGAL_SYSTEM_PROMPT
 
 router = APIRouter(prefix="/api/agent/chat_test", tags=["chat"])
 
@@ -111,8 +112,10 @@ def track_cost_callback(kwargs, completion_response, start_time, end_time):
 # Set LiteLLM callback
 litellm.success_callback = [track_cost_callback]
 
-async def stream_response(response_iter, session_id=None, user_message=None) -> AsyncGenerator[str, None]:
+async def stream_response(response_iter, session_id=None, user_message=None):
     """Stream response chunks and update memory when done."""
+    logger.info(f"Streaming response for session {session_id}")
+    logger.info(f"User message: {user_message}")
     full_response = ""
     try:
         # Register this stream as active if we have a session_id
@@ -177,7 +180,13 @@ async def stream_response(response_iter, session_id=None, user_message=None) -> 
 @router.post("/send")
 async def send_message(request: ChatRequest):
     """Send a message to the chat model.""" 
+    logger.info(f"Sending message: {request.message}")
     try:
+        # If no system prompt is provided, use the default legal system prompt
+        if request.system_prompt is None:
+            logger.info("No system prompt provided, using default legal system prompt")
+            request.system_prompt = LEGAL_SYSTEM_PROMPT
+            
         # Update system prompt and get memory
         update_system_prompt(request.session_id, request.system_prompt)
         memory = get_or_create_memory(request.session_id)
@@ -193,6 +202,7 @@ async def send_message(request: ChatRequest):
         messages.extend([{"role": msg.role, "content": msg.content} for msg in memory.memory])
         messages.append({"role": "user", "content": request.message})
         
+        sources = []
         # Call LiteLLM with function calling
         if request.web_search:
             try:
@@ -208,18 +218,15 @@ async def send_message(request: ChatRequest):
                 
                 # Process response
                 response_message = response.choices[0].message
-                sources = []
                 
                 # Handle tool calls if present
                 if hasattr(response_message, 'tool_calls') and response_message.tool_calls:
                     for tool_call in response_message.tool_calls:
-                        if tool_call.function.name == "perform_web_search":
-                            import json
+                        if tool_call.function.name == "perform_web_search": 
                             args = json.loads(tool_call.function.arguments)
                             args['depth'] = request.search_depth
                             search_result = perform_web_search(**args)
                             sources.append(search_result)
-                            
                             # Add search results to messages for follow-up
                             messages.append({
                                 "role": "assistant",

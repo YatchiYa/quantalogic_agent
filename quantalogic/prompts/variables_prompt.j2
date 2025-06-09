@@ -7,7 +7,10 @@ Core Rules:
 2. Never modify variable names
 3. Only use listed variables
 4. Variables must use $ delimiters
-5. Never write raw variables to files
+5. Always check variable existence
+6. Handle missing variables gracefully
+7. Use descriptive variable names
+8. Document variable dependencies
 
 Variable Content Rules:
 1. Always display actual content
@@ -20,40 +23,26 @@ Variable Usage Patterns:
 1. Simple Operations:
 ```xml
 <tool_name>
-  <param>$single_variable$</param>
+  <param>$variable_name$</param>
 </tool_name>
 ```
 
 2. File Operations:
 ```xml
 <write_file>
-  <content>[Actual content, never raw variable]</content>
+  <file_path>path/to/file</file_path>
+  <content>$variable_name$</content>
 </write_file>
 ```
 
 3. Task Completion:
 ```xml
 <task_complete>
-  <answer>
-[Final result well structured in markdown, with clear sections using ###, ####, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]
-  </answer>
+  <answer>[Full Answer structured in markdown, don't let spaces between the start of the line and the #, so that it can be intepreted by markdown]</answer>
 </task_complete>
 ```
-
-Best Practices:
-1. Validate variable exists before use
-2. Check variable content type
-3. Handle missing variables gracefully
-4. Use descriptive variable names
-5. Document variable dependencies
 
 Available Variables:
 {{ variable_names }}
 
-Error Prevention:
-- Always check variable existence
-- Validate variable content type
-- Handle null/undefined cases
-- Consider variable scope
-- Never write raw variables
 </variables>

@@ -17,7 +17,6 @@ class DuckDuckGoSearchLLMTool(Tool):
     """Advanced search tool with LLM-powered analysis capabilities."""
 
     class Config(BaseModel):
-        query: str = Field(..., description="The search query to execute")
         question: str = Field(..., description="Question to ask about the search results")
         max_results: int = Field(
             default=5,
@@ -75,13 +74,6 @@ class DuckDuckGoSearchLLMTool(Tool):
         "Supports different output formats including detailed articles and technical reports."
     )
     arguments: list = [
-        ToolArgument(
-            name="query",
-            arg_type="string",
-            description="The search query to execute",
-            required=True,
-            example="artificial intelligence developments"
-        ),
         ToolArgument(
             name="question",
             arg_type="string",
@@ -158,7 +150,7 @@ class DuckDuckGoSearchLLMTool(Tool):
 
     async def _fetch_search_results(
         self,
-        query: str,
+        question: str,
         max_results: int,
         search_type: str,
         region: str,
@@ -174,7 +166,7 @@ class DuckDuckGoSearchLLMTool(Tool):
             result = await loop.run_in_executor(
                 None,
                 lambda: self.search_tool.execute(
-                    query=query,
+                    query=question,
                     max_results=max_results,
                     search_type=search_type,
                     region=region,
@@ -253,7 +245,6 @@ class DuckDuckGoSearchLLMTool(Tool):
     async def _analyze_results_with_llm(
         self, 
         results: List[Dict[str, Any]], 
-        query: str, 
         question: str,
         scraped: bool = False,
         output_format: str = "standard"
@@ -261,7 +252,7 @@ class DuckDuckGoSearchLLMTool(Tool):
         """Analyze search results using LLM to answer the specific question."""
         try:
             # Create a structured context from the results
-            context = self._format_results_for_llm(results, query, scraped)
+            context = self._format_results_for_llm(results, question, scraped)
             
             # Set temperature based on output format
             temperature = self._get_temperature_for_format(output_format)
@@ -271,7 +262,7 @@ class DuckDuckGoSearchLLMTool(Tool):
             
             # Create a prompt with the context and question
             prompt = f"""
-SEARCH RESULTS FOR "{query}":
+SEARCH RESULTS FOR "{question}":
 {context}
 
 USER QUESTION: {question}
@@ -292,9 +283,9 @@ USER QUESTION: {question}
             logger.error(f"Error analyzing results with LLM: {e}")
             raise ValueError(f"Error analyzing results with LLM: {e}")
 
-    def _format_results_for_llm(self, results: List[Dict[str, Any]], query: str, scraped: bool) -> str:
+    def _format_results_for_llm(self, results: List[Dict[str, Any]], question: str, scraped: bool) -> str:
         """Format the search results into a structured text for the LLM."""
-        formatted_text = [f"SEARCH QUERY: {query}", ""]
+        formatted_text = [f"SEARCH QUERY: {question}", ""]
         
         for i, result in enumerate(results, 1):
             # Add result header with metadata
@@ -443,7 +434,6 @@ USER QUESTION: {question}
 
     async def async_execute(
         self,
-        query: str,
         question: str,
         max_results: str = "5",
         search_type: str = "text",
@@ -472,7 +462,6 @@ USER QUESTION: {question}
         """
         # Convert and validate parameters
         self.config = self.Config(
-            query=query,
             question=question,
             max_results=int(max_results),
             search_type=search_type,
@@ -487,9 +476,9 @@ USER QUESTION: {question}
         
         try:
             # Step 1: Fetch search results
-            logger.info(f"Fetching search results for query: {query}")
+            logger.info(f"Fetching search results for question: {question}")
             results = await self._fetch_search_results(
-                query=self.config.query,
+                question=question,
                 max_results=self.config.max_results,
                 search_type=self.config.search_type,
                 region=self.config.region,
@@ -511,7 +500,6 @@ USER QUESTION: {question}
             logger.info(f"Analyzing search results with LLM for question: {question}")
             answer = await self._analyze_results_with_llm(
                 enriched_results, 
-                self.config.query, 
                 self.config.question,
                 should_scrape,
                 self.config.output_format
@@ -543,7 +531,6 @@ USER QUESTION: {question}
             
             # Return results
             return {
-                "query": self.config.query,
                 "question": self.config.question,
                 "answer": answer,
                 "results": result_summaries,
@@ -560,7 +547,6 @@ USER QUESTION: {question}
 
     def execute(
         self,
-        query: str,
         question: str,
         max_results: str = "5",
         search_type: str = "text",
@@ -573,7 +559,6 @@ USER QUESTION: {question}
         """Synchronous wrapper for async_execute."""
         return asyncio.run(
             self.async_execute(
-                query=query,
                 question=question,
                 max_results=max_results,
                 search_type=search_type,
@@ -595,14 +580,12 @@ if __name__ == "__main__":
         try:
             # Example: Article format with content scraping
             result = await tool.async_execute(
-                query="quantum computing advancements 2025",
                 question="What are the most significant recent advancements in quantum computing?",
                 max_results="5",
                 scrape_content="true",
                 output_format="article"
             )
-            print("\nQuery:", result["query"])
-            print("Question:", result["question"])
+            print("\nQuestion:", result["question"])
             print("Output Format:", result["output_format"])
             print("Content Scraped:", result["content_scraped"])
             print("Result Count:", result["result_count"])

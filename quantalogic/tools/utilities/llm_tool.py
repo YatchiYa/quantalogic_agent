@@ -1,7 +1,7 @@
 """Legal-oriented LLM Tool for generating answers using retrieved legal context."""
 
 import asyncio
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Any 
 
 from loguru import logger
 from pydantic import ConfigDict, Field
@@ -9,7 +9,8 @@ from pydantic import ConfigDict, Field
 from quantalogic.console_print_token import console_print_token
 from quantalogic.event_emitter import EventEmitter
 from quantalogic.generative_model import GenerativeModel, Message
-from quantalogic.tools.tool import Tool, ToolArgument
+from quantalogic.tools.tool import Tool, ToolArgument 
+
 
 
 class LegalLLMTool(Tool):
@@ -189,7 +190,7 @@ Remember: If a legal point is not supported by the provided context, acknowledge
         jurisdiction: Optional[str] = None,
         query_type: str = "interpretation",
         temperature: float = 0.3
-    ) -> str:
+    ) -> Union[str, Dict[str, Any]]:
         """Execute legal analysis asynchronously.
 
         Args:
@@ -240,22 +241,31 @@ Remember: If a legal point is not supported by the provided context, acknowledge
                     response = result.response
 
                 logger.info(f"Generated legal analysis for {query_type} query in {used_jurisdiction} jurisdiction")
-                return response
+                return {
+                        "status": "success",
+                        "answer": response
+                    }
             else:
-                raise ValueError("Generative model not initialized")
+                return {
+                        "status": "error",
+                        "answer": "Generative model not initialized"
+                    }
 
         except Exception as e:
             logger.error(f"Error in legal analysis: {str(e)}")
-            raise
+            return {
+                        "status": "error",
+                        "answer": str(e)
+                    }
 
-    def execute(self, *args, **kwargs) -> str:
+    def execute(self, *args, **kwargs) -> Union[str, Dict[str, Any]]:
         """Synchronous wrapper for async_execute."""
         return asyncio.run(self.async_execute(*args, **kwargs))
 
 
 if __name__ == "__main__":
-    # Example usage of OrientedLLMTool
-    tool = OrientedLLMTool(model_name="openrouter/openai/gpt-4o-mini")
+    # Example usage of LegalLLMTool
+    tool = LegalLLMTool(model_name="openrouter/openai/gpt-4o-mini")
     legal_context = "Retrieved legal documents and context from RAG tool"
     question = "What is the meaning of life?"
     temperature = 0.7
@@ -266,7 +276,7 @@ if __name__ == "__main__":
     print(answer)
 
     # Asynchronous execution with streaming
-    pirate = OrientedLLMTool(
+    pirate = LegalLLMTool(
         model_name="openrouter/openai/gpt-4o-mini", on_token=console_print_token
     )
     pirate_answer = asyncio.run(
@@ -276,7 +286,7 @@ if __name__ == "__main__":
     print(f"Answer: {pirate_answer}")
 
     # Display tool configuration in Markdown
-    custom_tool = OrientedLLMTool(
+    custom_tool = LegalLLMTool(
         model_name="openrouter/openai/gpt-4o-mini", on_token=console_print_token
     )
     print("\nTool Configuration:")
