@@ -1,0 +1,49 @@
+# Questions juridiques pour la recherche documentaire (RAG)
+
+Formatez l'ensemble suivant de questions juridiques en un document bien structuré, clair et professionnel en langue {{language}}. Ce document sera utilisé par des juristes pour rechercher des sources juridiques pertinentes pour le cas.
+
+## Métadonnées du cas
+- Titre: {{question_set.case_metadata.title}}
+- Type de cas: {{question_set.case_metadata.case_type}}
+- Juridiction: {{question_set.case_metadata.jurisdiction}}
+- Parties: {{", ".join(question_set.case_metadata.parties)}}
+
+## Résumé du cas
+{{question_set.case_metadata.summary}}
+
+## Statistiques des questions
+- Questions pour la défense: {{question_set.defense_questions_count}}
+- Questions pour l'accusation: {{question_set.prosecution_questions_count}}
+- Questions générales: {{question_set.general_questions_count}}
+- Total des questions: {{question_set.defense_questions_count + question_set.prosecution_questions_count + question_set.general_questions_count}}
+
+## Questions générées
+{% for question in question_set.questions %}
+### Question {{loop.index}}
+**Question:** {{question.question}}
+**Perspective:** {{question.perspective}}
+**Domaine juridique:** {{question.legal_area}}
+**Pertinence:** {{question.relevance}}
+**Sources attendues:** {{", ".join(question.expected_sources)}}
+
+{% endfor %}
+
+## Contenu du cas
+```
+{{case_content}}
+```
+
+Sur la base des informations ci-dessus, veuillez créer un document professionnel qui:
+
+1. Commence par une introduction expliquant le contexte et l'objectif du document
+2. Présente un résumé du cas et des statistiques des questions
+3. Organise les questions de manière logique:
+   - Regroupées par perspective (défense, accusation, général)
+   - Sous-regroupées par domaine juridique
+4. Inclut pour chaque question:
+   - La question elle-même
+   - Sa pertinence par rapport au cas
+   - Les types de sources juridiques attendues
+5. Se termine par une conclusion qui résume l'utilité des questions pour la recherche juridique
+
+Le document doit être formaté en Markdown avec des titres, sous-titres, listes et mise en évidence appropriés pour une lisibilité optimale.

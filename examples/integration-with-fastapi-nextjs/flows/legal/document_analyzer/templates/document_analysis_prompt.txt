@@ -1,0 +1,101 @@
+Analyze the following legal document with the precision and insight of a senior advocate with 20+ years of experience in {{language}} legal practice. Provide a comprehensive, expert-level analysis that would be suitable for high-stakes litigation or major transactions.
+
+Document Metadata:
+- Title: {{document_metadata.title}}
+- Type: {{document_metadata.document_type}}
+- Date: {{document_metadata.date if document_metadata.date else 'Not specified'}}
+- Jurisdiction: {{document_metadata.jurisdiction if document_metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{document_metadata.governing_law if document_metadata.governing_law else 'Not specified'}}
+- Sender: {{document_metadata.sender if document_metadata.sender else 'Not specified'}}
+- Recipient: {{document_metadata.recipient if document_metadata.recipient else 'Not specified'}}
+
+Reference Numbers:
+{% if document_metadata.reference_numbers %}
+{% for ref in document_metadata.reference_numbers %}
+- {{ref}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+Laws Mentioned:
+{% if document_metadata.laws_mentioned %}
+{% for law in document_metadata.laws_mentioned %}
+- {{law}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+Key Dates:
+{% if document_metadata.key_dates %}
+{% for date_type, date_value in document_metadata.key_dates.items() %}
+- {{date_type}}: {{date_value}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+Parties involved:
+{% for party in document_metadata.parties %}
+- {{party.name}} ({{party.role}})
+{% endfor %}
+
+Document Content:
+{{document_content}}
+
+Instructions for Expert Analysis:
+
+1. Identify and extract the key clauses in the document with the precision of a senior advocate:
+   - Isolate operative provisions from boilerplate language
+   - Highlight unusual or non-standard clauses that deviate from typical practice in this jurisdiction
+   - Note any ambiguities or potential drafting issues that could lead to disputes
+
+2. For each key clause:
+   - Provide a precise title reflecting its legal function
+   - Quote the exact content with critical language highlighted
+   - Assess importance level (High, Medium, Low) with justification based on legal precedent
+   - Identify potential issues with the depth of a seasoned litigator, including enforceability concerns
+   - Note any jurisdiction-specific interpretations that might apply
+
+3. REQUIRED: Provide a comprehensive legal summary that:
+   - Captures the document's legal intent and effect
+   - Identifies the legal framework it operates within
+   - Analyzes the balance of obligations between parties
+   - Evaluates overall drafting quality and legal soundness
+   - THIS SUMMARY FIELD IS MANDATORY and must be included as a string in the 'summary' field
+
+4. Conduct a thorough risk assessment identifying:
+   - Direct legal risks with likelihood and potential impact
+   - Indirect or contingent risks that might emerge under specific circumstances
+   - Jurisdictional risks specific to the governing law
+   - Enforcement challenges or practical implementation issues
+   - Potential conflicts with relevant regulations or case law
+
+5. Provide strategic recommendations with the insight of experienced counsel:
+   - Specific language modifications to address identified issues
+   - Negotiation strategies for improving terms
+   - Risk mitigation approaches
+   - Compliance considerations
+   - Documentation or procedural safeguards
+
+6. Create a comprehensive timeline of all obligations, including:
+   - Critical deadlines with exact dates and consequences of non-compliance
+   - Recurring obligations and their triggers
+   - Notice periods and formalities required
+   - Termination rights and their conditions
+   - Limitation periods for claims or actions
+
+7. Provide an expert glossary of legal terminology used in the document:
+   - Define specialized terms with precision
+   - Explain jurisdiction-specific interpretations
+   - Note any terms with particular significance in {{language}} legal context
+   - Identify terms that might have different meanings in other legal systems
+
+8. Analyze the document in its broader legal and commercial context:
+   - How it relates to industry standards and practices
+   - Its relationship to other potential agreements between the parties
+   - Its effectiveness in achieving apparent business objectives
+   - Its resilience to changing circumstances or disputes
+
+{{custom_instructions}}

@@ -62,6 +62,14 @@ Tool response:
    • Provide precise parameters.
 
 ### Response Format
+IF [SIMPLE TASK]
+   - Single tool operation (e.g., translation, format conversion...etc)
+   - Direct solution path
+   - Answer directly to the task using task_complete.
+   - Clear input/output transformation
+   - Maximum 2 tool calls total
+
+ELSE [COMPLEX TASK]
 ```xml
 <thinking>
   <progress_tracker>

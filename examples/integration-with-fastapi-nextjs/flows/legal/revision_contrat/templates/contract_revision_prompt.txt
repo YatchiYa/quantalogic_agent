@@ -1,0 +1,85 @@
+Formulez des révisions contractuelles structurées pour le contrat suivant avec l'expertise d'un juriste éminent spécialisé en droit des contrats. Vos révisions doivent fournir une orientation claire pour améliorer le contrat tout en protégeant les intérêts des parties.
+
+Résumé du contrat:
+{{contract_analysis.summary}}
+
+Évaluation globale du risque: {{contract_analysis.overall_risk_assessment}}
+
+Clauses problématiques:
+{% for clause in contract_analysis.clauses %}
+{% if clause.risk_level != "Low" %}
+## {{clause.title}} (Niveau de risque: {{clause.risk_level}})
+{{clause.content}}
+
+### Problèmes identifiés:
+{% for issue in clause.issues %}
+- {{issue}}
+{% endfor %}
+
+### Recommandations:
+{% for recommendation in clause.recommendations %}
+- {{recommendation}}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+Éléments manquants:
+{% for missing in contract_analysis.missing_elements %}
+- {{missing}}
+{% endfor %}
+
+Ambiguïtés:
+{% for ambiguity in contract_analysis.ambiguities %}
+- {{ambiguity}}
+{% endfor %}
+
+Problèmes de conformité:
+{% for issue in contract_analysis.compliance_issues %}
+- {{issue}}
+{% endfor %}
+
+Métadonnées du contrat:
+- Titre: {{contract_analysis.metadata.title}}
+- Type de contrat: {{contract_analysis.metadata.contract_type}}
+- Juridiction: {{contract_analysis.metadata.jurisdiction if contract_analysis.metadata.jurisdiction else 'Non spécifiée'}}
+- Loi applicable: {{contract_analysis.metadata.governing_law if contract_analysis.metadata.governing_law else 'Non spécifiée'}}
+
+{{custom_instructions}}
+
+Sur la base des informations ci-dessus, veuillez formuler des révisions contractuelles structurées qui comprennent:
+
+1. Une évaluation générale du contrat qui:
+   - Résume les principales forces et faiblesses du contrat
+   - Évalue l'équilibre général entre les parties
+   - Identifie les risques juridiques majeurs
+   - Propose une orientation générale pour la révision
+
+2. Des révisions spécifiques pour les clauses problématiques qui:
+   - Reprennent le titre et le contenu original de la clause
+   - Proposent une nouvelle formulation claire et précise
+   - Éliminent les ambiguïtés et les risques identifiés
+   - Renforcent la protection juridique des parties
+
+3. Des suggestions d'ajouts pour:
+   - Les clauses standard manquantes
+   - Les protections juridiques nécessaires
+   - Les précisions requises pour éviter les litiges
+   - Les mécanismes de résolution des différends appropriés
+
+4. Des suggestions de suppressions pour:
+   - Les clauses inutiles ou redondantes
+   - Les dispositions dangereuses ou déséquilibrées
+   - Les formulations ambiguës ou contradictoires
+
+5. Des recommandations de mise en conformité qui:
+   - Assurent le respect de la législation applicable
+   - Éliminent les clauses potentiellement abusives
+   - Garantissent la validité juridique du contrat
+
+6. Des points clés de négociation qui:
+   - Identifient les aspects du contrat méritant une attention particulière
+   - Suggèrent des positions de négociation
+   - Proposent des compromis possibles
+   - Hiérarchisent les modifications selon leur importance
+
+Assurez-vous que vos révisions sont pratiques, juridiquement solides et adaptées aux circonstances spécifiques du contrat.

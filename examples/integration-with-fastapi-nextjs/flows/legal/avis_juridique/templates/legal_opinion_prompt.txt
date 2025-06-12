@@ -1,0 +1,68 @@
+Formulez un avis juridique structuré pour la demande suivante avec l'expertise d'un juriste éminent. Votre avis doit fournir une orientation claire et juridiquement solide.
+
+Résumé de la demande:
+{{query_analysis.summary}}
+
+Questions juridiques identifiées:
+{% for issue in query_analysis.identified_issues %}
+## {{issue.title}} (Complexité: {{issue.complexity}})
+{{issue.description}}
+
+### Lois applicables:
+{% for law in issue.applicable_law %}
+- {{law}}
+{% endfor %}
+{% endfor %}
+
+Références juridiques clés:
+{% for reference in query_analysis.key_references %}
+## {{reference.title}} ({{reference.type}}, Pertinence: {{reference.relevance}})
+{{reference.description}}
+Source: {{reference.source}}
+{% endfor %}
+
+Évaluation globale de la complexité: {{query_analysis.complexity_assessment}}
+
+Métadonnées de la demande:
+- Titre: {{query_analysis.metadata.title}}
+- Type de demande: {{query_analysis.metadata.query_type}}
+- Juridiction: {{query_analysis.metadata.jurisdiction if query_analysis.metadata.jurisdiction else 'Non spécifiée'}}
+
+{{custom_instructions}}
+
+Sur la base des informations ci-dessus, veuillez formuler un avis juridique structuré qui comprend:
+
+1. Une conclusion principale qui:
+   - Répond directement à la question juridique posée
+   - Est claire, précise et sans ambiguïté
+   - Tient compte du cadre juridique applicable
+
+2. Un raisonnement juridique qui:
+   - Explique le cheminement logique menant à la conclusion
+   - S'appuie sur les sources juridiques pertinentes
+   - Aborde les questions juridiques identifiées
+   - Tient compte des faits spécifiques de la demande
+
+3. Les fondements juridiques de l'avis:
+   - Lois, règlements et jurisprudence spécifiques
+   - Interprétations doctrinales pertinentes
+   - Principes juridiques applicables
+
+4. Les implications pratiques pour le demandeur:
+   - Conséquences concrètes de l'avis
+   - Impact sur les activités ou la situation du demandeur
+   - Considérations temporelles ou procédurales
+
+5. Les risques et limitations de l'avis:
+   - Incertitudes juridiques éventuelles
+   - Limites de l'analyse basées sur les informations disponibles
+   - Évolutions législatives ou jurisprudentielles potentielles
+   - Facteurs pouvant modifier l'avis
+
+6. Des recommandations concrètes:
+   - Actions spécifiques à entreprendre
+   - Précautions à prendre
+   - Alternatives juridiques à considérer
+   - Étapes suivantes recommandées
+
+Assurez-vous que votre avis est pratique, juridiquement solide et adapté aux circonstances spécifiques de la demande.

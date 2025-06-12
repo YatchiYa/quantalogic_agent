@@ -14,6 +14,8 @@ from quantalogic.memory import AgentMemory
 from quantalogic.tools.linkup_tool import LinkupTool
 from quantalogic.event_emitter import EventEmitter
 from ..prompts.legal_system_prompt import LEGAL_SYSTEM_PROMPT
+from ..prompts.agent_system_prompt import AGENT_SYSTEM_PROMPT
+from ..prompts.document_system_prompt import DOCUMENT_SYSTEM_PROMPT
 
 router = APIRouter(prefix="/api/agent/chat_test", tags=["chat"])
 
@@ -74,11 +76,14 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="The message to send")
     session_id: str = Field(..., description="Unique session identifier")
     model: str = Field(default="gpt-3.5-turbo-1106", description="Model to use")
+    provider: Optional[str] = Field(default="openai", description="Provider to use")
     temperature: float = Field(default=0.7, description="Temperature for generation")
     web_search: bool = Field(default=True, description="Whether to perform web search")
     search_depth: str = Field(default="standard", description="Search depth (standard or deep)")
     stream: bool = Field(default=False, description="Whether to stream the response")
     system_prompt: Optional[str] = Field(default=None, description="System prompt to set the assistant's behavior")
+    history: Optional[List[Dict[str, str]]] = Field(default=None, description="Optional history of messages to initialize the memory with, format: [{'role': 'user'|'assistant', 'content': 'message'}]")
+    persona_mode: Optional[str] = Field(default=None, description="Persona mode to set the assistant's behavior")
 
 class ChatResponse(BaseModel):
     """Chat response model."""
@@ -177,19 +182,38 @@ async def stream_response(response_iter, session_id=None, user_message=None):
             
         yield "data: [DONE]\n\n"
 
+def get_prompt_by_persona_mode(persona_mode: str):
+    if persona_mode == "legal":
+        return LEGAL_SYSTEM_PROMPT
+    elif persona_mode == "agent":
+        return AGENT_SYSTEM_PROMPT
+    elif persona_mode == "document":
+        return DOCUMENT_SYSTEM_PROMPT
+    else:
+        return AGENT_SYSTEM_PROMPT
+
 @router.post("/send")
 async def send_message(request: ChatRequest):
     """Send a message to the chat model.""" 
     logger.info(f"Sending message: {request.message}")
     try:
-        # If no system prompt is provided, use the default legal system prompt
-        if request.system_prompt is None:
-            logger.info("No system prompt provided, using default legal system prompt")
-            request.system_prompt = LEGAL_SYSTEM_PROMPT
+        if request.persona_mode != "custom":
+            request.system_prompt = get_prompt_by_persona_mode(request.persona_mode)
             
         # Update system prompt and get memory
         update_system_prompt(request.session_id, request.system_prompt)
         memory = get_or_create_memory(request.session_id)
+        
+        # Initialize memory with history if provided, but only if it doesn't exist yet
+        if request.history and request.session_id not in chat_sessions:
+            logger.info(f"Initializing memory with provided history for session {request.session_id}")
+            # Create new memory instance
+            chat_sessions[request.session_id] = AgentMemory()
+            memory = chat_sessions[request.session_id]
+            # Add history messages to memory
+            for msg in request.history:
+                if 'role' in msg and 'content' in msg:
+                    memory.add(Message(role=msg['role'], content=msg['content']))
         
         # Prepare messages for LiteLLM
         messages = []
@@ -209,6 +233,7 @@ async def send_message(request: ChatRequest):
                 # First call to check if we need to search
                 response = await litellm.acompletion(
                     model=request.model,
+                    # model_provider=request.provider,
                     messages=messages,
                     temperature=request.temperature,
                     tools=TOOLS,
@@ -252,6 +277,7 @@ async def send_message(request: ChatRequest):
             # Stream the response
             response_iter = await litellm.acompletion(
                 model=request.model,
+                # model_provider=request.provider,
                 messages=messages,
                 temperature=request.temperature,
                 stream=True,
@@ -266,6 +292,7 @@ async def send_message(request: ChatRequest):
             # Get final response
             final_response = await litellm.acompletion(
                 model=request.model,
+                # model_provider=request.provider,
                 messages=messages,
                 temperature=request.temperature,
                 stream_options={"include_usage": True}

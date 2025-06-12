@@ -1,0 +1,83 @@
+Develop a comprehensive defense strategy for the following case with the expertise of a senior legal strategist. Your strategy should provide clear, actionable guidance for defending this case effectively.
+
+Case Summary:
+{{case_analysis.summary}}
+
+Key Arguments:
+{% for argument in case_analysis.key_arguments %}
+## {{argument.title}} (Strength: {{argument.strength}})
+{{argument.content}}
+
+### Supporting Evidence:
+{% for evidence in argument.supporting_evidence %}
+- {{evidence}}
+{% endfor %}
+
+### Counter-Arguments:
+{% for counter in argument.counter_arguments %}
+- {{counter}}
+{% endfor %}
+{% endfor %}
+
+Risks:
+{% for risk in case_analysis.risks %}
+- {{risk}}
+{% endfor %}
+
+Opportunities:
+{% for opportunity in case_analysis.opportunities %}
+- {{opportunity}}
+{% endfor %}
+
+Case Metadata:
+- Title: {{case_analysis.metadata.title}}
+- Type: {{case_analysis.metadata.case_type}}
+- Jurisdiction: {{case_analysis.metadata.jurisdiction if case_analysis.metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{case_analysis.metadata.governing_law if case_analysis.metadata.governing_law else 'Not specified'}}
+
+{{custom_instructions}}
+
+Based on the above information, develop a comprehensive defense strategy that includes:
+
+1. A primary defense theory that:
+   - Leverages the strongest legal arguments
+   - Addresses and mitigates identified risks
+   - Capitalizes on strategic opportunities
+   - Provides a coherent narrative for the defense
+
+2. Secondary defense theories that:
+   - Offer alternative approaches if the primary theory faces challenges
+   - Address different aspects of the case
+   - Provide contingency options for various scenarios
+
+3. Key evidence needed to support the defense:
+   - Documents and records to be obtained
+   - Expert testimony requirements
+   - Physical evidence considerations
+   - Digital or electronic evidence needs
+
+4. Witness strategy:
+   - Approach to witness examination
+   - Preparation recommendations
+   - Anticipation of opposing witness challenges
+   - Expert witness considerations
+
+5. Settlement considerations:
+   - Assessment of settlement viability
+   - Recommended negotiation positions
+   - Timing considerations for settlement discussions
+   - Cost-benefit analysis of settlement vs. litigation
+
+6. Timeline strategy:
+   - Procedural timing recommendations
+   - Strategic use of motions and filings
+   - Discovery scheduling considerations
+   - Trial preparation timeline
+
+7. Recommended approach:
+   - Clear, actionable guidance for defense counsel
+   - Prioritized action items
+   - Strategic milestones and decision points
+   - Resource allocation recommendations
+
+Ensure your strategy is practical, legally sound, and tailored to the specific circumstances of this case.

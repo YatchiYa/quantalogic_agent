@@ -1,0 +1,16 @@
+Extract all relevant metadata from the following legal case details. Analyze the information with the precision of a senior prosecutor and provide a structured output containing all essential case information.
+
+Case Details:
+{{case_details}}
+
+{{custom_instructions}}
+
+Please extract and structure the following information:
+1. Case title and type
+2. Jurisdiction and governing law
+3. All parties involved (plaintiff, defendant, and other relevant parties)
+4. Case number and any reference identifiers
+5. Key dates (formatted as a dictionary with date types as keys and date values)
+6. Laws cited or relevant to the case
+
+Ensure your response is comprehensive, accurate, and properly structured according to the required format. All fields must be properly populated to enable effective case management and prosecution strategy development.

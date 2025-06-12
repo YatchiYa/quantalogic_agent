@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime
-from typing import Any, AsyncGenerator, Dict, List
+from typing import Any, AsyncGenerator, Dict, List, Optional
 import random
 
 import openai
@@ -62,7 +62,7 @@ class TokenUsage(BaseModel):
     prompt_tokens: int
     completion_tokens: int
     total_tokens: int
-    cost: float
+    cost: Optional[float]
 
 
 class ResponseStats(BaseModel):
@@ -188,6 +188,7 @@ class GenerativeModel:
                 prompt_tokens=response.usage.prompt_tokens,
                 completion_tokens=response.usage.completion_tokens,
                 total_tokens=response.usage.total_tokens,
+                cost=0.0  # Adding the required cost field
             )
             # Get the content with a check for None
             content = response.choices[0].message.content
@@ -388,7 +389,7 @@ class GenerativeModel:
 
             return ResponseStats(
                 response="",
-                usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0),
+                usage=TokenUsage(prompt_tokens=0, completion_tokens=0, total_tokens=0, cost=0.0),
                 model=str(params["model"]),
                 data=data,
                 created=created,

@@ -350,9 +350,7 @@ if __name__ == "__main__":
     ]
     
     test_queries = [
-        "What are the main subjects discussed in the document?",
-        "What are the key responsibilities of the service provider?",
-        "What are the acceptance criteria mentioned in the document?"
+        "j'ai mon voisin qui as des ouvertures sur ma propriété, comment je peux me protéger ? quels sont mes droits, et quels sont les lois qui me protègent ?"
     ]
     
     # Test configuration

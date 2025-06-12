@@ -1,0 +1,18 @@
+Analysez le cas juridique suivant et extrayez les métadonnées structurées avec la précision d'un juriste expert. Votre analyse servira de base pour générer des questions juridiques pertinentes pour la recherche documentaire (RAG).
+
+Cas juridique:
+{{case_content}}
+
+Langue d'analyse: {{language}}
+
+Veuillez extraire et structurer les informations suivantes:
+
+1. Titre et type du cas (pénal, civil, commercial, administratif, etc.)
+2. Juridiction applicable
+3. Parties impliquées
+4. Résumé concis mais complet du cas
+5. Faits juridiquement pertinents avec explication de leur pertinence
+6. Questions juridiques principales classées par domaine du droit
+7. Évaluation de la complexité de chaque question juridique (Élevée, Moyenne, Faible)
+
+Assurez-vous que votre analyse est précise, complète et structurée pour faciliter la génération ultérieure de questions juridiques pertinentes.

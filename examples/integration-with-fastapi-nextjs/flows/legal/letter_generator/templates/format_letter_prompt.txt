@@ -1,0 +1,100 @@
+Formatez la lettre juridique suivante en un document professionnel, persuasif et conforme aux standards de la profession juridique en langue {{language}}. Cette lettre doit refléter les plus hauts standards de la profession juridique.
+
+# Métadonnées de la lettre
+- Expéditeur: {{legal_letter.metadata.sender}}
+- Titre de l'expéditeur: {{legal_letter.metadata.sender_title}}
+- Coordonnées de l'expéditeur:
+{% for key, value in legal_letter.metadata.sender_contact.items() %}
+  - {{key}}: {{value}}
+{% endfor %}
+
+- Destinataire: {{legal_letter.metadata.recipient}}
+{% if legal_letter.metadata.recipient_title %}
+- Titre du destinataire: {{legal_letter.metadata.recipient_title}}
+{% endif %}
+- Coordonnées du destinataire:
+{% for key, value in legal_letter.metadata.recipient_contact.items() %}
+  - {{key}}: {{value}}
+{% endfor %}
+
+- Date: {{legal_letter.metadata.date}}
+- Objet: {{legal_letter.metadata.subject}}
+- Type de lettre: {{legal_letter.metadata.letter_type}}
+
+{% if legal_letter.metadata.reference_numbers %}
+- Références:
+{% for key, value in legal_letter.metadata.reference_numbers.items() %}
+  - {{key}}: {{value}}
+{% endfor %}
+{% endif %}
+
+# Informations sur l'affaire
+- Titre: {{legal_letter.case_info.case_title}}
+{% if legal_letter.case_info.case_number %}
+- Numéro: {{legal_letter.case_info.case_number}}
+{% endif %}
+- Tribunal: {{legal_letter.case_info.court}}
+- Juridiction: {{legal_letter.case_info.jurisdiction}}
+
+# Contenu de la lettre
+## Introduction
+{{legal_letter.content.introduction}}
+
+## Résumé des faits
+{{legal_letter.content.summary_of_facts}}
+
+## Arguments juridiques
+{% for argument in legal_letter.content.legal_arguments %}
+### {{argument.title}}
+{{argument.content}}
+
+#### Références juridiques:
+{% for ref in argument.legal_references %}
+- {{ref.type}}: {{ref.reference}} - {{ref.content}}
+  Pertinence: {{ref.relevance}}
+{% endfor %}
+
+#### Preuves à l'appui:
+{% for evidence in argument.supporting_evidence %}
+- {{evidence.description}} ({{evidence.type}}, Source: {{evidence.source}})
+  Force: {{evidence.strength}}
+  Pertinence: {{evidence.relevance}}
+{% endfor %}
+
+{% if argument.counter_arguments %}
+#### Contre-arguments anticipés:
+{% for counter in argument.counter_arguments %}
+- {{counter}}
+{% endfor %}
+{% endif %}
+
+{% if argument.rebuttal %}
+#### Réfutation:
+{{argument.rebuttal}}
+{% endif %}
+{% endfor %}
+
+## Action demandée
+{{legal_letter.content.requested_action}}
+
+## Conclusion
+{{legal_letter.content.conclusion}}
+
+{% if legal_letter.content.attachments %}
+## Pièces jointes
+{% for attachment in legal_letter.content.attachments %}
+- {{attachment}}
+{% endfor %}
+{% endif %}
+
+Sur la base des informations ci-dessus, veuillez formater une lettre juridique professionnelle et persuasive qui:
+
+1. Suit la structure formelle d'une lettre juridique dans la juridiction {{legal_letter.case_info.jurisdiction}}
+2. Présente les coordonnées et références de manière professionnelle
+3. Expose clairement et de façon persuasive les arguments juridiques
+4. Met en évidence les références aux lois et aux preuves de manière appropriée
+5. Utilise un langage juridique précis et adapté au contexte
+6. Maintient un ton professionnel et convaincant
+7. Présente une mise en page soignée et professionnelle
+
+Le document doit être formaté en Markdown avec une structure claire et professionnelle.

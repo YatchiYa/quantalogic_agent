@@ -1,0 +1,62 @@
+Create a professional, persuasive {{document_type}} in {{language}} language with the authority and precision of a senior advocate with 20+ years of experience. This document should present our defense position effectively while addressing all relevant legal and factual issues.
+
+# Case Information
+- Title: {{case_analysis.metadata.title}}
+- Type: {{case_analysis.metadata.case_type}}
+- Jurisdiction: {{case_analysis.metadata.jurisdiction if case_analysis.metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{case_analysis.metadata.governing_law if case_analysis.metadata.governing_law else 'Not specified'}}
+- Plaintiff: {{case_analysis.metadata.plaintiff if case_analysis.metadata.plaintiff else 'Not specified'}}
+- Defendant: {{case_analysis.metadata.defendant if case_analysis.metadata.defendant else 'Not specified'}}
+{% if case_analysis.metadata.case_number %}
+- Case Number: {{case_analysis.metadata.case_number}}
+{% endif %}
+
+# Defense Strategy
+- Primary Defense Theory: {{defense_strategy.primary_defense_theory}}
+- Recommended Approach: {{defense_strategy.recommended_approach}}
+
+# Key Arguments
+{% for argument in case_analysis.key_arguments %}
+## {{argument.title}} (Strength: {{argument.strength}})
+{{argument.content}}
+
+### Supporting Evidence:
+{% for evidence in argument.supporting_evidence %}
+- {{evidence}}
+{% endfor %}
+{% endfor %}
+
+Based on the above information, draft a comprehensive {{document_type}} that includes:
+
+# Introduction
+- Clear statement of representation
+- Brief case summary
+- Statement of our position
+
+# Factual Background
+- Chronological presentation of relevant facts
+- Emphasis on facts favorable to our position
+- Proper framing of unfavorable facts
+
+# Legal Arguments
+- Presentation of our primary defense theory
+- Supporting legal arguments with relevant citations
+- Refutation of anticipated opposing arguments
+- Application of law to the facts of our case
+
+# Evidence Analysis
+- Discussion of key evidence supporting our position
+- Addressing and mitigating unfavorable evidence
+- Identification of evidentiary gaps or weaknesses in opposing case
+
+# Relief Requested
+- Clear statement of the specific relief sought
+- Alternative relief if applicable
+- Procedural requests if appropriate
+
+# Conclusion
+- Concise summary of key arguments
+- Reinforcement of our position
+- Professional closing
+
+Format this document professionally using appropriate legal formatting for a {{document_type}} in {{language}} jurisdiction. Include proper headings, citations, and structural elements expected in this type of legal document.

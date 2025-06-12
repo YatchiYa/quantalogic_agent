@@ -1,0 +1,53 @@
+Créez une version révisée du contrat suivant en langue {{language}} avec l'autorité et la précision d'un juriste éminent avec plus de 20 ans d'expérience. Cette version révisée doit intégrer toutes les améliorations recommandées tout en maintenant la structure et l'objet du contrat original.
+
+# Contrat original
+```
+{{original_contract}}
+```
+
+# Évaluation générale
+{{contract_revision.general_assessment}}
+
+# Clauses à réviser
+{% for clause in contract_revision.revised_clauses %}
+## {{clause.title}} (Niveau de risque: {{clause.risk_level}})
+### Contenu original:
+{{clause.content}}
+
+### Problèmes identifiés:
+{% for issue in clause.issues %}
+- {{issue}}
+{% endfor %}
+
+### Recommandations:
+{% for recommendation in clause.recommendations %}
+- {{recommendation}}
+{% endfor %}
+{% endfor %}
+
+# Éléments à ajouter
+{% for addition in contract_revision.suggested_additions %}
+- {{addition}}
+{% endfor %}
+
+# Éléments à supprimer
+{% for removal in contract_revision.suggested_removals %}
+- {{removal}}
+{% endfor %}
+
+# Recommandations de conformité
+{% for recommendation in contract_revision.compliance_recommendations %}
+- {{recommendation}}
+{% endfor %}
+
+Sur la base des informations ci-dessus, veuillez rédiger une version révisée complète du contrat qui:
+
+1. Conserve la structure générale du contrat original
+2. Intègre toutes les révisions recommandées pour les clauses problématiques
+3. Ajoute les clauses ou éléments manquants
+4. Supprime ou modifie les clauses problématiques
+5. Assure la conformité avec la législation applicable
+6. Maintient un équilibre approprié entre les parties
+7. Utilise un langage clair, précis et juridiquement solide
+
+Le contrat révisé doit être présenté dans son intégralité, avec toutes les clauses (modifiées ou non), dans un format professionnel adapté au type de contrat et à la juridiction concernée.

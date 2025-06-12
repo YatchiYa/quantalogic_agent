@@ -1,0 +1,51 @@
+Générez un ensemble complet de questions juridiques détaillées pour un système de recherche documentaire (RAG) qui permettra de récupérer les lois, jurisprudences et doctrines pertinentes pour le cas juridique suivant.
+
+# Métadonnées du cas
+- Titre: {{case_metadata.title}}
+- Type de cas: {{case_metadata.case_type}}
+- Juridiction: {{case_metadata.jurisdiction}}
+- Parties: {{", ".join(case_metadata.parties)}}
+
+# Résumé du cas
+{{case_metadata.summary}}
+
+# Faits juridiquement pertinents
+{% for fact in case_metadata.key_facts %}
+## Fait: {{fact.description}}
+Pertinence: {{fact.relevance}}
+{% endfor %}
+
+# Questions juridiques identifiées
+{% for issue in case_metadata.legal_issues %}
+## Question: {{issue.issue}}
+Domaine du droit: {{issue.area_of_law}}
+Complexité: {{issue.complexity}}
+{% endfor %}
+
+# Contenu complet du cas
+{{case_content}}
+
+# Instructions spécifiques
+- Perspective: {{perspective}} (défense, accusation ou les deux)
+- Nombre minimum de questions à générer: {{min_questions}}
+- Nombre maximum de questions à générer: {{max_questions}}
+- Langue des questions: {{language}}
+
+Sur la base des informations ci-dessus, veuillez générer entre {{min_questions}} et {{max_questions}} questions juridiques détaillées qui:
+
+1. Sont adaptées à la perspective demandée ({{perspective}})
+2. Couvrent tous les aspects juridiques du cas
+3. Ciblent des sources juridiques spécifiques
+4. Sont formulées de manière à maximiser la récupération des sources juridiques pertinentes
+5. Incluent une explication de la pertinence de chaque question
+6. Identifient le domaine juridique auquel chaque question se rapporte
+7. Précisent les types de sources juridiques attendues pour répondre à la question
+
+Pour chaque question, veuillez fournir:
+- La question elle-même, formulée de manière précise et détaillée
+- La perspective (défense, accusation ou les deux)
+- Le domaine juridique concerné
+- La pertinence par rapport au cas
+- Les types de sources juridiques attendues (lois, codes, jurisprudence, doctrine)
+
+Assurez-vous de compter et de catégoriser correctement les questions par perspective (défense, accusation, général) pour les statistiques finales.

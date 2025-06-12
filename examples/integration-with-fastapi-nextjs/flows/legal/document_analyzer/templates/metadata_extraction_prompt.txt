@@ -1,0 +1,22 @@
+Extract the following metadata from this legal document in {{language}} language:
+
+1. Title of the document
+2. Document type (e.g., contract, agreement, terms of service, etc.)
+3. Date of the document (if available)
+4. Jurisdiction (if mentioned)
+5. Governing law (if specified)
+6. Parties involved (names and roles)
+7. Sender of the document (if applicable)
+8. Recipient of the document (if applicable)
+9. Reference numbers (file numbers, case numbers, etc.)
+10. Laws, regulations, or statutes mentioned in the document
+11. Key dates mentioned (hearings, deadlines, effective dates, etc.) - IMPORTANT: Format as a dictionary with date type as key and date value as value. For example: {"deadline": "2023-01-15", "hearing": "2023-02-01"}
+
+For each party, provide their name and role in the document (e.g., employer, employee, landlord, tenant, etc.).
+
+Be thorough and extract ALL relevant information. If information is not present, indicate it as missing.
+
+Here is the document content:
+{{document_content}}
+
+{{custom_instructions}}

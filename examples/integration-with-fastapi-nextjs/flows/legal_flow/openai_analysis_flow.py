@@ -251,7 +251,7 @@ async def analyze_InRag_documents(
         }
         
         # Format the results for display
-        formatted_result = f"""# InRag Analysis Results
+        formatted_result = f"""# Analysis Results
 
 ## Query
 {validated_query.query_text}
@@ -352,14 +352,13 @@ def analyze(
 if __name__ == "__main__":
     # Test example with predefined parameters
     test_documents = [
-        "/home/yarab/Téléchargements/CCAP_AC TMA-DMSP_2025_VF1.pdf"
+        "/home/yarab/Bureau/trash_agents_tests/f1/docs/folder_test/code_civile.md"
     ]
     
     test_queries = [
-        "What are the main subjects discussed in the document?",
-        "What are the key responsibilities of the service provider?",
-        "What are the acceptance criteria mentioned in the document?"
+        "j'ai mon voisin qui as des ouvertures sur ma propriété, comment je peux me protéger ? quels sont mes droits, et quels sont les lois qui me protègent ?"
     ]
+    
     
     # Test configuration
     test_config = {
@@ -370,7 +369,8 @@ if __name__ == "__main__":
         "max_sources": 8,
         "min_relevance": 0.1,
         "use_llm": True,
-        "model_name": "text-embedding-3-large"
+        "model_name": "text-embedding-3-large",
+        "llm_model": "gpt-4o-mini"
     }
     
     # Ensure the persist directory exists and is writable

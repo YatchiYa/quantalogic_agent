@@ -176,6 +176,7 @@ TOOL_IMPORTS = {
     "website_search_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebsiteSearchTool"),
     "web_scraper_llm_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebScraperLLMTool"),
     "web_scraper_tool": lambda: _import_tool("quantalogic.tools.website_search", "WebScraperTool"),
+    "web_research_tool": lambda: _import_tool("quantalogic.tools.utilities", "WebResearchTool"),
 
     "legal_classifier_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalClassifierTool"),
     "legal_letter_analyzer_tool": lambda: _import_tool("quantalogic.tools.utilities", "LegalLetterAnalyzerTool"),
@@ -473,6 +474,7 @@ def create_custom_agent(
         "linkup_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["linkup_llm_tool"](),**get_llm_params(params)),
         "perplexity_requests_tool": lambda params: create_tool_instance(TOOL_IMPORTS["perplexity_requests_tool"](),**get_llm_params(params)),
         "perplexity_deep_search_tool": lambda params: create_tool_instance(TOOL_IMPORTS["perplexity_deep_search_tool"](),**get_llm_params(params)),
+        "web_research_tool": lambda params: create_tool_instance(TOOL_IMPORTS["web_research_tool"](),**get_llm_params(params)),
 
         "website_search_tool": lambda params: create_tool_instance(TOOL_IMPORTS["website_search_tool"](),**get_llm_params(params)),
         "web_scraper_llm_tool": lambda params: create_tool_instance(TOOL_IMPORTS["web_scraper_llm_tool"](),**get_llm_params(params)),

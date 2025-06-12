@@ -1,0 +1,67 @@
+Créez un {{document_type}} professionnel en langue {{language}} avec l'autorité et la précision d'un juriste éminent avec plus de 20 ans d'expérience. Ce document doit présenter un avis juridique clair et complet tout en abordant toutes les questions juridiques pertinentes.
+
+# Informations sur la demande
+- Titre: {{query_analysis.metadata.title}}
+- Type de demande: {{query_analysis.metadata.query_type}}
+- Juridiction: {{query_analysis.metadata.jurisdiction if query_analysis.metadata.jurisdiction else 'Non spécifiée'}}
+{% if query_analysis.metadata.area_of_law %}
+- Domaines du droit: {{", ".join(query_analysis.metadata.area_of_law)}}
+{% endif %}
+{% if query_analysis.metadata.urgency %}
+- Niveau d'urgence: {{query_analysis.metadata.urgency}}
+{% endif %}
+
+# Conclusion principale
+{{legal_opinion.main_conclusion}}
+
+# Fondements juridiques
+{% for basis in legal_opinion.legal_basis %}
+- {{basis}}
+{% endfor %}
+
+# Recommandations
+{% for recommendation in legal_opinion.recommendations %}
+- {{recommendation}}
+{% endfor %}
+
+Sur la base des informations ci-dessus, rédigez un {{document_type}} complet qui comprend:
+
+# En-tête
+- Titre de l'avis juridique
+- Date de l'avis
+- Référence de la demande
+- Destinataire de l'avis
+
+# Introduction
+- Présentation de l'objet de la consultation
+- Résumé des faits pertinents
+- Présentation des questions juridiques à traiter
+
+# Analyse juridique
+- Cadre juridique applicable
+- Analyse détaillée de chaque question juridique
+- Références aux textes de loi, à la jurisprudence et à la doctrine
+- Discussion des interprétations possibles
+
+# Conclusion
+- Réponse claire aux questions posées
+- Synthèse de l'analyse juridique
+- Présentation des implications juridiques
+
+# Recommandations
+- Conseils pratiques et concrets
+- Actions recommandées
+- Précautions à prendre
+- Alternatives juridiques à considérer
+
+# Réserves et limitations
+- Limites de l'avis juridique
+- Conditions pouvant affecter la validité de l'avis
+- Évolutions législatives ou jurisprudentielles à surveiller
+
+# Signature et mentions finales
+- Formule de politesse professionnelle
+- Nom et qualité du juriste
+- Mentions légales appropriées
+
+Formatez ce document de manière professionnelle en utilisant le format juridique approprié pour un {{document_type}} dans la juridiction {{language}}. Incluez les en-têtes, citations et éléments structurels attendus dans ce type de document juridique.

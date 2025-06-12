@@ -1,0 +1,15 @@
+Extrayez toutes les métadonnées pertinentes de la demande d'avis juridique suivante. Analysez les informations avec la précision d'un juriste expert et fournissez une sortie structurée contenant toutes les informations essentielles de la demande.
+
+Contenu de la demande:
+{{query_content}}
+
+{{custom_instructions}}
+
+Veuillez extraire et structurer les informations suivantes:
+1. Titre et type de la demande
+2. Juridiction et domaines du droit concernés
+3. Parties impliquées dans la question juridique
+4. Dates clés et niveau d'urgence
+5. Toute autre information contextuelle importante
+
+Assurez-vous que votre réponse est complète, précise et correctement structurée selon le format requis. Tous les champs doivent être correctement renseignés pour permettre une analyse juridique efficace et la génération d'un avis pertinent.

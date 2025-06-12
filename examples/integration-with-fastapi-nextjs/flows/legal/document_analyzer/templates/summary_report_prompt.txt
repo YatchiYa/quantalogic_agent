@@ -1,0 +1,97 @@
+Create a comprehensive, executive-level legal report in {{language}} language with the authority and precision of a senior advocate with 20+ years of experience. This report should provide actionable insights and strategic guidance while maintaining the highest standards of legal analysis.
+
+# Document Information
+- Title: {{document_analysis.metadata.title}}
+- Type: {{document_analysis.metadata.document_type}}
+- Date: {{document_analysis.metadata.date if document_analysis.metadata.date else 'Not specified'}}
+- Sender: {{document_analysis.metadata.sender if document_analysis.metadata.sender else 'Not specified'}}
+- Recipient: {{document_analysis.metadata.recipient if document_analysis.metadata.recipient else 'Not specified'}}
+
+# Reference Information
+Reference Numbers:
+{% if document_analysis.metadata.reference_numbers %}
+{% for ref in document_analysis.metadata.reference_numbers %}
+- {{ref}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+# Legal Framework
+Laws Mentioned:
+{% if document_analysis.metadata.laws_mentioned %}
+{% for law in document_analysis.metadata.laws_mentioned %}
+- {{law}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+# Important Dates
+{% if document_analysis.metadata.key_dates %}
+{% for date_type, date_value in document_analysis.metadata.key_dates.items() %}
+- {{date_type}}: {{date_value}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+# Parties Involved
+{% for party in document_analysis.metadata.parties %}
+- {{party.name}} ({{party.role}})
+{% endfor %}
+
+# Executive Summary
+{{document_analysis.summary}}
+
+# Key Legal Provisions Analysis
+{% for clause in document_analysis.key_clauses %}
+## {{clause.title}} (Importance: {{clause.importance}})
+{{clause.content}}
+
+### Legal Implications:
+{% for issue in clause.potential_issues %}
+- {{issue}}
+{% endfor %}
+
+### Jurisdiction-Specific Considerations:
+- Interpretation under {{document_analysis.metadata.jurisdiction if document_analysis.metadata.jurisdiction else 'applicable'}} law
+- Enforceability assessment
+- Precedent relevance
+{% endfor %}
+
+# Comprehensive Risk Assessment
+## Direct Legal Risks
+{% for risk in document_analysis.risks %}
+- {{risk}}
+{% endfor %}
+
+## Strategic Implications
+- Short-term legal exposure
+- Long-term compliance considerations
+- Potential litigation scenarios
+- Contractual vulnerabilities
+
+# Expert Recommendations
+## Immediate Actions
+{% for recommendation in document_analysis.recommendations %}
+- {{recommendation}}
+{% endfor %}
+
+## Strategic Considerations
+- Negotiation positioning
+- Documentation requirements
+- Compliance framework
+- Risk mitigation strategies
+
+# Legal Timeline & Critical Deadlines
+- Key dates requiring immediate attention
+- Recurring obligations
+- Limitation periods
+- Notice requirements
+
+# Legal Terminology Glossary
+- Key terms defined with {{language}} legal context
+- Jurisdiction-specific interpretations
+
+Format this as a professional report using Markdown formatting. Include clear section headings and ensure the document is well-structured for readability. Make sure all information is comprehensive and detailed.

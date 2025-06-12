@@ -1,0 +1,34 @@
+Générez les métadonnées structurées pour une lettre juridique convaincante en tant que {{role}} dans l'affaire suivante. Ces métadonnées serviront à créer une lettre professionnelle et persuasive.
+
+# Informations sur l'affaire
+- Titre: {{case_metadata.case_title}}
+- Numéro: {{case_metadata.case_number if case_metadata.case_number else 'Non spécifié'}}
+- Tribunal: {{case_metadata.court}}
+- Juridiction: {{case_metadata.jurisdiction}}
+- Date de dépôt: {{case_metadata.filing_date if case_metadata.filing_date else 'Non spécifiée'}}
+- Juge: {{case_metadata.judge if case_metadata.judge else 'Non spécifié'}}
+- Date d'audience: {{case_metadata.hearing_date if case_metadata.hearing_date else 'Non spécifiée'}}
+
+# Parties impliquées
+{% for party in case_metadata.parties %}
+- {{party.name}} ({{party.role}}){% if party.representation %}, représenté(e) par {{party.representation}}{% endif %}
+{% endfor %}
+
+# Contenu du cas
+{{case_content}}
+
+# Rôle assigné
+Vous agissez en tant que: {{role}} (défense ou accusation)
+
+# Langue de la lettre
+{{language}}
+
+Sur la base des informations ci-dessus, veuillez générer les métadonnées structurées pour une lettre juridique convaincante qui comprend:
+
+1. L'expéditeur approprié avec son titre et ses coordonnées
+2. Le destinataire approprié avec son titre et ses coordonnées
+3. Un objet précis et impactant pour la lettre
+4. Le type de lettre juridique le plus approprié (requête, réponse, mise en demeure, etc.)
+5. Les numéros de référence pertinents (numéro d'affaire, etc.)
+
+Assurez-vous que ces métadonnées sont adaptées au rôle assigné ({{role}}) et conformes aux standards juridiques de la juridiction concernée.

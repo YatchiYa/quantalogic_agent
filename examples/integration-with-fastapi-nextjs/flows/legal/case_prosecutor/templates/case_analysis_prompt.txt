@@ -1,0 +1,80 @@
+Analyze the following legal case with the expertise of a senior prosecutor with 20+ years of litigation experience. Provide a comprehensive, structured analysis that will form the foundation for an effective prosecution strategy.
+
+Case Metadata:
+- Title: {{case_metadata.title}}
+- Type: {{case_metadata.case_type}}
+- Date: {{case_metadata.date if case_metadata.date else 'Not specified'}}
+- Jurisdiction: {{case_metadata.jurisdiction if case_metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{case_metadata.governing_law if case_metadata.governing_law else 'Not specified'}}
+- Plaintiff: {{case_metadata.plaintiff if case_metadata.plaintiff else 'Not specified'}}
+- Defendant: {{case_metadata.defendant if case_metadata.defendant else 'Not specified'}}
+
+Reference Information:
+{% if case_metadata.case_number %}
+- Case Number: {{case_metadata.case_number}}
+{% else %}
+- Case Number: Not specified
+{% endif %}
+
+Laws Cited:
+{% if case_metadata.laws_cited %}
+{% for law in case_metadata.laws_cited %}
+- {{law}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+Key Dates:
+{% if case_metadata.key_dates %}
+{% for date_type, date_value in case_metadata.key_dates.items() %}
+- {{date_type}}: {{date_value}}
+{% endfor %}
+{% else %}
+- None specified
+{% endif %}
+
+Parties Involved:
+{% for party in case_metadata.parties %}
+- {{party.name}} ({{party.role}})
+{% endfor %}
+
+Case Details:
+{{case_details}}
+
+{{custom_analysis_instructions}}
+
+Based on the above information, provide a comprehensive analysis that includes:
+
+1. REQUIRED: A thorough summary of the case that:
+   - Captures the core legal issues at stake
+   - Identifies the legal framework applicable to the case
+   - Analyzes the relative positions of all parties
+   - Evaluates the overall strength of the case
+   - THIS SUMMARY FIELD IS MANDATORY and must be included as a string in the 'summary' field
+
+2. Key evidence that:
+   - Identifies the strongest evidence for our prosecution
+   - Assesses each piece of evidence's strength (Strong, Medium, or Weak)
+   - Notes potential challenges or weaknesses for each piece of evidence
+   - Explains how the evidence supports our legal theories
+
+3. Case strengths from a prosecution perspective:
+   - Legal advantages
+   - Factual advantages
+   - Procedural advantages
+   - Evidentiary strengths
+
+4. Case weaknesses from a prosecution perspective:
+   - Legal challenges
+   - Factual challenges
+   - Procedural challenges
+   - Evidentiary weaknesses
+
+5. Legal theories that:
+   - Identify applicable legal frameworks
+   - Match facts to legal elements
+   - Consider alternative legal approaches
+   - Address potential defenses
+
+Ensure your analysis is thorough, nuanced, and strategically oriented to support the development of an effective prosecution strategy.

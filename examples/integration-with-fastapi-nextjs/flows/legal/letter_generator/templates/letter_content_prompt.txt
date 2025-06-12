@@ -1,0 +1,61 @@
+Générez le contenu d'une lettre juridique hautement persuasive en tant que {{role}} dans l'affaire suivante. Ce contenu doit être convaincant, étayé par des références précises aux lois et aux preuves pertinentes.
+
+# Informations sur l'affaire
+- Titre: {{case_metadata.case_title}}
+- Tribunal: {{case_metadata.court}}
+- Juridiction: {{case_metadata.jurisdiction}}
+
+# Parties impliquées
+{% for party in case_metadata.parties %}
+- {{party.name}} ({{party.role}})
+{% endfor %}
+
+# Métadonnées de la lettre
+- Expéditeur: {{letter_metadata.sender}} ({{letter_metadata.sender_title}})
+- Destinataire: {{letter_metadata.recipient}}{% if letter_metadata.recipient_title %} ({{letter_metadata.recipient_title}}){% endif %}
+- Objet: {{letter_metadata.subject}}
+- Type de lettre: {{letter_metadata.letter_type}}
+
+# Contenu du cas
+{{case_content}}
+
+# Rôle assigné
+Vous agissez en tant que: {{role}} (défense ou accusation)
+
+# Langue de la lettre
+{{language}}
+
+Sur la base des informations ci-dessus, veuillez générer le contenu complet d'une lettre juridique persuasive qui comprend:
+
+1. Une introduction percutante qui établit clairement le contexte et l'objectif de la lettre
+
+2. Un résumé factuel précis et stratégiquement formulé qui:
+   - Met en avant les faits favorables à votre position
+   - Présente objectivement les faits incontestables
+   - Minimise l'impact des faits défavorables
+
+3. Au moins trois arguments juridiques solides, chacun:
+   - Étayé par des références précises aux lois, codes, jurisprudences ou doctrines pertinentes
+   - Soutenu par des preuves spécifiques du dossier
+   - Anticipant et réfutant les contre-arguments potentiels
+
+4. Une formulation claire de l'action demandée (décision recherchée, mesure sollicitée, etc.)
+
+5. Une conclusion persuasive qui:
+   - Résume les points clés
+   - Renforce la légitimité de la demande
+   - Maintient un ton professionnel et respectueux
+
+6. Une liste des pièces jointes pertinentes (si applicable)
+
+Pour chaque argument juridique, incluez:
+- Des références précises aux articles de loi, jurisprudences ou doctrines (avec citations exactes)
+- Des liens explicites entre ces références et les faits spécifiques du cas
+- Une analyse de la façon dont ces références soutiennent votre position
+
+Pour chaque preuve citée, précisez:
+- Sa nature et sa source
+- Sa force probante
+- Sa pertinence directe par rapport à l'argument avancé
+
+Assurez-vous que votre contenu est adapté au rôle assigné ({{role}}) et qu'il présente les arguments les plus convaincants possibles tout en restant rigoureusement exact sur le plan juridique.

@@ -1,0 +1,72 @@
+Analysez la demande d'avis juridique suivante avec l'expertise d'un juriste ayant plus de 20 ans d'expérience. Fournissez une analyse complète et structurée qui servira de base à un avis juridique professionnel.
+
+Métadonnées de la demande:
+- Titre: {{query_metadata.title}}
+- Type de demande: {{query_metadata.query_type}}
+- Juridiction: {{query_metadata.jurisdiction if query_metadata.jurisdiction else 'Non spécifiée'}}
+
+Domaines du droit concernés:
+{% if query_metadata.area_of_law %}
+{% for area in query_metadata.area_of_law %}
+- {{area}}
+{% endfor %}
+{% else %}
+- Non spécifiés
+{% endif %}
+
+Parties impliquées:
+{% if query_metadata.parties_involved %}
+{% for party in query_metadata.parties_involved %}
+- {{party}}
+{% endfor %}
+{% else %}
+- Non spécifiées
+{% endif %}
+
+Dates clés:
+{% if query_metadata.key_dates %}
+{% for date_type, date_value in query_metadata.key_dates.items() %}
+- {{date_type}}: {{date_value}}
+{% endfor %}
+{% else %}
+- Aucune date clé spécifiée
+{% endif %}
+
+Niveau d'urgence:
+{% if query_metadata.urgency %}
+- {{query_metadata.urgency}}
+{% else %}
+- Non spécifié
+{% endif %}
+
+Contenu de la demande:
+{{query_content}}
+
+{{custom_analysis_instructions}}
+
+Sur la base des informations ci-dessus, veuillez fournir une analyse complète qui comprend:
+
+1. OBLIGATOIRE: Un résumé approfondi de la demande qui:
+   - Capture les questions juridiques essentielles en jeu
+   - Identifie le cadre juridique applicable à la demande
+   - Évalue la complexité globale de la demande
+   - CE CHAMP RÉSUMÉ EST OBLIGATOIRE et doit être inclus sous forme de chaîne de caractères dans le champ 'summary'
+
+2. Les questions juridiques identifiées:
+   - Titre et description de chaque question juridique
+   - Lois applicables à chaque question
+   - Évaluation de la complexité de chaque question (Élevée, Moyenne ou Faible)
+
+3. Les références juridiques clés:
+   - Lois et règlements pertinents
+   - Jurisprudence applicable
+   - Doctrine et autres sources juridiques pertinentes
+   - Évaluation de la pertinence de chaque référence (Élevée, Moyenne ou Faible)
+
+4. Une évaluation globale de la complexité de la demande (Élevée, Moyenne ou Faible) qui tient compte:
+   - De la complexité des questions juridiques
+   - De l'état du droit sur ces questions
+   - Des faits spécifiques présentés dans la demande
+   - Des implications potentielles de l'avis
+
+Assurez-vous que votre analyse est approfondie, nuancée et orientée vers la formulation d'un avis juridique pertinent et utile.

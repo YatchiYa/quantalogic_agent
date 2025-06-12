@@ -1,0 +1,62 @@
+Create a professional, persuasive {{document_type}} in {{language}} language with the authority and precision of a senior prosecutor with 20+ years of experience. This document should present our prosecution position effectively while addressing all relevant legal and factual issues.
+
+# Case Information
+- Title: {{case_analysis.metadata.title}}
+- Type: {{case_analysis.metadata.case_type}}
+- Jurisdiction: {{case_analysis.metadata.jurisdiction if case_analysis.metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{case_analysis.metadata.governing_law if case_analysis.metadata.governing_law else 'Not specified'}}
+- Plaintiff: {{case_analysis.metadata.plaintiff if case_analysis.metadata.plaintiff else 'Not specified'}}
+- Defendant: {{case_analysis.metadata.defendant if case_analysis.metadata.defendant else 'Not specified'}}
+{% if case_analysis.metadata.case_number %}
+- Case Number: {{case_analysis.metadata.case_number}}
+{% endif %}
+
+# Prosecution Strategy
+- Primary Legal Theory: {{prosecution_strategy.primary_legal_theory}}
+- Recommended Charges: 
+{% for charge in prosecution_strategy.recommended_charges %}
+  - {{charge}}
+{% endfor %}
+
+# Key Evidence
+{% for evidence in case_analysis.key_evidence %}
+## {{evidence.title}} (Strength: {{evidence.strength}})
+{{evidence.description}}
+{% endfor %}
+
+Based on the above information, draft a comprehensive {{document_type}} that includes:
+
+# Introduction
+- Clear statement of prosecution authority
+- Brief case summary
+- Statement of charges
+
+# Factual Background
+- Chronological presentation of relevant facts
+- Emphasis on facts supporting the charges
+- Clear connection between facts and legal elements
+
+# Legal Framework
+- Applicable laws and statutes
+- Elements of each offense charged
+- Burden of proof standard
+- Relevant legal precedents
+
+# Evidence Presentation
+- Description of key evidence supporting each charge
+- Connection between evidence and elements of offenses
+- Anticipation and refutation of potential defense arguments
+- Chain of evidence considerations
+
+# Charges
+- Formal statement of each charge
+- Elements of each offense and how they are satisfied
+- Alternative or lesser included charges if applicable
+- Aggravating factors if applicable
+
+# Conclusion
+- Summary of key points
+- Request for appropriate action (indictment, conviction, etc.)
+- Professional closing
+
+Format this document professionally using appropriate legal formatting for a {{document_type}} in {{language}} jurisdiction. Include proper headings, citations, and structural elements expected in this type of legal document.

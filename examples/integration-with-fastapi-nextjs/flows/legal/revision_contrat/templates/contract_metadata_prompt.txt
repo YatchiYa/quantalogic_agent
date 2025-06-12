@@ -1,0 +1,15 @@
+Extrayez toutes les métadonnées pertinentes du contrat suivant. Analysez les informations avec la précision d'un juriste expert en droit des contrats et fournissez une sortie structurée contenant toutes les informations essentielles du contrat.
+
+Contenu du contrat:
+{{contract_content}}
+
+{{custom_instructions}}
+
+Veuillez extraire et structurer les informations suivantes:
+1. Titre et type du contrat
+2. Dates clés (date de signature, date d'effet, date de résiliation)
+3. Juridiction et loi applicable
+4. Parties au contrat avec leurs rôles respectifs
+5. Obligations et droits principaux de chaque partie
+
+Assurez-vous que votre réponse est complète, précise et correctement structurée selon le format requis. Tous les champs doivent être correctement renseignés pour permettre une analyse contractuelle efficace et une révision pertinente.

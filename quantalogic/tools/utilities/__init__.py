@@ -26,6 +26,7 @@ from .defender_llm_tool import DefenderLLMTool
 from .judicial_analytics_tool import JudicialAnalyticsTool
 from .prosecutor_llm_tool import ProsecutorLLMTool  
 from .llm_for_context_tool import DocumentLLMTool
+from .web_search_tool import WebResearchTool
 
 # Define __all__ to control what is imported with `from ... import *`
 __all__ = [
@@ -45,6 +46,7 @@ __all__ = [
     'JudicialAnalyticsTool',
     'ProsecutorLLMTool',
     'DocumentLLMTool',
+    'WebResearchTool',
 ]
 
 # Optional: Add logging for import confirmation

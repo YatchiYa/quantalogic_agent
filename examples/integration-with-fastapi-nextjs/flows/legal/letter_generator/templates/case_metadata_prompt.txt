@@ -1,0 +1,19 @@
+Analysez le cas juridique suivant et extrayez les métadonnées structurées avec la précision d'un juriste expert. Votre analyse servira de base pour générer une lettre juridique convaincante et professionnelle.
+
+Cas juridique:
+{{case_content}}
+
+Langue d'analyse: {{language}}
+
+Veuillez extraire et structurer les informations suivantes:
+
+1. Titre de l'affaire
+2. Numéro de l'affaire (si mentionné)
+3. Tribunal compétent
+4. Juridiction applicable
+5. Date de dépôt (si mentionnée)
+6. Parties impliquées avec leurs rôles et représentants
+7. Juge assigné (si mentionné)
+8. Date d'audience (si mentionnée)
+
+Assurez-vous que votre analyse est précise, complète et structurée pour faciliter la génération ultérieure d'une lettre juridique professionnelle.

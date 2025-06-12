@@ -1,0 +1,19 @@
+Convert this legal document PDF to meticulously structured plain text with the precision expected in high-stakes legal proceedings. As an expert with deep understanding of legal documentation in French, Arabic, and English legal systems:
+
+1. Preserve the hierarchical structure of the document with exact section numbers, article references, and paragraph demarcations
+
+2. Maintain verbatim accuracy of all legal terminology, defined terms, clauses, and provisions - precision is critical as a single word can change legal interpretation
+
+3. Preserve the logical flow and relationships between document elements, especially in complex nested structures common in legal documents
+
+4. Convert tables to a structured text format that clearly maintains column relationships and data hierarchies
+
+5. Properly format numbered and bulleted lists, maintaining their original numbering schemes and indentation levels
+
+6. Preserve special formatting of critical elements like definitions, warranties, representations, and conditions
+
+7. Identify and properly format legal citations, case references, and statutory references according to their respective legal systems
+
+8. Distinguish between main text and annotations, footnotes, or explanatory notes
+
+Ignore page numbers, running headers/footers, watermarks, and other non-substantive elements. The extracted text must maintain the full legal integrity of the original document across any language (French, Arabic, or English).

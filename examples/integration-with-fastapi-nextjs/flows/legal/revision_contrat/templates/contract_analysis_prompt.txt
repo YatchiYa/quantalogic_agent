@@ -1,0 +1,77 @@
+Analysez le contrat suivant avec l'expertise d'un juriste spécialisé en droit des contrats avec plus de 20 ans d'expérience. Fournissez une analyse complète et structurée qui servira de base à une révision contractuelle efficace.
+
+Métadonnées du contrat:
+- Titre: {{contract_metadata.title}}
+- Type de contrat: {{contract_metadata.contract_type}}
+- Date d'effet: {{contract_metadata.effective_date if contract_metadata.effective_date else 'Non spécifiée'}}
+- Date de résiliation: {{contract_metadata.termination_date if contract_metadata.termination_date else 'Non spécifiée'}}
+- Juridiction: {{contract_metadata.jurisdiction if contract_metadata.jurisdiction else 'Non spécifiée'}}
+- Loi applicable: {{contract_metadata.governing_law if contract_metadata.governing_law else 'Non spécifiée'}}
+
+Parties au contrat:
+{% for party in contract_metadata.parties %}
+## {{party.name}} ({{party.role}})
+{% if party.obligations %}
+### Obligations:
+{% for obligation in party.obligations %}
+- {{obligation}}
+{% endfor %}
+{% endif %}
+{% if party.rights %}
+### Droits:
+{% for right in party.rights %}
+- {{right}}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+Dates clés:
+{% if contract_metadata.key_dates %}
+{% for date_type, date_value in contract_metadata.key_dates.items() %}
+- {{date_type}}: {{date_value}}
+{% endfor %}
+{% else %}
+- Aucune date clé spécifiée
+{% endif %}
+
+Contenu du contrat:
+{{contract_content}}
+
+{{custom_analysis_instructions}}
+
+Sur la base des informations ci-dessus, veuillez fournir une analyse complète qui comprend:
+
+1. OBLIGATOIRE: Un résumé approfondi du contrat qui:
+   - Capture l'objet principal et la structure du contrat
+   - Identifie les engagements clés des parties
+   - Évalue l'équilibre général du contrat
+   - CE CHAMP RÉSUMÉ EST OBLIGATOIRE et doit être inclus sous forme de chaîne de caractères dans le champ 'summary'
+
+2. Une analyse détaillée de chaque clause qui:
+   - Identifie le titre et le contenu de la clause
+   - Relève les problèmes, ambiguïtés ou risques potentiels
+   - Évalue le niveau de risque (Élevé, Moyen ou Faible)
+   - Propose des recommandations d'amélioration
+
+3. Une liste des éléments manquants dans le contrat:
+   - Clauses standard absentes
+   - Protections juridiques manquantes
+   - Précisions nécessaires
+
+4. Une liste des ambiguïtés présentes dans le contrat:
+   - Termes vagues ou imprécis
+   - Contradictions internes
+   - Formulations susceptibles d'interprétations multiples
+
+5. Une liste des problèmes de conformité:
+   - Non-conformité avec la législation applicable
+   - Clauses potentiellement abusives
+   - Dispositions contraires à l'ordre public
+
+6. Une évaluation globale du risque contractuel qui tient compte:
+   - Des clauses à haut risque
+   - De l'équilibre général du contrat
+   - Des protections juridiques présentes ou absentes
+   - De la clarté et de la précision des termes
+
+Assurez-vous que votre analyse est approfondie, nuancée et orientée vers l'amélioration du contrat.

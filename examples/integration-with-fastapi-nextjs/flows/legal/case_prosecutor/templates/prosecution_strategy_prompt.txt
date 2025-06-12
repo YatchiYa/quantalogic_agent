@@ -1,0 +1,85 @@
+Develop a comprehensive prosecution strategy for the following case with the expertise of a senior legal strategist. Your strategy should provide clear, actionable guidance for prosecuting this case effectively.
+
+Case Summary:
+{{case_analysis.summary}}
+
+Key Evidence:
+{% for evidence in case_analysis.key_evidence %}
+## {{evidence.title}} (Strength: {{evidence.strength}})
+{{evidence.description}}
+
+{% if evidence.challenges %}
+### Potential Challenges:
+{% for challenge in evidence.challenges %}
+- {{challenge}}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+Case Strengths:
+{% for strength in case_analysis.strengths %}
+- {{strength}}
+{% endfor %}
+
+Case Weaknesses:
+{% for weakness in case_analysis.weaknesses %}
+- {{weakness}}
+{% endfor %}
+
+Legal Theories:
+{% for theory in case_analysis.legal_theories %}
+- {{theory}}
+{% endfor %}
+
+Case Metadata:
+- Title: {{case_analysis.metadata.title}}
+- Type: {{case_analysis.metadata.case_type}}
+- Jurisdiction: {{case_analysis.metadata.jurisdiction if case_analysis.metadata.jurisdiction else 'Not specified'}}
+- Governing Law: {{case_analysis.metadata.governing_law if case_analysis.metadata.governing_law else 'Not specified'}}
+
+{{custom_instructions}}
+
+Based on the above information, develop a comprehensive prosecution strategy that includes:
+
+1. A primary legal theory that:
+   - Aligns with the available evidence
+   - Addresses the elements of the offense
+   - Maximizes chances of conviction
+   - Provides a coherent narrative for the prosecution
+
+2. Secondary legal theories that:
+   - Offer alternative approaches if the primary theory faces challenges
+   - Address different aspects of the case
+   - Provide contingency options for various scenarios
+
+3. Key evidence presentation strategy:
+   - Order and manner of presenting evidence
+   - How to strengthen or mitigate weaknesses in evidence
+   - Connecting evidence to legal elements
+   - Visual aids or demonstrative evidence recommendations
+
+4. Witness strategy:
+   - Approach to witness examination
+   - Preparation recommendations
+   - Anticipation of cross-examination challenges
+   - Expert witness considerations
+
+5. Anticipated defenses and counter-strategies:
+   - Likely defense arguments
+   - Prepared responses to each defense
+   - Pre-emptive evidence or arguments
+   - Procedural considerations
+
+6. Burden of proof strategy:
+   - Approach to meeting the required standard of proof
+   - Key elements requiring particular focus
+   - Addressing potential gaps in evidence
+   - Narrative strategy for convincing the trier of fact
+
+7. Recommended charges:
+   - Primary charges supported by evidence
+   - Alternative or lesser included charges
+   - Charging strategy considerations
+   - Potential plea bargaining positions
+
+Ensure your strategy is practical, legally sound, and tailored to the specific circumstances of this case.
