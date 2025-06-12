@@ -2,12 +2,13 @@
 
 import asyncio
 import json
-from typing import Dict, List, Optional, AsyncGenerator
+from typing import Dict, List, Optional, AsyncGenerator, Any
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from loguru import logger
 import litellm
+from litellm import completion_cost, token_counter
 
 from quantalogic.generative_model import GenerativeModel, Message
 from quantalogic.memory import AgentMemory
@@ -90,6 +91,7 @@ class ChatResponse(BaseModel):
     response: str = Field(..., description="The model's response")
     session_id: str = Field(..., description="Session identifier")
     sources: Optional[List[str]] = Field(default=None, description="Web sources if web search was used")
+    usage: Optional[Dict[str, Any]] = Field(default=None, description="Token usage and cost information")
 
 def get_or_create_memory(session_id: str) -> AgentMemory:
     """Get or create memory for a session."""
@@ -107,21 +109,98 @@ def update_system_prompt(session_id: str, new_prompt: Optional[str]) -> None:
             chat_sessions[session_id] = AgentMemory()
 
 def track_cost_callback(kwargs, completion_response, start_time, end_time):
-    """Track cost of LiteLLM API calls."""
+    """Track cost of LiteLLM API calls using the built-in LiteLLM functions."""
     try:
-        response_cost = kwargs.get("response_cost", 0)
-        logger.info(f"API call cost: {response_cost}")
+        # Get the model name from kwargs if available
+        model_name = kwargs.get("model", "default")
+        
+        # Extract messages from kwargs for token counting
+        messages = kwargs.get("messages", [])
+        
+        # Calculate prompt tokens using LiteLLM's token_counter
+        prompt_tokens = token_counter(model=model_name, messages=messages)
+        
+        # Get assistant response content for token counting
+        assistant_content = ""
+        if hasattr(completion_response, 'choices') and len(completion_response.choices) > 0:
+            if hasattr(completion_response.choices[0], 'message'):
+                assistant_content = completion_response.choices[0].message.content
+        
+        # Calculate completion tokens using LiteLLM's token_counter
+        completion_tokens = 0
+        if assistant_content:
+            completion_tokens = token_counter(model=model_name, messages=[{"role": "assistant", "content": assistant_content}])
+        
+        # Calculate total tokens
+        total_tokens = prompt_tokens + completion_tokens
+        
+        # Calculate cost using LiteLLM's completion_cost
+        response_cost = completion_cost(completion_response=completion_response)
+        
+        logger.info(f"API call cost: ${response_cost:.10f}, Tokens: {prompt_tokens}/{completion_tokens}/{total_tokens} (prompt/completion/total)")
+        
+        # Store usage data in the kwargs so it can be accessed by the calling function
+        usage_data = {
+            "cost": response_cost,
+            "prompt_tokens": prompt_tokens,
+            "completion_tokens": completion_tokens,
+            "total_tokens": total_tokens,
+            "timestamp": end_time.isoformat() if end_time else None
+        }
+        kwargs["usage_data"] = usage_data
+        
+        # Store the last usage data for access by other functions
+        litellm._last_usage_data = usage_data
     except Exception as e:
         logger.error(f"Error tracking cost: {str(e)}")
 
 # Set LiteLLM callback
 litellm.success_callback = [track_cost_callback]
 
-async def stream_response(response_iter, session_id=None, user_message=None):
+# Add a place to store the last usage data
+litellm._last_usage_data = {}
+
+def estimate_tokens(text: str, model: str = "gpt-3.5-turbo") -> int:
+    """Estimate the number of tokens in a text string using LiteLLM's token_counter.
+    
+    Args:
+        text: The text to estimate tokens for
+        model: The model to use for token counting
+        
+    Returns:
+        Estimated token count
+    """
+    if not text:
+        return 0
+        
+    # Use litellm's token_counter for accurate token counting
+    return token_counter(model=model, messages=[{"role": "user", "content": text}])
+
+def log_token_usage(session_id: str, model: str, usage_data: Dict[str, Any]):
+    """Log detailed token usage and cost information."""
+    prompt_tokens = usage_data.get("prompt_tokens", 0)
+    completion_tokens = usage_data.get("completion_tokens", 0)
+    total_tokens = usage_data.get("total_tokens", 0)
+    cost = usage_data.get("cost", 0.0)
+    
+    logger.info(f"===== TOKEN USAGE REPORT =====")
+    logger.info(f"Session: {session_id}")
+    logger.info(f"Model: {model}")
+    logger.info(f"Prompt tokens: {prompt_tokens}")
+    logger.info(f"Completion tokens: {completion_tokens}")
+    logger.info(f"Total tokens: {total_tokens}")
+    logger.info(f"Cost: ${cost:.6f}")
+    logger.info(f"==============================")
+
+async def stream_response(response_iter, session_id=None, user_message=None, model=None, messages=None):
     """Stream response chunks and update memory when done."""
     logger.info(f"Streaming response for session {session_id}")
     logger.info(f"User message: {user_message}")
     full_response = ""
+    # Track tokens for streaming responses
+    completion_tokens = 0
+    # Store the messages for token counting
+    original_messages = messages or []
     try:
         # Register this stream as active if we have a session_id
         if session_id:
@@ -139,6 +218,7 @@ async def stream_response(response_iter, session_id=None, user_message=None):
                     content = chunk.choices[0].delta.content
                     if content:
                         full_response += content
+                        # No need to increment token count here as we'll estimate at the end
                         yield f"data: {json.dumps({'content': content})}\n\n"
         else:  # Handle sync iterator
             for chunk in response_iter:
@@ -151,6 +231,7 @@ async def stream_response(response_iter, session_id=None, user_message=None):
                     content = chunk.choices[0].delta.content
                     if content:
                         full_response += content
+                        # No need to increment token count here as we'll estimate at the end
                         yield f"data: {json.dumps({'content': content})}\n\n"
     except Exception as e:
         logger.error(f"Error in stream_response: {str(e)}")
@@ -159,7 +240,7 @@ async def stream_response(response_iter, session_id=None, user_message=None):
         # Clean up active stream tracking
         if session_id and session_id in active_streams:
             del active_streams[session_id]
-            logger.info(f"Finished streaming for session {session_id}")
+            # We'll log the token count after we've calculated it properly
             
         # Update memory if session_id and user_message are provided
         if session_id and user_message and full_response:
@@ -180,6 +261,75 @@ async def stream_response(response_iter, session_id=None, user_message=None):
         if session_id and not active_streams.get(session_id, True):
             yield f"data: {json.dumps({'cancelled': True})}\n\n"
             
+        # Use LiteLLM's token_counter for the full response
+        if full_response:
+            # Get model name from session
+            model_name = model
+            
+            # Calculate completion tokens using LiteLLM's token_counter
+            completion_tokens = token_counter(model=model_name, messages=[{"role": "assistant", "content": full_response}])
+            
+            # Calculate prompt tokens directly from the original messages
+            prompt_tokens = 0
+            cost = 0.0
+            try:
+                # First try to get prompt tokens from the original messages
+                if original_messages:
+                    prompt_tokens = token_counter(model=model_name, messages=original_messages)
+                    logger.info(f"Calculated prompt tokens directly: {prompt_tokens}")
+                
+                # If we couldn't get prompt tokens from original messages, try the callback data
+                if prompt_tokens == 0:
+                    callback_data = getattr(litellm, "_last_usage_data", {})
+                    if callback_data and "prompt_tokens" in callback_data:
+                        prompt_tokens = callback_data["prompt_tokens"]
+                        logger.info(f"Got prompt tokens from callback: {prompt_tokens}")
+                
+                # If we still don't have prompt tokens and we have a user message, estimate from that
+                if prompt_tokens == 0 and user_message:
+                    # Get memory for this session if available
+                    memory = chat_sessions.get(session_id)
+                    if memory:
+                        # Create messages from memory
+                        memory_messages = [{"role": msg.role, "content": msg.content} for msg in memory.memory]
+                        # Add the current user message
+                        memory_messages.append({"role": "user", "content": user_message})
+                        # Calculate tokens
+                        prompt_tokens = token_counter(model=model_name, messages=memory_messages)
+                        logger.info(f"Calculated prompt tokens from memory: {prompt_tokens}")
+                
+                # Create a mock completion response to calculate cost
+                mock_response = {
+                    "usage": {
+                        "prompt_tokens": prompt_tokens,
+                        "completion_tokens": completion_tokens,
+                        "total_tokens": prompt_tokens + completion_tokens
+                    },
+                    "model": model_name
+                }
+                
+                # Calculate cost using LiteLLM's completion_cost
+                cost = completion_cost(completion_response=mock_response)
+                logger.info(f"Calculated streaming cost using LiteLLM: ${cost:.10f}")
+            except Exception as e:
+                logger.error(f"Error calculating cost with LiteLLM for streaming: {str(e)}")
+            
+            # Send final usage data before completing
+            usage_data = {
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": prompt_tokens + completion_tokens,
+                "cost": cost
+            }
+            
+            logger.info(f"Streaming response completed for session {session_id}")
+            logger.info(f"Token usage: {prompt_tokens} prompt, {completion_tokens} completion, {prompt_tokens + completion_tokens} total, Cost: ${cost:.10f}")
+            
+            # Make sure the usage data is sent as a separate event
+            yield f"data: {json.dumps({'usage': usage_data, 'model': model_name})}\n\n"
+        else:
+            # No response generated
+            yield f"data: {json.dumps({'usage': {'completion_tokens': 0, 'total_tokens': 0, 'cost': 0.0}})}\n\n"
         yield "data: [DONE]\n\n"
 
 def get_prompt_by_persona_mode(persona_mode: str):
@@ -284,8 +434,15 @@ async def send_message(request: ChatRequest):
                 stream_options={"include_usage": True}
             )
             
+            # Create streaming response
             return StreamingResponse(
-                stream_response(response_iter, session_id=request.session_id, user_message=request.message),
+                stream_response(
+                    response_iter, 
+                    session_id=request.session_id, 
+                    user_message=request.message, 
+                    model=request.model,
+                    messages=messages  # Pass the messages for token counting
+                ),
                 media_type="text/event-stream"
             )
         else:
@@ -299,6 +456,43 @@ async def send_message(request: ChatRequest):
             )
             response_content = final_response.choices[0].message.content
             
+            # Extract usage information
+            usage_data = {}
+            if hasattr(final_response, 'usage'):
+                usage_data = {
+                    "prompt_tokens": final_response.usage.prompt_tokens,
+                    "completion_tokens": final_response.usage.completion_tokens,
+                    "total_tokens": final_response.usage.total_tokens,
+                    "cost": 0.0  # Will be updated by callback if available
+                }
+                logger.debug(f"================================  Final response usage: {usage_data}")
+                
+            # Get cost from the LiteLLM callback
+            try:
+                # Get the most recent callback data for this model
+                callback_data = getattr(litellm, "_last_usage_data", {})
+                logger.debug(f"LiteLLM callback data: {callback_data}")
+                
+                if callback_data and "cost" in callback_data:
+                    usage_data["cost"] = callback_data["cost"]
+                    logger.info(f"Cost from LiteLLM callback: ${callback_data['cost']:.6f}")
+                else:
+                    # If no cost data available from callback, calculate it using our pricing module
+                    if "prompt_tokens" in usage_data and "completion_tokens" in usage_data:
+                        prompt_tokens = usage_data["prompt_tokens"]
+                        completion_tokens = usage_data["completion_tokens"]
+                        usage_data["cost"] = calculate_cost(request.model, prompt_tokens, completion_tokens)
+                        logger.info(f"Calculated cost using pricing module: ${usage_data['cost']:.6f}")
+                    else:
+                        usage_data["cost"] = 0.0
+                        logger.warning("No token data available to calculate cost")
+            except Exception as e:
+                logger.error(f"Error getting cost data from LiteLLM: {str(e)}")
+                usage_data["cost"] = 0.0
+                
+            # Log detailed usage information
+            log_token_usage(request.session_id, request.model, usage_data)
+            
             # Add messages to memory
             memory.add(Message(role="user", content=request.message))
             memory.add(Message(role="assistant", content=response_content))
@@ -310,7 +504,8 @@ async def send_message(request: ChatRequest):
             return ChatResponse(
                 response=response_content,
                 session_id=request.session_id,
-                sources=sources if sources else None
+                sources=sources if sources else None,
+                usage=usage_data
             )
         
     except Exception as e:

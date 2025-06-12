@@ -194,6 +194,27 @@ class TalkWithDocumentRequest(BaseModel):
     llm_model: Optional[str] = None
     model_name: Optional[str] = None
 
+class DefendLegalCaseRequest(BaseModel):
+    case_details: str 
+    analysis_model: str
+    strategy_model: str
+    defense_model: str
+    language: str = "French"
+    document_type: str = "legal_brief"
+    custom_metadata_instructions: str = ""
+    custom_analysis_instructions: str = ""
+    output_dir: Optional[str] = None 
+
+class ContractRevisionRequest(BaseModel):
+    contract_content: str  
+    analysis_model: str
+    revision_model: str
+    language: str = "French"
+    custom_metadata_instructions: str = ""
+    custom_analysis_instructions: str = ""
+    custom_revision_instructions: str = ""
+    output_dir: Optional[str] = None
+
 class GitAnalyzeRequest(BaseModel):
     repo_url: str
     auth_token: Optional[str] = None

@@ -38,7 +38,7 @@ from quantalogic.agent_config import (
 from quantalogic.agent_factory import AgentRegistry, create_agent_for_mode
 from quantalogic.console_print_events import console_print_events
 from quantalogic.task_runner import configure_logger
-from .utils import handle_sigterm, get_version
+# from .utils import handle_sigterm, get_version
 from .app_state import server_state, agent_state
 from .models import UPLOAD_DIR, AgentConfig, AnalyzePaperRequest, BookNovelRequest, ConvertRequest, CourseRequest, EventMessage, ImageAnalysisRequest, ImageGenerationRequest, JourneyRequest, LinkedInIntroduceContentRequest, QuizRequest, ToolConfig, ToolParameters, TutorialRequest, UserValidationRequest, UserValidationResponse, TaskSubmission, TaskStatus
 from .AgentState import AgentState
@@ -72,7 +72,7 @@ logger.add(
 # Create upload directory if it doesn't exist
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-signal.signal(signal.SIGTERM, handle_sigterm)
+# signal.signal(signal.SIGTERM, handle_sigterm)
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):

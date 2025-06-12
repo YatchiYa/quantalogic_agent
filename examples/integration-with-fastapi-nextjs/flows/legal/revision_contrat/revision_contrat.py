@@ -13,6 +13,7 @@ from rich.markdown import Markdown
 from rich.panel import Panel
 
 from quantalogic.flow.flow import Nodes, Workflow
+from ...service import event_observer
 
 # Initialize Typer app and rich console
 app = typer.Typer(help="Réviser des contrats en utilisant des LLMs avec des templates personnalisables")
@@ -209,6 +210,15 @@ async def revise_contract(
     try:
         workflow = create_contract_revision_workflow()
         engine = workflow.build()
+        
+        
+        # Add the event observer if _handle_event is provided
+        if _handle_event:
+            # Create a lambda to bind task_id to the observer
+            bound_observer = lambda event: asyncio.create_task(
+                event_observer(event, task_id=task_id, _handle_event=_handle_event)
+            )
+            engine.add_observer(bound_observer)
         
         result = await engine.run(initial_context)
         

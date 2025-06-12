@@ -12,7 +12,7 @@ from rich.console import Console
 from rich.markdown import Markdown
 from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
-
+from ...service import event_observer
 from quantalogic.flow.flow import Nodes, Workflow, WorkflowEvent, WorkflowEventType
 
 # Initialize Typer app and rich console
@@ -212,6 +212,13 @@ async def defend_legal_case(
     try:
         workflow = create_legal_case_defense_workflow()
         engine = workflow.build()
+        # Add the event observer if _handle_event is provided
+        if _handle_event:
+            # Create a lambda to bind task_id to the observer
+            bound_observer = lambda event: asyncio.create_task(
+                event_observer(event, task_id=task_id, _handle_event=_handle_event)
+            )
+            engine.add_observer(bound_observer)
         
         result = await engine.run(initial_context)
         

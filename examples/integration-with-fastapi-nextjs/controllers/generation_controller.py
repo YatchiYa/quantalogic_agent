@@ -5,6 +5,8 @@ from loguru import logger
 from ..models import (
     CompanyAnalyzeRequest,
     CompetitiveContentRequest,
+    ContractRevisionRequest,
+    DefendLegalCaseRequest,
     DocumentContext,
     FacebookContentRequest,
     GitAnalyzeRequest,
@@ -455,28 +457,6 @@ async def generate_competitive_content(request: CompetitiveContentRequest) -> Di
             detail=f"Failed to start competitive content generation: {str(e)}"
         )
 
-@router.post("/generate-talk-with-document")
-async def generate_talk_with_document(request: TalkWithDocumentRequest) -> Dict[str, str]:
-    """Generate talk with document content."""
-    try:
-        task_submission = TaskSubmission(task="generate_talk_with_document")
-        task_id = await agent_state.submit_task(task_submission)
-        logger.info(f"Talk with document generation task submitted with ID: {task_id}")
-        
-        asyncio.create_task(agent_state.execute_talk_with_document(task_id, request))
-        
-        return {
-            "status": "success",
-            "task_id": task_id,
-            "message": "Talk with document generation started"
-        }
-    except Exception as e:
-        logger.error(f"Error starting talk with document generation: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to start talk with document generation: {str(e)}"
-        )
-
 @router.post("/generate-git-report")
 async def generate_git_report(request: GitAnalyzeRequest) -> Dict[str, str]:
     """Generate Git report."""
@@ -564,3 +544,73 @@ async def generate_context_analysis(request: DocumentContext) -> Dict[str, str]:
             status_code=500,
             detail=f"Failed to start context analyze: {str(e)}"
         )
+
+
+
+
+@router.post("/generate-talk-with-document")
+async def generate_talk_with_document(request: TalkWithDocumentRequest) -> Dict[str, str]:
+    """Generate talk with document content."""
+    try:
+        task_submission = TaskSubmission(task="generate_talk_with_document")
+        task_id = await agent_state.submit_task(task_submission)
+        logger.info(f"Talk with document generation task submitted with ID: {task_id}")
+        
+        asyncio.create_task(agent_state.execute_talk_with_document(task_id, request))
+        
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "message": "Talk with document generation started"
+        }
+    except Exception as e:
+        logger.error(f"Error starting talk with document generation: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to start talk with document generation: {str(e)}"
+        )
+
+@router.post("/generate-defend-legal-case")
+async def generate_defend_legal_case(request: DefendLegalCaseRequest) -> Dict[str, str]:
+    """Generate defend legal case content."""
+    try:
+        task_submission = TaskSubmission(task="generate_defend_legal_case")
+        task_id = await agent_state.submit_task(task_submission)
+        logger.info(f"Defend legal case generation task submitted with ID: {task_id}")
+        
+        asyncio.create_task(agent_state.execute_defend_legal_case(task_id, request))
+        
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "message": "Defend legal case generation started"
+        }
+    except Exception as e:
+        logger.error(f"Error starting defend legal case generation: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to start defend legal case generation: {str(e)}"
+        )
+
+@router.post("/generate-contract-revision")
+async def generate_contract_revision(request: ContractRevisionRequest) -> Dict[str, str]:
+    """Generate contract revision content."""
+    try:
+        task_submission = TaskSubmission(task="generate_contract_revision")
+        task_id = await agent_state.submit_task(task_submission)
+        logger.info(f"Contract revision generation task submitted with ID: {task_id}")
+        
+        asyncio.create_task(agent_state.execute_contract_revision(task_id, request))
+        
+        return {
+            "status": "success",
+            "task_id": task_id,
+            "message": "Contract revision generation started"
+        }
+    except Exception as e:
+        logger.error(f"Error starting contract revision generation: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to start contract revision generation: {str(e)}"
+        )
+

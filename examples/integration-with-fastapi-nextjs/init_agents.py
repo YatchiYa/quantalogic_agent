@@ -1049,7 +1049,7 @@ Do not speculate, and always distinguish between legal fact, legal opinion, and 
             "parameters": {
                 "model_name": "openai/gpt-4o-mini",
                 "document_paths": [
-                    "/tmp/data/agents/1749678355051/code_civile.md"
+                    "docs/folder_test/code_civile.md"
                 ]
             }
         }
